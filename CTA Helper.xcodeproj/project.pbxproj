@@ -1,0 +1,726 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		01597BDB3016A663008AE3B6 /* XCUITestKit in Frameworks */ = {isa = PBXBuildFile; productRef = 01597BDA3016A663008AE3B6 /* XCUITestKit */; };
+		43BAC51A24D44E908F705515 /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = 311119389286435C82B937B5 /* Sentry */; };
+		CA0000000000000000000005 /* SwiftMETAR in Frameworks */ = {isa = PBXBuildFile; productRef = CA0000000000000000000003 /* SwiftMETAR */; };
+		CA0000000000000000000006 /* Gzip in Frameworks */ = {isa = PBXBuildFile; productRef = CA0000000000000000000004 /* Gzip */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		013A15283011372B00025551 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 013A15103011372B00025551 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 013A15173011372B00025551;
+			remoteInfo = "CTA Helper";
+		};
+		013A15323011372B00025551 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 013A15103011372B00025551 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 013A15173011372B00025551;
+			remoteInfo = "CTA Helper";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		013A15183011372B00025551 /* CTA Helper.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "CTA Helper.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		013A15273011372B00025551 /* CTA HelperTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "CTA HelperTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		013A15313011372B00025551 /* CTA HelperUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "CTA HelperUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		013A15A03011372B00025551 /* Exceptions for "CTA Helper" folder in "CTA Helper" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				CLAUDE.md,
+				Models/CLAUDE.md,
+				NavData/CLAUDE.md,
+			);
+			target = 013A15173011372B00025551 /* CTA Helper */;
+		};
+		013A15A13011372B00025551 /* Exceptions for "CTA HelperUITests" folder in "CTA HelperUITests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				CLAUDE.md,
+			);
+			target = 013A15303011372B00025551 /* CTA HelperUITests */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		013A151A3011372B00025551 /* CTA Helper */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				013A15A03011372B00025551 /* Exceptions for "CTA Helper" folder in "CTA Helper" target */,
+			);
+			path = "CTA Helper";
+			sourceTree = "<group>";
+		};
+		013A152A3011372B00025551 /* CTA HelperTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "CTA HelperTests";
+			sourceTree = "<group>";
+		};
+		013A15343011372B00025551 /* CTA HelperUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				013A15A13011372B00025551 /* Exceptions for "CTA HelperUITests" folder in "CTA HelperUITests" target */,
+			);
+			path = "CTA HelperUITests";
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		013A15153011372B00025551 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA0000000000000000000005 /* SwiftMETAR in Frameworks */,
+				CA0000000000000000000006 /* Gzip in Frameworks */,
+				43BAC51A24D44E908F705515 /* Sentry in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		013A15243011372B00025551 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		013A152E3011372B00025551 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				01597BDB3016A663008AE3B6 /* XCUITestKit in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		013A150F3011372B00025551 = {
+			isa = PBXGroup;
+			children = (
+				013A151A3011372B00025551 /* CTA Helper */,
+				013A152A3011372B00025551 /* CTA HelperTests */,
+				013A15343011372B00025551 /* CTA HelperUITests */,
+				013A15193011372B00025551 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		013A15193011372B00025551 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				013A15183011372B00025551 /* CTA Helper.app */,
+				013A15273011372B00025551 /* CTA HelperTests.xctest */,
+				013A15313011372B00025551 /* CTA HelperUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		013A15173011372B00025551 /* CTA Helper */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 013A153B3011372B00025551 /* Build configuration list for PBXNativeTarget "CTA Helper" */;
+			buildPhases = (
+				013A15143011372B00025551 /* Sources */,
+				013A15153011372B00025551 /* Frameworks */,
+				013A15163011372B00025551 /* Resources */,
+				05F1D8D18B7B4FE9BF4D9BD6 /* Upload Debug Symbols to Sentry */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				013A151A3011372B00025551 /* CTA Helper */,
+			);
+			name = "CTA Helper";
+			packageProductDependencies = (
+				CA0000000000000000000003 /* SwiftMETAR */,
+				CA0000000000000000000004 /* Gzip */,
+				311119389286435C82B937B5 /* Sentry */,
+			);
+			productName = "CTA Helper";
+			productReference = 013A15183011372B00025551 /* CTA Helper.app */;
+			productType = "com.apple.product-type.application";
+		};
+		013A15263011372B00025551 /* CTA HelperTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 013A153E3011372B00025551 /* Build configuration list for PBXNativeTarget "CTA HelperTests" */;
+			buildPhases = (
+				013A15233011372B00025551 /* Sources */,
+				013A15243011372B00025551 /* Frameworks */,
+				013A15253011372B00025551 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				013A15293011372B00025551 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				013A152A3011372B00025551 /* CTA HelperTests */,
+			);
+			name = "CTA HelperTests";
+			packageProductDependencies = (
+			);
+			productName = "CTA HelperTests";
+			productReference = 013A15273011372B00025551 /* CTA HelperTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		013A15303011372B00025551 /* CTA HelperUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 013A15413011372B00025551 /* Build configuration list for PBXNativeTarget "CTA HelperUITests" */;
+			buildPhases = (
+				013A152D3011372B00025551 /* Sources */,
+				013A152E3011372B00025551 /* Frameworks */,
+				013A152F3011372B00025551 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				013A15333011372B00025551 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				013A15343011372B00025551 /* CTA HelperUITests */,
+			);
+			name = "CTA HelperUITests";
+			packageProductDependencies = (
+				01597BDA3016A663008AE3B6 /* XCUITestKit */,
+			);
+			productName = "CTA HelperUITests";
+			productReference = 013A15313011372B00025551 /* CTA HelperUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		013A15103011372B00025551 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2660;
+				LastUpgradeCheck = 2660;
+				TargetAttributes = {
+					013A15173011372B00025551 = {
+						CreatedOnToolsVersion = 26.6;
+					};
+					013A15263011372B00025551 = {
+						CreatedOnToolsVersion = 26.6;
+						TestTargetID = 013A15173011372B00025551;
+					};
+					013A15303011372B00025551 = {
+						CreatedOnToolsVersion = 26.6;
+						TestTargetID = 013A15173011372B00025551;
+					};
+				};
+			};
+			buildConfigurationList = 013A15133011372B00025551 /* Build configuration list for PBXProject "CTA Helper" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 013A150F3011372B00025551;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				CA0000000000000000000001 /* XCRemoteSwiftPackageReference "SwiftMETAR" */,
+				CA0000000000000000000002 /* XCRemoteSwiftPackageReference "GzipSwift" */,
+				01597BD93016A663008AE3B6 /* XCRemoteSwiftPackageReference "XCUITestKit" */,
+				433C45F5269F45B6BC09085B /* XCRemoteSwiftPackageReference "sentry-cocoa" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 013A15193011372B00025551 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				013A15173011372B00025551 /* CTA Helper */,
+				013A15263011372B00025551 /* CTA HelperTests */,
+				013A15303011372B00025551 /* CTA HelperUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		013A15163011372B00025551 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		013A15253011372B00025551 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		013A152F3011372B00025551 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		05F1D8D18B7B4FE9BF4D9BD6 /* Upload Debug Symbols to Sentry */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Resources/DWARF/${TARGET_NAME}",
+			);
+			name = "Upload Debug Symbols to Sentry";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+			shellPath = /bin/sh;
+			shellScript = "# This script is responsible for uploading debug symbols and source context for Sentry.\nif [[ \"$(uname -m)\" == arm64 ]]; then\n  export PATH=\"/opt/homebrew/bin:$PATH\"\nfi\n\nif which sentry-cli >/dev/null; then\n  export SENTRY_ORG=timcodes\n  export SENTRY_PROJECT=cta-helper\n  ERROR=$(sentry-cli debug-files upload --include-sources \"$DWARF_DSYM_FOLDER_PATH\" 2>&1 >/dev/null)\n  if [ ! $? -eq 0 ]; then\n    echo \"warning: sentry-cli - $ERROR\"\n  fi\nelse\n  echo \"warning: sentry-cli not installed, download from https://github.com/getsentry/sentry-cli/releases\"\nfi\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		013A15143011372B00025551 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		013A15233011372B00025551 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		013A152D3011372B00025551 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		013A15293011372B00025551 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 013A15173011372B00025551 /* CTA Helper */;
+			targetProxy = 013A15283011372B00025551 /* PBXContainerItemProxy */;
+		};
+		013A15333011372B00025551 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 013A15173011372B00025551 /* CTA Helper */;
+			targetProxy = 013A15323011372B00025551 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		013A15393011372B00025551 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 2NFSK2WB24;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.3;
+			};
+			name = Debug;
+		};
+		013A153A3011372B00025551 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 2NFSK2WB24;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.3;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		013A153C3011372B00025551 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "CTA Helper/CTA Helper.entitlements";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 2NFSK2WB24;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				"EXCLUDED_SOURCE_FILE_NAMES[config=Release]" = "uiTest*.json";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 Tim Morgan";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "CTA Helper uses your location to list the airports nearest you.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "codes.tim.CTA-Helper";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		013A153D3011372B00025551 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "CTA Helper/CTA Helper.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 2NFSK2WB24;
+				ENABLE_PREVIEWS = NO;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				"EXCLUDED_SOURCE_FILE_NAMES[config=Release]" = "uiTest*.json";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 Tim Morgan";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "CTA Helper uses your location to list the airports nearest you.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "codes.tim.CTA-Helper";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		013A153F3011372B00025551 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 2NFSK2WB24;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "codes.tim.CTA-HelperTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/CTA Helper.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/CTA Helper";
+			};
+			name = Debug;
+		};
+		013A15403011372B00025551 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 2NFSK2WB24;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "codes.tim.CTA-HelperTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/CTA Helper.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/CTA Helper";
+			};
+			name = Release;
+		};
+		013A15423011372B00025551 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 2NFSK2WB24;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "codes.tim.CTA-HelperUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = "CTA Helper";
+			};
+			name = Debug;
+		};
+		013A15433011372B00025551 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 2NFSK2WB24;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "codes.tim.CTA-HelperUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = "CTA Helper";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		013A15133011372B00025551 /* Build configuration list for PBXProject "CTA Helper" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				013A15393011372B00025551 /* Debug */,
+				013A153A3011372B00025551 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		013A153B3011372B00025551 /* Build configuration list for PBXNativeTarget "CTA Helper" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				013A153C3011372B00025551 /* Debug */,
+				013A153D3011372B00025551 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		013A153E3011372B00025551 /* Build configuration list for PBXNativeTarget "CTA HelperTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				013A153F3011372B00025551 /* Debug */,
+				013A15403011372B00025551 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		013A15413011372B00025551 /* Build configuration list for PBXNativeTarget "CTA HelperUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				013A15423011372B00025551 /* Debug */,
+				013A15433011372B00025551 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		01597BD93016A663008AE3B6 /* XCRemoteSwiftPackageReference "XCUITestKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/RISCfuture/XCUITestKit";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+		433C45F5269F45B6BC09085B /* XCRemoteSwiftPackageReference "sentry-cocoa" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/getsentry/sentry-cocoa/";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 9.0.0;
+			};
+			traits = (
+			);
+		};
+		CA0000000000000000000001 /* XCRemoteSwiftPackageReference "SwiftMETAR" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/RISCfuture/SwiftMETAR";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.1.0;
+			};
+		};
+		CA0000000000000000000002 /* XCRemoteSwiftPackageReference "GzipSwift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/1024jp/GzipSwift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 7.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		01597BDA3016A663008AE3B6 /* XCUITestKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 01597BD93016A663008AE3B6 /* XCRemoteSwiftPackageReference "XCUITestKit" */;
+			productName = XCUITestKit;
+		};
+		311119389286435C82B937B5 /* Sentry */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 433C45F5269F45B6BC09085B /* XCRemoteSwiftPackageReference "sentry-cocoa" */;
+			productName = Sentry;
+		};
+		CA0000000000000000000003 /* SwiftMETAR */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CA0000000000000000000001 /* XCRemoteSwiftPackageReference "SwiftMETAR" */;
+			productName = SwiftMETAR;
+		};
+		CA0000000000000000000004 /* Gzip */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CA0000000000000000000002 /* XCRemoteSwiftPackageReference "GzipSwift" */;
+			productName = Gzip;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 013A15103011372B00025551 /* Project object */;
+}

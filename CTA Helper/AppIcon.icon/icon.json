@@ -1,0 +1,333 @@
+{
+  "fill-specializations" : [
+    {
+      "value" : {
+        "linear-gradient" : [
+          "display-p3:0.72900,0.87012,0.90137,1.00000",
+          "display-p3:0.21570,0.27832,0.72168,1.00000"
+        ],
+        "orientation" : {
+          "start" : {
+            "x" : 0.5,
+            "y" : 0
+          },
+          "stop" : {
+            "x" : 0.5,
+            "y" : 0.7
+          }
+        }
+      }
+    },
+    {
+      "appearance" : "dark",
+      "value" : {
+        "linear-gradient" : [
+          "display-p3:0.10196,0.14510,0.36078,1.00000",
+          "display-p3:0.02745,0.04314,0.14510,1.00000"
+        ],
+        "orientation" : {
+          "start" : {
+            "x" : 0.5,
+            "y" : 0
+          },
+          "stop" : {
+            "x" : 0.5,
+            "y" : 0.85
+          }
+        }
+      }
+    }
+  ],
+  "groups" : [
+    {
+      "blur-material" : null,
+      "layers" : [
+        {
+          "fill" : {
+            "linear-gradient" : [
+              "display-p3:0.83922,0.90980,0.98039,1.00000",
+              "display-p3:1.00000,1.00000,1.00000,1.00000"
+            ],
+            "orientation" : {
+              "start" : {
+                "x" : 0.5,
+                "y" : 0.95
+              },
+              "stop" : {
+                "x" : 0.5,
+                "y" : 0.64
+              }
+            }
+          },
+          "glass" : true,
+          "image-name" : "runway.svg",
+          "name" : "Runway",
+          "position" : {
+            "scale" : 1,
+            "translation-in-points" : [
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "fill" : {
+            "linear-gradient" : [
+              "display-p3:0.83922,0.90980,0.98039,1.00000",
+              "display-p3:1.00000,1.00000,1.00000,1.00000"
+            ],
+            "orientation" : {
+              "start" : {
+                "x" : 0.5,
+                "y" : 0.95
+              },
+              "stop" : {
+                "x" : 0.5,
+                "y" : 0.64
+              }
+            }
+          },
+          "glass" : true,
+          "image-name" : "centerline.svg",
+          "name" : "Centerline",
+          "position" : {
+            "scale" : 1,
+            "translation-in-points" : [
+              0,
+              0
+            ]
+          }
+        }
+      ],
+      "name" : "Ground",
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.25
+      },
+      "specular" : true,
+      "translucency" : {
+        "enabled" : false,
+        "value" : 0.4
+      }
+    },
+    {
+      "blur-material" : null,
+      "layers" : [
+        {
+          "fill" : {
+            "linear-gradient" : [
+              "display-p3:0.90196,0.94902,0.99216,1.00000",
+              "display-p3:1.00000,1.00000,1.00000,1.00000"
+            ],
+            "orientation" : {
+              "start" : {
+                "x" : 0.5,
+                "y" : 0.68
+              },
+              "stop" : {
+                "x" : 0.5,
+                "y" : 0.53
+              }
+            }
+          },
+          "glass" : true,
+          "image-name" : "tower.svg",
+          "name" : "Tower",
+          "position" : {
+            "scale" : 1,
+            "translation-in-points" : [
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "fill" : {
+            "linear-gradient" : [
+              "display-p3:0.90196,0.94902,0.99216,1.00000",
+              "display-p3:1.00000,1.00000,1.00000,1.00000"
+            ],
+            "orientation" : {
+              "start" : {
+                "x" : 0.5,
+                "y" : 0.68
+              },
+              "stop" : {
+                "x" : 0.5,
+                "y" : 0.53
+              }
+            }
+          },
+          "glass" : true,
+          "image-name" : "terminal-roof.svg",
+          "name" : "Terminal roof",
+          "position" : {
+            "scale" : 1,
+            "translation-in-points" : [
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "fill" : {
+            "linear-gradient" : [
+              "display-p3:0.90196,0.94902,0.99216,1.00000",
+              "display-p3:1.00000,1.00000,1.00000,1.00000"
+            ],
+            "orientation" : {
+              "start" : {
+                "x" : 0.5,
+                "y" : 0.68
+              },
+              "stop" : {
+                "x" : 0.5,
+                "y" : 0.53
+              }
+            }
+          },
+          "glass" : true,
+          "image-name" : "terminal-base.svg",
+          "name" : "Terminal base",
+          "position" : {
+            "scale" : 1,
+            "translation-in-points" : [
+              0,
+              0
+            ]
+          }
+        }
+      ],
+      "name" : "Airfield",
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.28
+      },
+      "specular" : true,
+      "translucency" : {
+        "enabled" : false,
+        "value" : 0.4
+      }
+    },
+    {
+      "blur-material" : null,
+      "layers" : [
+        {
+          "fill" : {
+            "solid" : "extended-gray:1.00000,1.00000"
+          },
+          "glass" : true,
+          "image-name" : "thermo-mercury.png",
+          "name" : "Mercury",
+          "position" : {
+            "scale" : 1,
+            "translation-in-points" : [
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "fill" : {
+            "linear-gradient" : [
+              "display-p3:0.84911,0.92650,0.95418,1.00000",
+              "display-p3:1.00000,0.99888,0.99660,1.00000"
+            ],
+            "orientation" : {
+              "start" : {
+                "x" : 0.5,
+                "y" : 0.62
+              },
+              "stop" : {
+                "x" : 0.5,
+                "y" : 0.16
+              }
+            }
+          },
+          "glass" : true,
+          "image-name" : "thermo-body.png",
+          "name" : "Thermometer",
+          "position" : {
+            "scale" : 1,
+            "translation-in-points" : [
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "fill" : {
+            "linear-gradient" : [
+              "display-p3:0.84911,0.92650,0.95418,1.00000",
+              "display-p3:1.00000,0.99888,0.99660,1.00000"
+            ],
+            "orientation" : {
+              "start" : {
+                "x" : 0.5,
+                "y" : 0.62
+              },
+              "stop" : {
+                "x" : 0.5,
+                "y" : 0.16
+              }
+            }
+          },
+          "glass" : true,
+          "image-name" : "thermo-ticks.png",
+          "name" : "Ticks",
+          "position" : {
+            "scale" : 1,
+            "translation-in-points" : [
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "fill" : {
+            "linear-gradient" : [
+              "display-p3:0.84911,0.92650,0.95418,1.00000",
+              "display-p3:1.00000,0.99888,0.99660,1.00000"
+            ],
+            "orientation" : {
+              "start" : {
+                "x" : 0.5,
+                "y" : 0.62
+              },
+              "stop" : {
+                "x" : 0.5,
+                "y" : 0.16
+              }
+            }
+          },
+          "glass" : true,
+          "image-name" : "snowflake.png",
+          "name" : "Snowflake",
+          "position" : {
+            "scale" : 1,
+            "translation-in-points" : [
+              0,
+              0
+            ]
+          }
+        }
+      ],
+      "name" : "Instruments",
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.5
+      },
+      "specular" : true,
+      "translucency" : {
+        "enabled" : false,
+        "value" : 0.4
+      }
+    }
+  ],
+  "supported-platforms" : {
+    "circles" : [
+      "watchOS"
+    ],
+    "squares" : "shared"
+  }
+}

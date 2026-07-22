@@ -1,0 +1,38 @@
+{
+  "configurations" : [
+    {
+      "id" : "C7A0E1F2-0000-4000-8000-000000000003",
+      "name" : "Debug",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "environmentVariableEntries" : [
+      {
+        "key" : "XCUITEST_TIMEOUT_MULTIPLIER",
+        "value" : "3"
+      }
+    ],
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:CTA Helper.xcodeproj",
+      "identifier" : "013A15173011372B00025551",
+      "name" : "CTA Helper"
+    },
+    "testTimeoutsEnabled" : true
+  },
+  "testTargets" : [
+    {
+      "selectedTests" : [
+        "GenerateScreenshots"
+      ],
+      "target" : {
+        "containerPath" : "container:CTA Helper.xcodeproj",
+        "identifier" : "013A15303011372B00025551",
+        "name" : "CTA HelperUITests"
+      }
+    }
+  ],
+  "version" : 1
+}

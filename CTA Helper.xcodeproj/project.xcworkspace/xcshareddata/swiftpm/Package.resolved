@@ -1,0 +1,78 @@
+{
+  "originHash" : "0b646d172f2b9c7e099aab2f5f30077c32502da023dbfbffa7632380e35d9c8b",
+  "pins" : [
+    {
+      "identity" : "buildablemacro",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/riscfuture/BuildableMacro.git",
+      "state" : {
+        "revision" : "7bc62067f14f5c40c8397a982e785ecf1116482b",
+        "version" : "1.1.0"
+      }
+    },
+    {
+      "identity" : "gzipswift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/1024jp/GzipSwift",
+      "state" : {
+        "revision" : "41d37421fe2cbbfae4a5593dc29d12999fb73cd7",
+        "version" : "7.0.0"
+      }
+    },
+    {
+      "identity" : "sentry-cocoa",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/getsentry/sentry-cocoa/",
+      "state" : {
+        "revision" : "afa7510e05b99f35c1febe47566bfd868fa53fb9",
+        "version" : "9.23.0"
+      }
+    },
+    {
+      "identity" : "swift-argument-parser",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-argument-parser.git",
+      "state" : {
+        "revision" : "6a52f3251125d74daf04fcbd5e6f08a75d074382",
+        "version" : "1.8.2"
+      }
+    },
+    {
+      "identity" : "swift-numberkit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/objecthub/swift-numberkit.git",
+      "state" : {
+        "revision" : "6182110549aa7cf614cb6fff3d6142e65be9b602",
+        "version" : "2.6.1"
+      }
+    },
+    {
+      "identity" : "swift-syntax",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/swiftlang/swift-syntax",
+      "state" : {
+        "revision" : "79e4b74a295b6eb74a8b585e3a39d29e70c1dbd1",
+        "version" : "603.0.2"
+      }
+    },
+    {
+      "identity" : "swiftmetar",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/RISCfuture/SwiftMETAR",
+      "state" : {
+        "revision" : "465fdf4c4b2919d87262c517a21e0477647521ed",
+        "version" : "3.2.1"
+      }
+    },
+    {
+      "identity" : "xcuitestkit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/RISCfuture/XCUITestKit",
+      "state" : {
+        "branch" : "main",
+        "revision" : "57b98f7e96f0034004e280d920ebff7e21c35488"
+      }
+    }
+  ],
+  "version" : 3
+}

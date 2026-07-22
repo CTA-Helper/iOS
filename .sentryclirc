@@ -1,0 +1,5 @@
+[defaults]
+org=timcodes
+project=cta-helper
+
+# The auth token is supplied out of band via SENTRY_AUTH_TOKEN, never committed here.

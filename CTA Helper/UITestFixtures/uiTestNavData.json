@@ -1,0 +1,129 @@
+{
+  "airports": [
+    {
+      "siteNumber": "12453.A",
+      "faaIdentifier": "MSO",
+      "icaoIdentifier": "KMSO",
+      "name": "MISSOULA MONTANA",
+      "city": "MISSOULA",
+      "state": "MT",
+      "stateName": "MONTANA",
+      "elevation": 3206,
+      "latitude": 46.9163,
+      "longitude": -114.0906,
+      "coldTemperature": {
+        "restrictionTemperatureC": -11,
+        "affectedSegments": ["initial", "intermediate", "final"]
+      },
+      "approaches": [
+        {
+          "identifier": "R12-Y",
+          "name": "RNAV (GPS) Y RWY 12",
+          "runway": "12",
+          "chartUrl": "https://aeronav.faa.gov/d-tpp/2607/00266R12Y.PDF",
+          "referenceAltitudes": {
+            "initial": { "altitude": 9400, "source": "if" },
+            "intermediate": { "altitude": 6200, "source": "faf" },
+            "final": { "altitude": null, "source": "pilotEntered" },
+            "missed": { "altitude": 12000, "source": "missedHolding" },
+            "allSegments": { "altitude": 6200, "source": "faf" }
+          },
+          "fixes": [
+            {
+              "identifier": "CHARL",
+              "transition": "CHARL",
+              "sequence": 10,
+              "legType": "IF",
+              "role": "iaf",
+              "segment": "initial",
+              "altitude": 10000,
+              "altitude2": null,
+              "altitudeDescription": "atOrAbove",
+              "flyover": false,
+              "correctable": true
+            },
+            {
+              "identifier": "ODIRE",
+              "transition": "CHARL",
+              "sequence": 20,
+              "legType": "TF",
+              "role": "if",
+              "segment": "initial",
+              "altitude": 9400,
+              "altitude2": null,
+              "altitudeDescription": "atOrAbove",
+              "flyover": false,
+              "correctable": true
+            },
+            {
+              "identifier": "CALIP",
+              "transition": null,
+              "sequence": 20,
+              "legType": "TF",
+              "role": null,
+              "segment": "intermediate",
+              "altitude": 7000,
+              "altitude2": null,
+              "altitudeDescription": "atOrAbove",
+              "flyover": false,
+              "correctable": true
+            },
+            {
+              "identifier": "SUPPY",
+              "transition": null,
+              "sequence": 30,
+              "legType": "TF",
+              "role": "faf",
+              "segment": "intermediate",
+              "altitude": 6200,
+              "altitude2": null,
+              "altitudeDescription": "atOrAbove",
+              "flyover": false,
+              "correctable": true
+            },
+            {
+              "identifier": "RW12",
+              "transition": null,
+              "sequence": 50,
+              "legType": "TF",
+              "role": "map",
+              "segment": "final",
+              "altitude": 3247,
+              "altitude2": null,
+              "altitudeDescription": "at",
+              "flyover": true,
+              "correctable": false
+            },
+            {
+              "identifier": "JENKI",
+              "transition": null,
+              "sequence": 90,
+              "legType": "HM",
+              "role": "missedHolding",
+              "segment": "missed",
+              "altitude": 12000,
+              "altitude2": null,
+              "altitudeDescription": "atOrAbove",
+              "flyover": false,
+              "correctable": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "siteNumber": "02187.A",
+      "faaIdentifier": "SFO",
+      "icaoIdentifier": "KSFO",
+      "name": "SAN FRANCISCO INTL",
+      "city": "SAN FRANCISCO",
+      "state": "CA",
+      "stateName": "CALIFORNIA",
+      "elevation": 13,
+      "latitude": 37.6188,
+      "longitude": -122.3754,
+      "coldTemperature": null,
+      "approaches": []
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "configurations" : [
+    {
+      "id" : "C7A0E1F2-0000-4000-8000-000000000001",
+      "name" : "Debug",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "codeCoverage" : {
+      "targets" : [
+        {
+          "containerPath" : "container:CTA Helper.xcodeproj",
+          "identifier" : "013A15173011372B00025551",
+          "name" : "CTA Helper"
+        }
+      ]
+    },
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:CTA Helper.xcodeproj",
+      "identifier" : "013A15173011372B00025551",
+      "name" : "CTA Helper"
+    }
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:CTA Helper.xcodeproj",
+        "identifier" : "013A15263011372B00025551",
+        "name" : "CTA HelperTests"
+      }
+    }
+  ],
+  "version" : 1
+}

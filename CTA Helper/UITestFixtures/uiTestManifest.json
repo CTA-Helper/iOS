@@ -1,0 +1,12 @@
+{
+  "airacCycle": "2607",
+  "cycleEffective": "2026-06-11",
+  "cycleExpires": "2026-07-09",
+  "generatedAt": "2026-06-11T00:00:00Z",
+  "data": {
+    "filename": "uiTestNavData.json.gz",
+    "bytes": 900,
+    "uncompressedBytes": 3918,
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  }
+}

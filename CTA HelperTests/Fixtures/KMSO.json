@@ -1,0 +1,292 @@
+{
+  "airports": [
+    {
+      "siteNumber": "12453.A",
+      "faaIdentifier": "MSO",
+      "icaoIdentifier": "KMSO",
+      "name": "MISSOULA MONTANA",
+      "city": "MISSOULA",
+      "state": "MT",
+      "stateName": "MONTANA",
+      "elevation": 3206,
+      "latitude": 46.91630555555555,
+      "longitude": -114.09055555555555,
+      "coldTemperature": {
+        "restrictionTemperatureC": -11,
+        "affectedSegments": [
+          "initial",
+          "intermediate",
+          "final"
+        ],
+        "listedName": "Missoula Intl",
+        "military": false
+      },
+      "approaches": [
+        {
+          "identifier": "R12-Y",
+          "name": "RNAV (GPS) Y RWY 12",
+          "runway": "12",
+          "chartUrl": "https://aeronav.faa.gov/d-tpp/2607/00266RY12.PDF",
+          "referenceAltitudes": {
+            "initial": {
+              "altitude": 9400,
+              "source": "if"
+            },
+            "intermediate": {
+              "altitude": 6200,
+              "source": "faf"
+            },
+            "final": {
+              "altitude": null,
+              "source": "pilotEntered"
+            },
+            "missed": {
+              "altitude": 12000,
+              "source": "missedHolding"
+            },
+            "allSegments": {
+              "altitude": 6200,
+              "source": "faf"
+            }
+          },
+          "fixes": [
+            {
+              "identifier": "CHARL",
+              "transition": "CHARL",
+              "sequence": 10,
+              "legType": "IF",
+              "role": null,
+              "segment": "initial",
+              "altitude": null,
+              "altitude2": null,
+              "altitudeDescription": "at",
+              "flyover": false,
+              "correctable": false
+            },
+            {
+              "identifier": "ODIRE",
+              "transition": "CHARL",
+              "sequence": 20,
+              "legType": "TF",
+              "role": null,
+              "segment": "initial",
+              "altitude": 9400,
+              "altitude2": null,
+              "altitudeDescription": "atOrAbove",
+              "flyover": true,
+              "correctable": true
+            },
+            {
+              "identifier": "ODIRE",
+              "transition": "CHARL",
+              "sequence": 30,
+              "legType": "HF",
+              "role": "iafHolding",
+              "segment": "initial",
+              "altitude": 9400,
+              "altitude2": null,
+              "altitudeDescription": "atOrAbove",
+              "flyover": false,
+              "correctable": true
+            },
+            {
+              "identifier": "JENKI",
+              "transition": "JENKI",
+              "sequence": 10,
+              "legType": "IF",
+              "role": null,
+              "segment": "initial",
+              "altitude": null,
+              "altitude2": null,
+              "altitudeDescription": "at",
+              "flyover": false,
+              "correctable": false
+            },
+            {
+              "identifier": "EHRAY",
+              "transition": "JENKI",
+              "sequence": 20,
+              "legType": "TF",
+              "role": null,
+              "segment": "initial",
+              "altitude": 11800,
+              "altitude2": null,
+              "altitudeDescription": "atOrAbove",
+              "flyover": false,
+              "correctable": true
+            },
+            {
+              "identifier": "RIVAL",
+              "transition": "JENKI",
+              "sequence": 30,
+              "legType": "TF",
+              "role": null,
+              "segment": "initial",
+              "altitude": 9500,
+              "altitude2": null,
+              "altitudeDescription": "atOrAbove",
+              "flyover": false,
+              "correctable": true
+            },
+            {
+              "identifier": "LANNY",
+              "transition": "JENKI",
+              "sequence": 40,
+              "legType": "TF",
+              "role": "iaf",
+              "segment": "initial",
+              "altitude": 9400,
+              "altitude2": null,
+              "altitudeDescription": "atOrAbove",
+              "flyover": false,
+              "correctable": true
+            },
+            {
+              "identifier": "ODIRE",
+              "transition": "JENKI",
+              "sequence": 50,
+              "legType": "TF",
+              "role": "if",
+              "segment": "initial",
+              "altitude": 9400,
+              "altitude2": null,
+              "altitudeDescription": "atOrAbove",
+              "flyover": false,
+              "correctable": true
+            },
+            {
+              "identifier": "ODIRE",
+              "transition": null,
+              "sequence": 10,
+              "legType": "IF",
+              "role": "facf",
+              "segment": "initial",
+              "altitude": 9400,
+              "altitude2": null,
+              "altitudeDescription": "atOrAbove",
+              "flyover": false,
+              "correctable": true
+            },
+            {
+              "identifier": "CALIP",
+              "transition": null,
+              "sequence": 11,
+              "legType": "TF",
+              "role": null,
+              "segment": "intermediate",
+              "altitude": 7000,
+              "altitude2": null,
+              "altitudeDescription": "atOrAbove",
+              "flyover": false,
+              "correctable": true
+            },
+            {
+              "identifier": "SUPPY",
+              "transition": null,
+              "sequence": 20,
+              "legType": "TF",
+              "role": "faf",
+              "segment": "intermediate",
+              "altitude": 6200,
+              "altitude2": null,
+              "altitudeDescription": "atOrAbove",
+              "flyover": false,
+              "correctable": true
+            },
+            {
+              "identifier": "BEGPE",
+              "transition": null,
+              "sequence": 21,
+              "legType": "TF",
+              "role": "stepdown",
+              "segment": "final",
+              "altitude": 4840,
+              "altitude2": 4840,
+              "altitudeDescription": "stepDownVnav",
+              "flyover": false,
+              "correctable": true
+            },
+            {
+              "identifier": "RW12",
+              "transition": null,
+              "sequence": 30,
+              "legType": "TF",
+              "role": "map",
+              "segment": "final",
+              "altitude": 3247,
+              "altitude2": null,
+              "altitudeDescription": "at",
+              "flyover": true,
+              "correctable": false
+            },
+            {
+              "identifier": null,
+              "transition": null,
+              "sequence": 40,
+              "legType": "CA",
+              "role": null,
+              "segment": "missed",
+              "altitude": 3400,
+              "altitude2": null,
+              "altitudeDescription": "atOrAbove",
+              "flyover": false,
+              "correctable": false
+            },
+            {
+              "identifier": "CINON",
+              "transition": null,
+              "sequence": 50,
+              "legType": "DF",
+              "role": null,
+              "segment": "missed",
+              "altitude": null,
+              "altitude2": null,
+              "altitudeDescription": "at",
+              "flyover": false,
+              "correctable": false
+            },
+            {
+              "identifier": "TUSEE",
+              "transition": null,
+              "sequence": 60,
+              "legType": "TF",
+              "role": null,
+              "segment": "missed",
+              "altitude": null,
+              "altitude2": null,
+              "altitudeDescription": "at",
+              "flyover": false,
+              "correctable": false
+            },
+            {
+              "identifier": "JENKI",
+              "transition": null,
+              "sequence": 70,
+              "legType": "TF",
+              "role": null,
+              "segment": "missed",
+              "altitude": 12000,
+              "altitude2": null,
+              "altitudeDescription": "atOrAbove",
+              "flyover": true,
+              "correctable": false
+            },
+            {
+              "identifier": "JENKI",
+              "transition": null,
+              "sequence": 80,
+              "legType": "HM",
+              "role": "missedHolding",
+              "segment": "missed",
+              "altitude": 12000,
+              "altitude2": null,
+              "altitudeDescription": "atOrAbove",
+              "flyover": false,
+              "correctable": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

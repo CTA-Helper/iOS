@@ -1,0 +1,30 @@
+# frozen_string_literal: true
+
+# fastlane snapshot configuration — see https://docs.fastlane.tools/actions/snapshot/
+# Drives the `GenerateScreenshots` UI test to capture the App Store screenshot set.
+
+devices([
+    "iPhone 17 Pro Max", # 6.9" — the required large-iPhone display size
+    "iPad Pro 13-inch (M5)" # 13" — the required large-iPad display size
+])
+
+languages(%w[en-US])
+
+scheme("CTA Helper")
+
+# `Screenshots` selects `GenerateScreenshots` and nothing else, so the flow tests — whose
+# screenshots nothing collects — stay out of the capture run. The `UI Tests` plan CI runs skips
+# `GenerateScreenshots` in turn, so neither plan pays for the other's work.
+testplan("Screenshots")
+
+output_directory("./fastlane/screenshots")
+clear_previous_screenshots(true)
+
+# Overlay a clean 9:41 status bar with full signal and battery.
+override_status_bar(true)
+
+# These are the App Store's screenshots, so they show the app as a pilot first meets it: no
+# favorites or Recents carried over from an earlier run, and no correction preferences already
+# chosen. The app discards its own settings under any `-uiTest…` flag; erasing clears the rest.
+erase_simulator(true)
+reinstall_app(true)

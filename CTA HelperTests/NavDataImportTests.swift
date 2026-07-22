@@ -1,0 +1,201 @@
+import Foundation
+import Testing
+
+@testable import CTA_Helper
+
+/**
+ Anchors the whole import pipeline — decode the published JSON, build the models, correct the
+ approach — on a real fixture: Missoula's RNAV (GPS) Y RWY 12, extracted verbatim from the
+ release asset.
+ */
+private final class BundleMarker {}
+
+struct NavDataImportTests {
+  private func loadFixture() throws -> NavDataDocument {
+    let url = try #require(
+      Bundle(for: BundleMarker.self).url(forResource: "KMSO", withExtension: "json")
+    )
+    return try JSONDecoder().decode(NavDataDocument.self, from: Data(contentsOf: url))
+  }
+
+  @Test("The fixture decodes to the expected airport, approach and fix counts")
+  func decodesTheFixture() throws {
+    let document = try loadFixture()
+
+    #expect(document.airports.count == 1)
+    let airport = try #require(document.airports.first)
+    #expect(airport.siteNumber == "12453.A")
+    #expect(airport.faaIdentifier == "MSO")
+    #expect(airport.icaoIdentifier == "KMSO")
+    #expect(airport.elevationFt == 3206)
+    #expect(airport.coldTemperature?.affectedSegments == [.initial, .intermediate, .final])
+    #expect(airport.approaches.count == 1)
+    #expect(airport.approaches.first?.fixes.count == 18)
+  }
+
+  /**
+   Dropping the leg instead would leave the pilot an approach missing one of the fixes it flies,
+   so a sequence the wire cannot mean has to stop the import rather than thin the procedure.
+   */
+  @Test("A leg whose sequence cannot be read fails the import rather than being dropped")
+  func negativeSequenceFailsTheImport() {
+    let leg = """
+      {"identifier": "CHARL", "transition": "CHARL", "sequence": -10, "legType": "IF",
+       "role": null, "segment": "initial", "altitude": null, "altitude2": null,
+       "altitudeDescription": "at", "flyover": false, "correctable": false}
+      """
+
+    #expect(throws: DecodingError.self) {
+      try JSONDecoder().decode(FixDTO.self, from: Data(leg.utf8))
+    }
+  }
+
+  @Test("The decoded models correct to the ENR 1.8 6.a answers")
+  func correctsTheImportedApproach() throws {
+    let airport = try #require(loadFixture().airports.first?.makeAirport())
+    let approach = try #require(airport.approaches.first)
+
+    let corrector = ApproachCorrector(
+      elevationFt: airport.elevationFt,
+      referenceAltitudes: approach.referenceAltitudes,
+      reportedTemperatureC: -12,
+      coldTemperature: airport.coldTemperature,
+      method: .allSegments,
+      rounding: .nearestHundred,
+      extrapolateAboveTable: false,
+      minimumsAltitudeFt: 4520
+    )
+
+    func correctedAltitudeFt(of identifier: String, role: FixRole? = nil) throws -> Int? {
+      let fix = try #require(
+        approach.fixes.first {
+          $0.identifier == identifier && (role == nil || $0.role == role)
+        }
+      )
+      return corrector.corrected(fix).correctedFt
+    }
+
+    #expect(try correctedAltitudeFt(of: "LANNY") == 9700)
+    #expect(try correctedAltitudeFt(of: "CALIP") == 7300)
+    #expect(try correctedAltitudeFt(of: "SUPPY") == 6500)
+    // JENKI is coded twice (an initial IF and the missed holding fix); check the holding one.
+    #expect(try correctedAltitudeFt(of: "JENKI", role: .missedHolding) == 12500)
+  }
+}
+
+/**
+ The published digest is the only thing standing between a mangled download and altitudes a
+ pilot flies, so each way a download can fail to be what the manifest describes is pinned to the
+ error it raises.
+ */
+@Suite("Nav data integrity")
+struct NavDataIntegrityTests {
+  private let payload = Data("the published cycle".utf8)
+
+  private func manifestFile(
+    sha256: String? = nil,
+    bytes: UInt? = nil
+  ) -> NavDataManifest.DataFile {
+    .init(
+      filename: "cta-navdata.json.gz",
+      bytes: bytes ?? UInt(payload.count),
+      uncompressedBytes: 4096,
+      sha256: sha256 ?? NavDataIntegrity.sha256(of: payload)
+    )
+  }
+
+  @Test("A download matching the published digest and size verifies")
+  func acceptsThePublishedPayload() throws {
+    try NavDataIntegrity.verify(payload, against: manifestFile())
+  }
+
+  @Test("A download that does not hash to the published digest is refused")
+  func rejectsAMismatchedDigest() {
+    let file = manifestFile(sha256: String(repeating: "0", count: 64))
+
+    #expect(throws: NavDataError.self) {
+      try NavDataIntegrity.verify(payload, against: file)
+    }
+  }
+
+  /**
+   Size is checked first, so a truncated download reports the length it actually got rather
+   than a digest mismatch that says nothing about why.
+   */
+  @Test("A truncated download is refused for its size, not its digest")
+  func rejectsATruncatedDownloadBySize() throws {
+    let truncated = payload.dropLast(4)
+    let error = try #require(throws: NavDataError.self) {
+      try NavDataIntegrity.verify(Data(truncated), against: manifestFile())
+    }
+
+    guard case let .sizeMismatch(expectedBytes, actualBytes) = error else {
+      Issue.record("expected a size mismatch, got \(error)")
+      return
+    }
+    #expect(expectedBytes == UInt(payload.count))
+    #expect(actualBytes == UInt(truncated.count))
+  }
+
+  @Test("A decompressed document of the wrong length is refused")
+  func rejectsAnUnexpectedUncompressedSize() {
+    #expect(throws: NavDataError.self) {
+      try NavDataIntegrity.verifySize(of: payload, expecting: UInt(payload.count) + 1)
+    }
+  }
+
+  /// Digests are published lowercase, but a hex digest means the same thing in either case.
+  @Test("A digest published in uppercase still matches")
+  func matchesAnUppercaseDigest() throws {
+    let file = manifestFile(sha256: NavDataIntegrity.sha256(of: payload).uppercased())
+
+    try NavDataIntegrity.verify(payload, against: file)
+  }
+}
+
+/**
+ The wire's two nullable altitudes and separate description admit combinations that mean
+ nothing; these pin down what each one resolves to before it reaches the store.
+ */
+@Suite("Published altitude normalization")
+struct AltitudeDescriptionTests {
+  @Test("A block reads its second altitude as the floor")
+  func blockReadsSecondAltitudeAsFloor() {
+    #expect(
+      AltitudeDescription.between.publishedAltitude(altitudeFt: 6000, altitude2Ft: 3900)
+        == .block(ceilingFt: 6000, floorFt: 3900)
+    )
+  }
+
+  @Test("A block the procedure gave no floor keeps the ceiling it did publish")
+  func blockWithoutFloorKeepsTheCeiling() {
+    #expect(
+      AltitudeDescription.between.publishedAltitude(altitudeFt: 6000, altitude2Ft: nil)
+        == .single(ft: 6000, restriction: .atOrBelow, glidepathFt: nil)
+    )
+  }
+
+  @Test("Every other description reads its second altitude as the glidepath altitude")
+  func otherDescriptionsReadSecondAltitudeAsGlidepath() {
+    #expect(
+      AltitudeDescription.glideslope.publishedAltitude(altitudeFt: 3200, altitude2Ft: 2100)
+        == .single(ft: 3200, restriction: .glideslope, glidepathFt: 2100)
+    )
+  }
+
+  @Test(
+    "A fix with no primary altitude publishes nothing, whatever else it codes",
+    arguments: [AltitudeDescription.at, .between, .stepDownVNAV]
+  )
+  func noPrimaryAltitudePublishesNothing(description: AltitudeDescription) {
+    #expect(description.publishedAltitude(altitudeFt: nil, altitude2Ft: 4840) == .unpublished)
+  }
+
+  @Test("An ARINC code the app does not map decodes as a plain at restriction")
+  func unmappedCodeDecodesAsAt() throws {
+    let decoded = try JSONDecoder()
+      .decode(AltitudeDescription.self, from: Data(#""unknown""#.utf8))
+
+    #expect(decoded == .at)
+  }
+}
