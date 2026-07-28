@@ -42,9 +42,9 @@ struct AboutView: View {
 
 /// App identity read from the bundle, plus the pages a pilot can reach from here.
 private enum AppInfo {
-  /// The privacy policy App Store Connect points at, kept alongside the source it describes.
+  /// The privacy policy App Store Connect points at, published as a page of the marketing site.
   static let privacyPolicyURL = URL(
-    string: "https://github.com/CTA-Helper/iOS/blob/main/PRIVACY.md"
+    string: "https://cta-helper.github.io/iOS/privacy.html"
   )!
 
   /// Where to report a bad correction, a missing approach, or anything else.

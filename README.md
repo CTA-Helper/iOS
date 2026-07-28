@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/CTA-Helper/iOS/actions/workflows/ci.yml/badge.svg)](https://github.com/CTA-Helper/iOS/actions/workflows/ci.yml)
 [![Lint](https://github.com/CTA-Helper/iOS/actions/workflows/lint.yml/badge.svg)](https://github.com/CTA-Helper/iOS/actions/workflows/lint.yml)
-[![App Store](https://img.shields.io/itunes/v/6795019635.svg)](https://apps.apple.com/app/id6795019635)
+[![App Store](https://img.shields.io/itunes/v/6795019635.svg)](https://apps.apple.com/us/app/cta-helper/id6795019635)
 [![Platform](https://img.shields.io/badge/platform-iOS-lightgrey.svg)](https://developer.apple.com/ios/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
@@ -103,16 +103,35 @@ built by Xcode Cloud, which bootstraps itself through `ci_scripts/ci_post_clone.
 #### Fastlane
 
 ```sh
-bundle exec fastlane screenshots  # capture the App Store screenshot set
-bundle exec fastlane beta         # build and upload to TestFlight
-bundle exec fastlane release      # build and upload to the App Store
+bundle exec fastlane screenshots       # capture the App Store screenshot set
+bundle exec fastlane site_screenshots  # capture the site's set, light and dark
+bundle exec fastlane beta              # build and upload to TestFlight
+bundle exec fastlane release           # build and upload to the App Store
 ```
 
 The upload lanes authenticate with an App Store Connect API key resolved out of
 1Password at run time — the `.p8` is never written to disk or committed.
 
+## Marketing site
+
+`docs/` is the marketing site, served by GitHub Pages from `main`. It is plain
+HTML, CSS and JavaScript with no build step and no Jekyll — `.nojekyll` turns
+that processing off. It makes no third-party requests: the
+[IBM Plex](https://github.com/IBM/plex) faces it sets its type in are served
+from `docs/fonts/` under the SIL Open Font License, rather than from a font CDN.
+
+`site_screenshots` captures the same screens as the App Store set in both
+appearances and installs the three iPhone shots the page walks through, scaled
+down, into `docs/images/screenshots/{light,dark}/`, where the page picks between
+them with `prefers-color-scheme`. Adding a screen to the page means adding it to
+`SITE_SCREENS` as well. Pass `appearance:light` or `appearance:dark` to capture
+one of them, or run `install_site_screenshots` to re-install what a previous
+capture already staged.
+
 ## Privacy
 
-See [PRIVACY.md](PRIVACY.md). In short: your location never leaves your device,
+See the [privacy policy](https://cta-helper.github.io/iOS/privacy.html), which
+lives in [`docs/privacy.html`](docs/privacy.html) and is what the app and App
+Store Connect both link to. In short: your location never leaves your device,
 nothing you do is tracked, and the only data transmitted anywhere is anonymous
 crash and performance diagnostics.
