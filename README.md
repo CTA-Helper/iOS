@@ -9,60 +9,68 @@
 CTA Helper applies FAA cold temperature altitude corrections to the altitudes of
 an instrument approach, following the method published in AIP ENR 1.8.
 
+A barometric altimeter assumes a standard atmosphere. In air colder than
+standard the column is denser, the altimeter reads high, and the aircraft is
+lower than it indicates. At a Cold Temperature Restricted Airport that means
+computing a correction for every published altitude on the approach and adding
+it — segment by segment, off a temperature read from a METAR, in the cockpit.
+The app does that arithmetic.
+
 ## ⚠️ Disclaimer
 
 This app is for situational awareness and planning only. **It is not for primary
 navigation.** Always verify every correction independently, and read the DA/MDA
 and all altitudes from the official approach plate before you fly them.
 
-## The Problem
+## Getting started
 
-A barometric altimeter assumes the atmosphere is standard. When it is much
-colder than standard, the air column is denser and the altimeter reads high —
-the aircraft is lower than the indication. On an instrument approach into a
-Cold Temperature Restricted Airport, the correction has to be computed for each
-published altitude, added, and then flown, all while the temperature that drives
-the calculation is being read off a METAR.
+Swift 6.3 under complete strict concurrency, targeting iOS 26.5. Clone the
+repository, open `CTA Helper.xcodeproj` in Xcode 26 or newer, and build — Xcode
+resolves the package dependencies on first open, and nothing else needs
+configuring to run the app in a simulator.
 
-Doing that arithmetic across a whole approach, segment by segment, in the cockpit,
-is exactly the kind of task worth handing to a computer.
+| Package | Used for |
+| --- | --- |
+| [SwiftMETAR](https://github.com/RISCfuture/SwiftMETAR) | Decoding METARs |
+| [GzipSwift](https://github.com/1024jp/GzipSwift) | Inflating the nav data document |
+| [sentry-cocoa](https://github.com/getsentry/sentry-cocoa) | Crash and error reporting |
+| [XCUITestKit](https://github.com/RISCfuture/XCUITestKit) | UI test scaffolding |
 
-## Features
+The release tooling is the only part with a toolchain of its own — Ruby 4.0.6
+and the `cta` gemset, per `.ruby-version` and `.ruby-gemset`:
 
-- **Pick an airport** by ICAO identifier, FAA location identifier, or city
-  name — or from the airports nearest you, your favorites, or the ones you
-  looked at recently.
-- **Pick an approach**, and see every fix in it grouped by segment and transition.
-- **Read the corrected altitudes.** Each fix shows its published altitude and the
-  corrected one, honoring altitude windows, block altitudes, and the fixes the
-  FAA method leaves uncorrected. DA/MDA is corrected only where the method
-  allows it.
-- **Auto-fill the temperature from weather.** The current METAR for the airport
-  is fetched and its reported temperature drives the correction, with the raw
-  observation a tap away.
-- **Choose your conventions.** Correction method and rounding convention are
-  settings, so the numbers match how you were taught to fly them.
+```sh
+bundle install
+```
 
-## Requirements
+## Architecture
 
-CTA Helper is written in Swift 6 and targets iOS 26.
+Three targets: **CTA Helper**, **CTA HelperTests** (unit tests, written in Swift
+Testing), and **CTA HelperUITests** (end-to-end tests, built on
+[XCUITestKit](https://github.com/RISCfuture/XCUITestKit)).
 
-## Development
+The app source is grouped by concern:
 
-The Xcode project defines three targets:
+| Directory | Holds |
+| --- | --- |
+| `Corrections/` | The correction engine. No SwiftData, no SwiftUI. |
+| `Models/` | The SwiftData `@Model` types: airports, approaches, fixes. |
+| `NavData/` | Downloading, verifying, and importing an AIRAC cycle. |
+| `Weather/` | Fetching and decoding METARs. |
+| `Location/` | Resolving nearest airports, on device. |
+| `Views/` | SwiftUI. |
+| `Support/` | Settings, formatting, and the rest of the shared odds and ends. |
 
-- **CTA Helper** — the application.
-- **CTA HelperTests** — the unit test suite, written in Swift Testing.
-- **CTA HelperUITests** — the end-to-end UI test suite, built on
-  [XCUITestKit](https://github.com/RISCfuture/XCUITestKit).
+Physical values follow one naming rule throughout, so that a bare number is
+never ambiguous about its unit; `CLAUDE.md` states it.
 
 ### Correction engine
 
-`CTA Helper/Corrections/` implements the ICAO Doc 8168 linear correction formula
-and the FAA ENR 1.8 rules for which segments and altitudes it applies to. It is
-kept free of SwiftData and SwiftUI — `CorrectableFix` is the protocol that
-decouples it from the model layer — so it can be tested against the published
-worked examples directly.
+`Corrections/` implements the ICAO Doc 8168 linear correction formula and the
+FAA ENR 1.8 rules for which segments and altitudes it applies to. It is kept
+free of SwiftData and SwiftUI — `CorrectableFix` is the protocol that decouples
+it from the model layer — so it can be tested against the published worked
+examples directly.
 
 ### Nav data
 
@@ -83,11 +91,36 @@ throttled to one fetch per 15 minutes and decoded with
 [Sentry](https://sentry.io) is wired in for exception and crash reporting.
 Events from debug builds and the simulator are discarded before transmission.
 
-### Build & Release
+## Testing
 
-#### CI/CD
+Three test plans: `Unit Tests`, `UI Tests`, and `Screenshots` (the capture run
+the fastlane lanes drive).
 
-GitHub Actions runs three workflows on every push and pull request to `main`:
+A UI test cannot reach into the app it drives, so everything that has to be
+settled before the first screen draws — what the store holds, where nav data
+comes from, what Core Location reports — is passed as launch arguments and read
+by `Support/UITestConfiguration.swift`. The bundled fixtures it selects live in
+`CTA Helper/UITestFixtures/`, which keeps the suite offline and deterministic.
+Launched without those arguments, the app runs against its own store, the
+published nav data, and the real device.
+
+## Linting
+
+```sh
+swiftlint --strict
+swift format lint --strict …
+periphery scan --strict
+```
+
+Both style configs are shared across projects and deliberately live outside this
+repository: `.swiftlint.yml` inherits from a gist through `parent_config`, and
+`.swift-format` is fetched rather than committed (it is in `.gitignore`).
+`.github/workflows/lint.yml` shows how to fetch each, and is the reference for
+running them locally.
+
+## Build & release
+
+GitHub Actions runs on every push and pull request to `main`:
 
 - **CI** (`ci.yml`) delegates to the reusable iOS workflow in
   [XCUITestKit](https://github.com/RISCfuture/XCUITestKit), which builds once and
@@ -99,8 +132,6 @@ GitHub Actions runs three workflows on every push and pull request to `main`:
 
 Actions never signs or uploads. The archive that reaches App Store Connect is
 built by Xcode Cloud, which bootstraps itself through `ci_scripts/ci_post_clone.sh`.
-
-#### Fastlane
 
 ```sh
 bundle exec fastlane screenshots       # capture the App Store screenshot set
@@ -114,19 +145,8 @@ The upload lanes authenticate with an App Store Connect API key resolved out of
 
 ## Marketing site
 
-`docs/` is the marketing site, served by GitHub Pages from `main`. It is plain
-HTML, CSS and JavaScript with no build step and no Jekyll — `.nojekyll` turns
-that processing off. It makes no third-party requests: the
-[IBM Plex](https://github.com/IBM/plex) faces it sets its type in are served
-from `docs/fonts/` under the SIL Open Font License, rather than from a font CDN.
-
-`site_screenshots` captures the same screens as the App Store set in both
-appearances and installs the three iPhone shots the page walks through, scaled
-down, into `docs/images/screenshots/{light,dark}/`, where the page picks between
-them with `prefers-color-scheme`. Adding a screen to the page means adding it to
-`SITE_SCREENS` as well. Pass `appearance:light` or `appearance:dark` to capture
-one of them, or run `install_site_screenshots` to re-install what a previous
-capture already staged.
+`docs/` is the marketing site, served by GitHub Pages from `main`. See
+[`docs/README.md`](docs/README.md) for how to work on it.
 
 ## Privacy
 
