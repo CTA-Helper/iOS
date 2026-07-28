@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>CTA Helper — social card source</title>
+
+    <!--
+      The source of `images/og-card.png`, the image every link preview of this site shows.
+      Regenerate by loading this page at exactly 1200 x 630 and capturing the viewport:
+
+        bundle exec ruby -run -e httpd docs -p 8000
+        chrome --headless --window-size=1200,630 \
+               --screenshot=docs/images/og-card.png http://localhost:8000/og.html
+
+      Search engines are told to leave it alone; it exists to be photographed, not read.
+    -->
+    <meta name="robots" content="noindex, nofollow" />
+
+    <link rel="stylesheet" href="fonts.css" />
+
+    <style>
+      /*
+        The card commits to the dark palette rather than following the viewer: it is baked once
+        into a PNG, and a link preview has no colour scheme to follow. The values are the dark
+        halves of the tokens in `styles.css`.
+      */
+      :root {
+        --plate: #0d1117;
+        --plate-sunken: #11171e;
+        --ink: #e3eaf2;
+        --ink-quiet: #99a7b8;
+        --ink-faint: #677484;
+        --rule: #232c37;
+        --rule-faint: #1a212a;
+        --beacon: #8098f7;
+        --display: "IBM Plex Sans Condensed", sans-serif;
+        --body: "IBM Plex Sans", sans-serif;
+        --data: "IBM Plex Mono", monospace;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+      }
+
+      .card {
+        display: grid;
+        grid-template-rows: 210px 420px;
+        width: 1200px;
+        height: 630px;
+        overflow: hidden;
+        background: var(--plate);
+        color: var(--ink);
+      }
+
+      .card-head {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 1.75rem;
+        padding: 0 4rem;
+        border-bottom: 1px solid var(--rule-faint);
+      }
+
+      .card-head img {
+        border-radius: 1.125rem;
+      }
+
+      .card-title {
+        margin: 0;
+        font: 700 3.75rem / 1 var(--display);
+        letter-spacing: -0.015em;
+      }
+
+      .card-tagline {
+        margin: 0.6rem 0 0;
+        max-width: 30ch;
+        color: var(--ink-quiet);
+        font: 400 1.375rem / 1.35 var(--body);
+      }
+
+      /* The one place the card states where it runs and what it costs. */
+      .card-badge {
+        display: grid;
+        gap: 0.45rem;
+        justify-items: end;
+        color: var(--ink-faint);
+        font: 600 0.9375rem / 1 var(--data);
+        letter-spacing: 0.14em;
+        text-align: end;
+        text-transform: uppercase;
+      }
+
+      .card-badge b {
+        color: var(--beacon);
+        font-weight: 600;
+      }
+
+      .profile .graticule {
+        stroke: var(--rule-faint);
+        stroke-width: 1;
+      }
+
+      .profile .graticule-label,
+      .profile .fix-label {
+        fill: var(--ink-faint);
+        font: 400 15px var(--data);
+        letter-spacing: 0.1em;
+      }
+
+      .profile .dropline {
+        stroke: var(--rule);
+        stroke-width: 1;
+        stroke-dasharray: 2 5;
+      }
+
+      .profile .ground {
+        fill: var(--plate-sunken);
+      }
+
+      .profile .ground-line {
+        stroke: var(--rule);
+        stroke-width: 1;
+      }
+
+      .profile .runway {
+        stroke: var(--ink-quiet);
+        stroke-width: 5;
+      }
+
+      .profile .path-published {
+        fill: none;
+        stroke: var(--ink-quiet);
+        stroke-width: 2.5;
+        stroke-linejoin: round;
+      }
+
+      .profile .path-corrected {
+        fill: none;
+        stroke: var(--beacon);
+        stroke-width: 3;
+        stroke-linejoin: round;
+      }
+
+      .profile .alt-published {
+        fill: var(--ink-quiet);
+        font: 400 19px var(--data);
+      }
+
+      .profile .alt-corrected {
+        fill: var(--beacon);
+        font: 600 20px var(--data);
+      }
+
+      .profile .delta-brace {
+        stroke: var(--beacon);
+        stroke-width: 1.25;
+      }
+
+      .profile .delta-label {
+        fill: var(--beacon);
+        font: 600 16px var(--data);
+        letter-spacing: 0.06em;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="card">
+      <div class="card-head">
+        <img src="images/icon.png" alt="" width="96" height="96" />
+
+        <div>
+          <p class="card-title">CTA Helper</p>
+          <p class="card-tagline">
+            Cold temperature altitude corrections for instrument approaches.
+          </p>
+        </div>
+
+        <p class="card-badge">
+          <span><b>Free</b> &amp; open source</span>
+          <span>iPhone &amp; iPad</span>
+        </p>
+      </div>
+
+      <svg class="profile" viewBox="0 0 1200 420" width="1200" height="420">
+        <g class="graticule">
+          <line x1="64" y1="141.8" x2="1180" y2="141.8" />
+          <line x1="64" y1="218.3" x2="1180" y2="218.3" />
+          <line x1="64" y1="294.8" x2="1180" y2="294.8" />
+        </g>
+
+        <g class="graticule-label" text-anchor="end">
+          <text x="52" y="146.8">6000</text>
+          <text x="52" y="223.3">5000</text>
+          <text x="52" y="299.8">4000</text>
+        </g>
+
+        <path class="ground" d="M 0 356 H 1200 V 420 H 0 Z" />
+        <line class="ground-line" x1="0" y1="356" x2="1200" y2="356" />
+        <line class="runway" x1="1060" y1="356" x2="1180" y2="356" />
+
+        <g class="dropline">
+          <line x1="190" y1="141.8" x2="190" y2="350" />
+          <line x1="450" y1="218.3" x2="450" y2="350" />
+          <line x1="720" y1="279.5" x2="720" y2="350" />
+          <line x1="940" y1="325.4" x2="940" y2="350" />
+        </g>
+
+        <path
+          class="path-published"
+          d="M 64 141.8 H 250 L 450 218.3 H 510 L 720 279.5 H 770 L 940 325.4 L 1120 356"
+        />
+        <path
+          class="path-corrected"
+          d="M 64 91.3 H 250 L 450 186.2 H 510 L 720 261.1 H 770 L 940 318.5 L 1120 356"
+        />
+
+        <g class="annotation">
+          <path class="delta-brace" d="M 184 91.3 h 12 M 190 91.3 V 141.8 M 184 141.8 h 12" />
+          <text class="delta-label" x="204" y="121.6">+220 FT</text>
+
+          <text class="alt-corrected" x="204" y="79.3">6220</text>
+          <text class="alt-corrected" x="464" y="174.2">5140</text>
+          <text class="alt-corrected" x="734" y="249.1">4280</text>
+
+          <text class="alt-published" x="204" y="166.8">6000</text>
+          <text class="alt-published" x="464" y="243.3">5000</text>
+          <text class="alt-published" x="734" y="304.5">4200</text>
+        </g>
+
+        <g class="fix-label" text-anchor="middle">
+          <text x="190" y="382">IAF</text>
+          <text x="450" y="382">IF</text>
+          <text x="720" y="382">FAF</text>
+          <text x="940" y="382">MDA</text>
+          <text x="1120" y="382">RWY</text>
+        </g>
+      </svg>
+    </div>
+  </body>
+</html>

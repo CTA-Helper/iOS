@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CTA Helper — Cold temperature altitude corrections for instrument approaches</title>
+    <meta
+      name="description"
+      content="CTA Helper corrects the published altitudes on an instrument approach for temperature, using the current METAR. A free, open source utility for iPhone and iPad."
+    />
+    <meta name="author" content="Tim Morgan" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
+    <link rel="canonical" href="https://cta-helper.github.io/iOS/" />
+    <link rel="icon" href="images/favicon.png" type="image/png" />
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png" />
+
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#f5f7fa" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0d1117" media="(prefers-color-scheme: dark)" />
+    <meta name="apple-itunes-app" content="app-id=6795019635" />
+
+    <link
+      rel="preload"
+      href="fonts/plex-sans-variable.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="fonts/plex-sans-condensed-600.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link rel="stylesheet" href="fonts.css" />
+    <link rel="stylesheet" href="styles.css" />
+
+    <!-- Absolute throughout: a crawler resolves these against nothing. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="CTA Helper" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:url" content="https://cta-helper.github.io/iOS/" />
+    <meta property="og:title" content="CTA Helper — Cold temperature altitude corrections" />
+    <meta
+      property="og:description"
+      content="Corrects the published altitudes on an instrument approach for temperature, using the current METAR. Free and open source, for iPhone and iPad."
+    />
+    <meta property="og:image" content="https://cta-helper.github.io/iOS/images/og-card.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="2400" />
+    <meta property="og:image:height" content="1260" />
+    <meta
+      property="og:image:alt"
+      content="CTA Helper: a descent profile showing corrected altitudes of 6220, 5140, and 4280 feet above published altitudes of 6000, 5000, and 4200."
+    />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="CTA Helper — Cold temperature altitude corrections" />
+    <meta
+      name="twitter:description"
+      content="Corrects the published altitudes on an instrument approach for temperature, using the current METAR. Free and open source, for iPhone and iPad."
+    />
+    <meta name="twitter:image" content="https://cta-helper.github.io/iOS/images/og-card.png" />
+    <meta
+      name="twitter:image:alt"
+      content="CTA Helper: a descent profile showing corrected altitudes of 6220, 5140, and 4280 feet above published altitudes of 6000, 5000, and 4200."
+    />
+
+    <!-- The FAQPage node mirrors the FAQ section verbatim; the two have to be edited together. -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://cta-helper.github.io/iOS/#website",
+            "url": "https://cta-helper.github.io/iOS/",
+            "name": "CTA Helper",
+            "description": "CTA Helper corrects the published altitudes on an instrument approach for temperature, using the current METAR. A free, open source utility for iPhone and iPad.",
+            "inLanguage": "en",
+            "publisher": { "@id": "https://cta-helper.github.io/iOS/#author" }
+          },
+          {
+            "@type": "Person",
+            "@id": "https://cta-helper.github.io/iOS/#author",
+            "name": "Tim Morgan",
+            "url": "https://github.com/RISCfuture",
+            "email": "apple@timothymorgan.info",
+            "sameAs": "https://github.com/RISCfuture"
+          },
+          {
+            "@type": "MobileApplication",
+            "@id": "https://cta-helper.github.io/iOS/#app",
+            "name": "CTA Helper",
+            "url": "https://cta-helper.github.io/iOS/",
+            "description": "CTA Helper corrects the published altitudes on an instrument approach for temperature, using the current METAR. It implements the ICAO Doc 8168 linear correction formula and the FAA applicability rules in AIP ENR 1.8.",
+            "applicationCategory": "TravelApplication",
+            "applicationSubCategory": "Aviation",
+            "operatingSystem": "iOS 26",
+            "installUrl": "https://apps.apple.com/us/app/cta-helper/id6795019635",
+            "image": "https://cta-helper.github.io/iOS/images/og-card.png",
+            "screenshot": "https://cta-helper.github.io/iOS/images/screenshots/light/iphone-01-corrections.png",
+            "license": "https://github.com/CTA-Helper/iOS/blob/main/LICENSE",
+            "isAccessibleForFree": true,
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD"
+            },
+            "author": { "@id": "https://cta-helper.github.io/iOS/#author" },
+            "sameAs": [
+              "https://apps.apple.com/us/app/cta-helper/id6795019635",
+              "https://github.com/CTA-Helper/iOS",
+              "https://github.com/CTA-Helper/Navdata"
+            ],
+            "privacyPolicy": "https://cta-helper.github.io/iOS/privacy.html"
+          },
+          {
+            "@type": "FAQPage",
+            "@id": "https://cta-helper.github.io/iOS/#faq",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "Can I fly the altitudes this app gives me?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Treat them as a cross-check, not a source. CTA Helper is for situational awareness and planning. The official approach plate is the authority for every altitude, and ATC must be advised when you apply a correction on a segment where that's required."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Which correction method does it use?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "The ICAO Doc 8168 linear formula, with the applicability rules from AIP ENR 1.8. You can choose whether corrections apply to all segments or only the ones the restricted-airport list requires, and how results are rounded."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Does it work without a data connection?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Nav data is stored on device, so approaches and corrections are available offline. Fetching a fresh METAR needs a connection; without one, set the temperature by hand."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "How current is the nav data?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "The app checks for a new AIRAC cycle on launch and downloads it in the background, verifying it against a published SHA-256 and byte count before importing."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Is there a Mac or Apple Watch version?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Not today. CTA Helper is a universal app for iPhone and iPad."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Something's wrong. Where do I report it?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Open an issue on GitHub, at https://github.com/CTA-Helper/iOS/issues, or email apple@timothymorgan.info."
+                }
+              }
+            ]
+          }
+        ]
+      }
+    </script>
+
+    <script src="main.js" defer></script>
+  </head>
+
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="site-header">
+      <div class="wrap header-inner">
+        <a class="brand" href="#top">
+          <img src="images/icon.png" alt="" width="32" height="32" />
+          <span>CTA Helper</span>
+        </a>
+
+        <button
+          class="nav-toggle"
+          type="button"
+          aria-expanded="false"
+          aria-controls="site-nav"
+        >
+          Menu
+        </button>
+
+        <nav id="site-nav" class="site-nav" aria-label="Primary">
+          <ul>
+            <li><a href="#how">How it works</a></li>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#faq">FAQ</a></li>
+            <li>
+              <a href="https://github.com/CTA-Helper/iOS">Source</a>
+            </li>
+          </ul>
+          <a class="button button-primary" href="https://apps.apple.com/us/app/cta-helper/id6795019635">
+            Download
+          </a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main">
+      <section class="hero section" id="top">
+        <div class="wrap">
+          <div class="hero-copy">
+            <img class="hero-icon" src="images/icon.png" alt="CTA Helper app icon" width="72" height="72" />
+            <h1>Cold temperature altitude corrections.</h1>
+
+            <div class="hero-aside">
+              <p class="lede">
+                CTA Helper corrects the published altitudes on an instrument approach for
+                temperature, using the current METAR. Pick an airport and an approach, and it
+                shows the corrected altitude next to each published one.
+              </p>
+              <p class="cta-row">
+                <a class="button button-primary button-large" href="https://apps.apple.com/us/app/cta-helper/id6795019635">
+                  Download on the App Store
+                </a>
+                <a class="button button-quiet button-large" href="#how">See how it works</a>
+              </p>
+              <p class="hero-meta">
+                Free and open source &middot; iPhone and iPad &middot; Requires iOS&nbsp;26
+              </p>
+            </div>
+          </div>
+
+          <figure class="diagram" data-profile>
+            <div class="diagram-head">
+              <span>Profile view &middot; <b>Not to scale</b> &middot; Aerodrome 3,200&nbsp;ft</span>
+
+              <span class="diagram-control">
+                <label for="profile-temp">Reported</label>
+                <input
+                  id="profile-temp"
+                  type="range"
+                  min="-30"
+                  max="5"
+                  step="1"
+                  value="-11"
+                  data-profile-temp
+                />
+                <output id="profile-temp-readout" for="profile-temp" data-profile-readout>
+                  &minus;11&nbsp;&deg;C &middot; ISA &minus;20&nbsp;&deg;C
+                </output>
+              </span>
+            </div>
+
+            <div class="diagram-scroll">
+              <svg
+                class="profile"
+                viewBox="0 0 1200 420"
+                role="img"
+                aria-labelledby="profile-title profile-desc"
+              >
+                <title id="profile-title">
+                  A descent profile comparing published and corrected altitudes
+                </title>
+                <desc id="profile-desc" data-profile-description>
+                  Two descent paths step down toward a runway. The published path passes 6,000
+                  feet at the initial approach fix, 5,000 at the intermediate fix, and 4,200 at
+                  the final approach fix. At the reported temperature the corrected path sits
+                  above it at 6,220, 5,140, and 4,280 feet, closing to nothing at the runway,
+                  because the correction shrinks with height above the aerodrome.
+                </desc>
+
+                <g class="graticule">
+                  <line x1="64" y1="141.8" x2="1180" y2="141.8" />
+                  <line x1="64" y1="218.3" x2="1180" y2="218.3" />
+                  <line x1="64" y1="294.8" x2="1180" y2="294.8" />
+                </g>
+
+                <g class="graticule-label" text-anchor="end">
+                  <text x="52" y="146.8">6000</text>
+                  <text x="52" y="223.3">5000</text>
+                  <text x="52" y="299.8">4000</text>
+                </g>
+
+                <path class="ground" d="M 0 356 H 1200 V 420 H 0 Z" />
+                <line class="ground-line" x1="0" y1="356" x2="1200" y2="356" />
+                <line class="runway" x1="1060" y1="356" x2="1180" y2="356" />
+
+                <g class="dropline">
+                  <line x1="190" y1="141.8" x2="190" y2="350" />
+                  <line x1="450" y1="218.3" x2="450" y2="350" />
+                  <line x1="720" y1="279.5" x2="720" y2="350" />
+                  <line x1="940" y1="325.4" x2="940" y2="350" />
+                </g>
+
+                <path
+                  class="path-published"
+                  d="M 64 141.8 H 250 L 450 218.3 H 510 L 720 279.5 H 770 L 940 325.4 L 1120 356"
+                />
+                <path
+                  class="path-corrected"
+                  data-profile-path
+                  d="M 64 91.3 H 250 L 450 186.2 H 510 L 720 261.1 H 770 L 940 318.5 L 1120 356"
+                />
+
+                <g class="annotation">
+                  <path
+                    class="delta-brace"
+                    data-profile-brace
+                    d="M 184 91.3 h 12 M 190 91.3 V 141.8 M 184 141.8 h 12"
+                  />
+                  <text class="delta-label" data-profile-delta x="204" y="121.6">+220 FT</text>
+
+                  <text class="alt-corrected" data-profile-label x="204" y="79.3">6220</text>
+                  <text class="alt-corrected" data-profile-label x="464" y="174.2">5140</text>
+                  <text class="alt-corrected" data-profile-label x="734" y="249.1">4280</text>
+
+                  <text class="alt-published" x="204" y="166.8">6000</text>
+                  <text class="alt-published" x="464" y="243.3">5000</text>
+                  <text class="alt-published" x="734" y="304.5">4200</text>
+                </g>
+
+                <g class="fix-label" text-anchor="middle">
+                  <text x="190" y="382">IAF</text>
+                  <text x="450" y="382">IF</text>
+                  <text x="720" y="382">FAF</text>
+                  <text x="940" y="382">MDA</text>
+                  <text x="1120" y="382">RWY</text>
+                </g>
+              </svg>
+            </div>
+
+            <ul class="diagram-legend">
+              <li><i aria-hidden="true"></i>Published</li>
+              <li><i class="swatch-corrected" aria-hidden="true"></i>Corrected</li>
+            </ul>
+
+            <figcaption class="diagram-note">
+              An illustrative profile, not an approach chart.
+            </figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <aside class="notice" role="note">
+        <div class="wrap section-grid">
+          <p class="rail">Caution</p>
+          <p class="notice-text">
+            <strong>For situational awareness and planning only — not for primary
+            navigation.</strong>
+            Verify every correction independently, and read the DA/MDA and all altitudes
+            from the official approach plate before you fly them.
+          </p>
+        </div>
+      </aside>
+
+      <section class="section" id="how">
+        <div class="wrap section-grid">
+          <h2 class="rail">How it works</h2>
+
+          <div class="how-grid">
+            <div class="how-copy">
+              <p class="section-lede">
+                A barometric altimeter assumes a standard atmosphere. In air colder than
+                standard the altimeter reads high, so the aircraft is lower than indicated.
+              </p>
+              <p>
+                At a Cold Temperature Restricted Airport, that means computing a correction
+                for each published altitude on the approach and adding it. CTA Helper does
+                the arithmetic.
+              </p>
+              <p>
+                It implements the ICAO Doc 8168 linear correction formula and the FAA rules
+                in AIP ENR 1.8, including which segments and altitudes the method applies
+                to.
+              </p>
+
+              <ol
+                class="steps"
+                role="tablist"
+                aria-orientation="vertical"
+                aria-label="Using CTA Helper"
+                data-gallery
+              >
+                <li>
+                  <button
+                    type="button"
+                    role="tab"
+                    id="step-airport"
+                    aria-controls="shot-airports"
+                    aria-selected="true"
+                  >
+                    <span class="step-title">Pick the airport</span>
+                    <span class="step-note">
+                      By ICAO or FAA identifier, by city, or from nearest, favorites, and recents.
+                    </span>
+                  </button>
+                </li>
+                <li>
+                  <button
+                    type="button"
+                    role="tab"
+                    id="step-approach"
+                    aria-controls="shot-approaches"
+                    aria-selected="false"
+                    tabindex="-1"
+                  >
+                    <span class="step-title">Pick the approach</span>
+                    <span class="step-note">
+                      Every fix, grouped by segment and transition, from current AIRAC data.
+                    </span>
+                  </button>
+                </li>
+                <li>
+                  <button
+                    type="button"
+                    role="tab"
+                    id="step-corrections"
+                    aria-controls="shot-corrections"
+                    aria-selected="false"
+                    tabindex="-1"
+                  >
+                    <span class="step-title">Read the corrections</span>
+                    <span class="step-note">
+                      Published altitude and corrected altitude, side by side, for each fix.
+                    </span>
+                  </button>
+                </li>
+              </ol>
+            </div>
+
+            <div class="how-shot">
+              <div role="tabpanel" id="shot-airports" aria-labelledby="step-airport" tabindex="0">
+                <picture>
+                  <source
+                    srcset="images/screenshots/dark/iphone-04-airports.png"
+                    media="(prefers-color-scheme: dark)"
+                  />
+                  <img
+                    src="images/screenshots/light/iphone-04-airports.png"
+                    alt="The airports screen showing favorites, with KMSO Missoula Montana at minus 11 degrees Celsius."
+                    width="414"
+                    height="900"
+                  />
+                </picture>
+              </div>
+
+              <div
+                role="tabpanel"
+                id="shot-approaches"
+                aria-labelledby="step-approach"
+                tabindex="0"
+                hidden
+              >
+                <picture>
+                  <source
+                    srcset="images/screenshots/dark/iphone-03-approaches.png"
+                    media="(prefers-color-scheme: dark)"
+                  />
+                  <img
+                    src="images/screenshots/light/iphone-03-approaches.png"
+                    alt="The list of published instrument approaches for an airport."
+                    width="414"
+                    height="900"
+                    loading="lazy"
+                  />
+                </picture>
+              </div>
+
+              <div
+                role="tabpanel"
+                id="shot-corrections"
+                aria-labelledby="step-corrections"
+                tabindex="0"
+                hidden
+              >
+                <picture>
+                  <source
+                    srcset="images/screenshots/dark/iphone-01-corrections.png"
+                    media="(prefers-color-scheme: dark)"
+                  />
+                  <img
+                    src="images/screenshots/light/iphone-01-corrections.png"
+                    alt="The corrections screen for RNAV (GPS) Y RWY 12, with each fix's published altitude beside its corrected altitude."
+                    width="414"
+                    height="900"
+                    loading="lazy"
+                  />
+                </picture>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="features">
+        <div class="wrap section-grid">
+          <h2 class="rail">Features</h2>
+
+          <ul class="feature-grid">
+            <li>
+              <h3>Every fix on the approach</h3>
+              <p>
+                Initial, intermediate, final, and missed. Each fix shows its published
+                altitude and its corrected one, grouped by segment and transition.
+              </p>
+            </li>
+            <li>
+              <h3>Follows the FAA rules</h3>
+              <p>
+                Altitude windows, block altitudes, and the fixes the method leaves
+                uncorrected are all handled. DA/MDA is corrected only where the method
+                allows it.
+              </p>
+            </li>
+            <li>
+              <h3>Temperature from the METAR</h3>
+              <p>
+                The current observation for the airport is fetched and used for the
+                correction, with the raw METAR a tap away. You can also set the temperature
+                yourself.
+              </p>
+            </li>
+            <li>
+              <h3>Method and rounding</h3>
+              <p>
+                Correction method and rounding convention are settings, so the results match
+                the convention you use.
+              </p>
+            </li>
+            <li>
+              <h3>Current nav data</h3>
+              <p>
+                Approach and fix data ships as a versioned AIRAC cycle, verified against a
+                published SHA-256 before it is imported.
+              </p>
+            </li>
+            <li>
+              <h3>Airport list</h3>
+              <p>
+                Search by identifier or city, or use favorites, recents, and nearest. The
+                reported temperature is shown next to each airport.
+              </p>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="section" id="open">
+        <div class="wrap section-grid">
+          <h2 class="rail">Open source</h2>
+
+          <ul class="open-grid">
+            <li>
+              <h3>No tracking</h3>
+              <p>
+                No accounts, no advertising identifiers, no analytics. Your location is
+                resolved on device and never leaves it.
+                <a href="privacy.html">Read the privacy policy</a>.
+              </p>
+            </li>
+            <li>
+              <h3>The correction engine</h3>
+              <p>
+                The correction engine is MIT-licensed Swift, free of any UI or storage
+                framework, and tested against the FAA's own worked examples.
+                <a href="https://github.com/CTA-Helper/iOS">Browse the source</a>.
+              </p>
+            </li>
+            <li>
+              <h3>Nav data</h3>
+              <p>
+                Approach and fix data is published as its own versioned repository, so you
+                can check what the app is reading.
+                <a href="https://github.com/CTA-Helper/Navdata">See the nav data</a>.
+              </p>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="section" id="faq">
+        <div class="wrap section-grid">
+          <h2 class="rail">FAQ</h2>
+
+          <div class="faq">
+            <details>
+              <summary>Can I fly the altitudes this app gives me?</summary>
+              <p>
+                Treat them as a cross-check, not a source. CTA Helper is for situational
+                awareness and planning. The official approach plate is the authority for
+                every altitude, and ATC must be advised when you apply a correction on a
+                segment where that's required.
+              </p>
+            </details>
+
+            <details>
+              <summary>Which correction method does it use?</summary>
+              <p>
+                The ICAO Doc 8168 linear formula, with the applicability rules from AIP
+                ENR 1.8. You can choose whether corrections apply to all segments or only
+                the ones the restricted-airport list requires, and how results are rounded.
+              </p>
+            </details>
+
+            <details>
+              <summary>Does it work without a data connection?</summary>
+              <p>
+                Nav data is stored on device, so approaches and corrections are available
+                offline. Fetching a fresh METAR needs a connection; without one, set the
+                temperature by hand.
+              </p>
+            </details>
+
+            <details>
+              <summary>How current is the nav data?</summary>
+              <p>
+                The app checks for a new AIRAC cycle on launch and downloads it in the
+                background, verifying it against a published SHA-256 and byte count before
+                importing.
+              </p>
+            </details>
+
+            <details>
+              <summary>Is there a Mac or Apple Watch version?</summary>
+              <p>Not today. CTA Helper is a universal app for iPhone and iPad.</p>
+            </details>
+
+            <details>
+              <summary>Something's wrong. Where do I report it?</summary>
+              <p>
+                Open an issue on
+                <a href="https://github.com/CTA-Helper/iOS/issues">GitHub</a>, or email
+                <a href="mailto:apple@timothymorgan.info">apple@timothymorgan.info</a>.
+              </p>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      <section class="section closing">
+        <div class="wrap">
+          <h2>Get CTA Helper</h2>
+          <p class="lede">Free, open source, and on the App Store.</p>
+          <p class="cta-row">
+            <a class="button button-primary button-large" href="https://apps.apple.com/us/app/cta-helper/id6795019635">
+              Download on the App Store
+            </a>
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap footer-inner">
+        <p class="footer-brand">
+          <img src="images/icon.png" alt="" width="26" height="26" />
+          CTA Helper
+        </p>
+
+        <nav aria-label="Footer">
+          <ul>
+            <li><a href="privacy.html">Privacy</a></li>
+            <li><a href="https://github.com/CTA-Helper/iOS">Source</a></li>
+            <li><a href="https://github.com/CTA-Helper/iOS/issues">Support</a></li>
+            <li><a href="https://github.com/CTA-Helper/iOS/blob/main/LICENSE">License</a></li>
+          </ul>
+        </nav>
+
+        <p class="footer-fine">
+          Not for primary navigation. Always verify against the official approach plate.
+        </p>
+        <p class="footer-fine">
+          &copy; <span data-year>2026</span> Timothy Morgan. Not affiliated with or
+          endorsed by the FAA.
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>

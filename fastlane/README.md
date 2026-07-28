@@ -39,6 +39,22 @@ Upload the generated screenshots to App Store Connect
 
 Generate screenshots and upload them
 
+### ios site_screenshots
+
+```sh
+[bundle exec] fastlane ios site_screenshots
+```
+
+Capture the marketing site's screenshots and install them into docs/
+
+### ios install_site_screenshots
+
+```sh
+[bundle exec] fastlane ios install_site_screenshots
+```
+
+Install already-captured site screenshots into docs/, without re-capturing them
+
 ### ios beta
 
 ```sh
