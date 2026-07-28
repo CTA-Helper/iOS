@@ -19,8 +19,10 @@ DerivedData/
 *.p12
 *.key
 
-# fastlane outputs
+# fastlane outputs — the site's captures are staged in screenshots-light/ and screenshots-dark/,
+# and only the scaled copies the site lane installs under docs/ are committed.
 fastlane/screenshots/
+fastlane/screenshots-*/
 fastlane/test_output/
 fastlane/report.xml
 fastlane/Preview.html

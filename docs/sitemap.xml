@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Submit this in Google Search Console and Bing Webmaster Tools. It cannot be advertised in a
+  robots.txt: crawlers read that only from the domain root, and this site is a project page under
+  `/iOS/`, so the one path that would be consulted belongs to a repository that does not exist.
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://cta-helper.github.io/iOS/</loc>
+    <lastmod>2026-07-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://cta-helper.github.io/iOS/privacy.html</loc>
+    <lastmod>2026-07-26</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+</urlset>
