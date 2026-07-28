@@ -45,6 +45,29 @@ PLATFORMS = {
   "iOS" => { destination: "generic/platform=iOS", deliver: "ios" }
 }.freeze
 
+# The marketing site in `docs/` shows the same screens as the App Store set, in both appearances,
+# so a visitor reading the page in dark mode is answered by the shots as well as by the CSS. Each
+# appearance is captured into its own staging directory, leaving the App Store set in
+# `fastlane/screenshots` untouched by a site run.
+#
+# Only the iPhone captures are installed: the page lays its screenshots out as phones, and the two
+# screens the iPad run skips would leave gaps in the set.
+SITE_APPEARANCES = { "light" => false, "dark" => true }.freeze
+SITE_SCREENSHOT_DEVICE = "iPhone 17 Pro Max"
+
+# The screens the site shows: one for each step of the walkthrough in `docs/index.html`. The rest of
+# the App Store set is captured just the same, and simply not installed.
+SITE_SCREENS = %w[04-Airports 03-Approaches 01-Corrections].freeze
+
+# fastlane runs a lane from `fastlane/`, not from the repository it belongs to, so every path here
+# is anchored rather than relative — a bare `docs/…` would address `fastlane/docs/…`.
+REPOSITORY_ROOT = File.expand_path("..", __dir__)
+SITE_SCREENSHOT_DIRECTORY = File.join(REPOSITORY_ROOT, "docs/images/screenshots")
+
+# The page never draws a screenshot taller than about 640 CSS pixels, so this leaves headroom on a
+# retina display without shipping the 2868-pixel capture the simulator produces.
+SITE_SCREENSHOT_HEIGHT = 900
+
 # The Sentry project the release lanes upload dSYMs and sources to. `sentry-cli` reads
 # SENTRY_AUTH_TOKEN from the environment itself; `.sentryclirc` is committed and so holds only the
 # project's identity.
@@ -74,6 +97,41 @@ def required_env(name)
 
   UI.user_error!("#{name} is not set. Put it in fastlane/.env (git-ignored, loaded automatically; " \
                  "see fastlane/.env.example) or export it before running this lane.")
+end
+
+# Which appearances a site lane works on: the one `appearance:` named, or every one of them.
+def appearances(options)
+  named = options[:appearance]
+  return SITE_APPEARANCES.keys if named.nil?
+  return [named] if SITE_APPEARANCES.key?(named)
+
+  UI.user_error!("Unknown appearance #{named.inspect}. " \
+                 "This site ships #{SITE_APPEARANCES.keys.join(' and ')}.")
+end
+
+# Where one appearance's captures land before they are installed. Deliberately not
+# `fastlane/screenshots`, which snapshot clears on every run and the App Store set owns.
+def site_staging_directory(appearance)
+  File.join(REPOSITORY_ROOT, "fastlane", "screenshots-#{appearance}")
+end
+
+# Copies one capture into the site under the name `docs/index.html` asks for. snapshot names a shot
+# for the device that took it — `iPhone 17 Pro Max-01-Corrections.png` — which is neither a name a
+# URL wants nor one that survives a device being swapped for next year's.
+def install_site_screenshot(capture, into:)
+  suffix = File.basename(capture).delete_prefix("#{SITE_SCREENSHOT_DEVICE}-").downcase
+  installed = File.join(into, "iphone-#{suffix}")
+  FileUtils.cp(capture, installed)
+  scale_to_site_height(installed)
+end
+
+# A capture is 1320 points wide — several times more image than the page will ever draw, and enough
+# of them to matter over a mobile connection. `sips` ships with macOS, which is the only place a
+# simulator runs anyway, so shrinking them costs the project no gem.
+def scale_to_site_height(image)
+  scaled = system("sips", "-Z", SITE_SCREENSHOT_HEIGHT.to_s, image, "--out", image,
+                  out: File::NULL, err: File::NULL)
+  UI.user_error!("sips could not scale #{image}.") unless scaled
 end
 
 # gym never hands App Store Connect credentials to xcodebuild, so `-allowProvisioningUpdates` on its
@@ -121,6 +179,39 @@ platform :ios do
   lane :screenshots_and_upload do
     screenshots
     upload_screenshots
+  end
+
+  desc "Capture the marketing site's screenshots and install them into docs/"
+  lane :site_screenshots do |options|
+    appearances(options).each do |appearance|
+      capture_screenshots(
+        dark_mode:        SITE_APPEARANCES.fetch(appearance),
+        output_directory: site_staging_directory(appearance)
+      )
+      install_site_screenshots(options.merge(appearance: appearance))
+    end
+  end
+
+  desc "Install already-captured site screenshots into docs/, without re-capturing them"
+  lane :install_site_screenshots do |options|
+    appearances(options).each do |appearance|
+      staging = File.join(site_staging_directory(appearance), "en-US")
+      # Named outright rather than globbed: a missing screen should fail the lane, not quietly
+      # publish a page one screenshot short.
+      captures = SITE_SCREENS.to_h do |screen|
+        [screen, File.join(staging, "#{SITE_SCREENSHOT_DEVICE}-#{screen}.png")]
+      end
+
+      missing = captures.reject { |_, capture| File.exist?(capture) }.keys
+      UI.user_error!("Missing from #{staging}: #{missing.join(', ')}.") if missing.any?
+
+      destination = File.join(SITE_SCREENSHOT_DIRECTORY, appearance)
+      FileUtils.rm_rf(destination)
+      FileUtils.mkdir_p(destination)
+
+      captures.each_value { |capture| install_site_screenshot(capture, into: destination) }
+      UI.success("Installed #{captures.count} #{appearance} screenshots into #{destination}.")
+    end
   end
 
   desc "Build and upload to TestFlight"
