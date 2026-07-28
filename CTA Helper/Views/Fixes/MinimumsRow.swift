@@ -102,9 +102,6 @@ struct MinimumsRow: View {
  qualifies the entry rather than labelling it.
  */
 private struct DecisionHeightNote: View {
-  @ScaledMetric(relativeTo: .body)
-  private var size = 13.0
-
   var body: some View {
     Text("Do not correct a DH (radar altimeter height).")
       .font(.caption)
