@@ -12,6 +12,10 @@
     <link rel="icon" href="images/favicon.png" type="image/png" />
     <link rel="apple-touch-icon" href="images/apple-touch-icon.png" />
 
+    <meta name="theme-color" content="#f5f7fa" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0d1117" media="(prefers-color-scheme: dark)" />
+    <meta name="apple-itunes-app" content="app-id=6795019635" />
+
     <link
       rel="preload"
       href="fonts/plex-sans-variable.woff2"
@@ -29,14 +33,125 @@
     <link rel="stylesheet" href="fonts.css" />
     <link rel="stylesheet" href="styles.css" />
 
+    <!-- Absolute throughout: a crawler resolves these against nothing. -->
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="CTA Helper" />
+    <meta property="og:site_name" content="CTA Helper" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:url" content="https://cta-helper.github.io/iOS/" />
+    <meta property="og:title" content="CTA Helper — Cold temperature altitude corrections" />
     <meta
       property="og:description"
-      content="Cold temperature altitude corrections for instrument approaches, using the current METAR."
+      content="Corrects the published altitudes on an instrument approach for temperature, using the current METAR. Free and open source, for iPhone and iPad."
     />
-    <meta property="og:image" content="images/icon.png" />
+    <meta property="og:image" content="https://cta-helper.github.io/iOS/images/og-card.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="2400" />
+    <meta property="og:image:height" content="1260" />
+    <meta
+      property="og:image:alt"
+      content="CTA Helper: a descent profile showing corrected altitudes of 6220, 5140, and 4280 feet above published altitudes of 6000, 5000, and 4200."
+    />
+
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="CTA Helper — Cold temperature altitude corrections" />
+    <meta
+      name="twitter:description"
+      content="Corrects the published altitudes on an instrument approach for temperature, using the current METAR. Free and open source, for iPhone and iPad."
+    />
+    <meta name="twitter:image" content="https://cta-helper.github.io/iOS/images/og-card.png" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "MobileApplication",
+        "name": "CTA Helper",
+        "url": "https://cta-helper.github.io/iOS/",
+        "description": "CTA Helper corrects the published altitudes on an instrument approach for temperature, using the current METAR. It implements the ICAO Doc 8168 linear correction formula and the FAA applicability rules in AIP ENR 1.8.",
+        "applicationCategory": "TravelApplication",
+        "applicationSubCategory": "Aviation",
+        "operatingSystem": "iOS 26",
+        "installUrl": "https://apps.apple.com/us/app/cta-helper/id6795019635",
+        "image": "https://cta-helper.github.io/iOS/images/og-card.png",
+        "screenshot": "https://cta-helper.github.io/iOS/images/screenshots/light/iphone-01-corrections.png",
+        "license": "https://github.com/CTA-Helper/iOS/blob/main/LICENSE",
+        "isAccessibleForFree": true,
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "author": {
+          "@type": "Person",
+          "name": "Timothy Morgan",
+          "email": "apple@timothymorgan.info",
+          "sameAs": "https://github.com/RISCfuture"
+        },
+        "sameAs": [
+          "https://apps.apple.com/us/app/cta-helper/id6795019635",
+          "https://github.com/CTA-Helper/iOS",
+          "https://github.com/CTA-Helper/Navdata"
+        ],
+        "privacyPolicy": "https://cta-helper.github.io/iOS/privacy.html"
+      }
+    </script>
+
+    <!-- Mirrors the FAQ section verbatim; the two have to be edited together. -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Can I fly the altitudes this app gives me?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Treat them as a cross-check, not a source. CTA Helper is for situational awareness and planning. The official approach plate is the authority for every altitude, and ATC must be advised when you apply a correction on a segment where that's required."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Which correction method does it use?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "The ICAO Doc 8168 linear formula, with the applicability rules from AIP ENR 1.8. You can choose whether corrections apply to all segments or only the ones the restricted-airport list requires, and how results are rounded."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Does it work without a data connection?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Nav data is stored on device, so approaches and corrections are available offline. Fetching a fresh METAR needs a connection; without one, set the temperature by hand."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How current is the nav data?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "The app checks for a new AIRAC cycle on launch and downloads it in the background, verifying it against a published SHA-256 and byte count before importing."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Is there a Mac or Apple Watch version?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Not today. CTA Helper is a universal app for iPhone and iPad."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Something's wrong. Where do I report it?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Open an issue on GitHub, at https://github.com/CTA-Helper/iOS/issues, or email apple@timothymorgan.info."
+            }
+          }
+        ]
+      }
+    </script>
 
     <script src="main.js" defer></script>
   </head>
