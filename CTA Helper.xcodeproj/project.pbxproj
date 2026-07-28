@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 77;
+	objectVersion = 100;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -82,28 +82,22 @@
 /* Begin PBXFrameworksBuildPhase section */
 		013A15153011372B00025551 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 				CA0000000000000000000005 /* SwiftMETAR in Frameworks */,
 				CA0000000000000000000006 /* Gzip in Frameworks */,
 				43BAC51A24D44E908F705515 /* Sentry in Frameworks */,
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 		013A15243011372B00025551 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 		013A152E3011372B00025551 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 				01597BDB3016A663008AE3B6 /* XCUITestKit in Frameworks */,
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
@@ -142,8 +136,6 @@
 			);
 			buildRules = (
 			);
-			dependencies = (
-			);
 			fileSystemSynchronizedGroups = (
 				013A151A3011372B00025551 /* CTA Helper */,
 			);
@@ -174,8 +166,6 @@
 				013A152A3011372B00025551 /* CTA HelperTests */,
 			);
 			name = "CTA HelperTests";
-			packageProductDependencies = (
-			);
 			productName = "CTA HelperTests";
 			productReference = 013A15273011372B00025551 /* CTA HelperTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
@@ -242,7 +232,7 @@
 				01597BD93016A663008AE3B6 /* XCRemoteSwiftPackageReference "XCUITestKit" */,
 				433C45F5269F45B6BC09085B /* XCRemoteSwiftPackageReference "sentry-cocoa" */,
 			);
-			preferredProjectObjectVersion = 77;
+			preferredProjectObjectVersion = 100;
 			productRefGroup = 013A15193011372B00025551 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -257,24 +247,18 @@
 /* Begin PBXResourcesBuildPhase section */
 		013A15163011372B00025551 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 		013A15253011372B00025551 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 		013A152F3011372B00025551 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
 
@@ -282,42 +266,48 @@
 		05F1D8D18B7B4FE9BF4D9BD6 /* Upload Debug Symbols to Sentry */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
-			buildActionMask = 2147483647;
-			files = (
-			);
 			inputPaths = (
 				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Resources/DWARF/${TARGET_NAME}",
 			);
 			name = "Upload Debug Symbols to Sentry";
-			outputPaths = (
-			);
 			runOnlyForDeploymentPostprocessing = 1;
 			shellPath = /bin/sh;
-			shellScript = "# This script is responsible for uploading debug symbols and source context for Sentry.\nif [[ \"$(uname -m)\" == arm64 ]]; then\n  export PATH=\"/opt/homebrew/bin:$PATH\"\nfi\n\nif which sentry-cli >/dev/null; then\n  export SENTRY_ORG=timcodes\n  export SENTRY_PROJECT=cta-helper\n  ERROR=$(sentry-cli debug-files upload --include-sources \"$DWARF_DSYM_FOLDER_PATH\" 2>&1 >/dev/null)\n  if [ ! $? -eq 0 ]; then\n    echo \"warning: sentry-cli - $ERROR\"\n  fi\nelse\n  echo \"warning: sentry-cli not installed, download from https://github.com/getsentry/sentry-cli/releases\"\nfi\n";
+			shellScript = (
+				"# This script is responsible for uploading debug symbols and source context for Sentry.",
+				"if [[ \"$(uname -m)\" == arm64 ]]; then",
+				"  export PATH=\"/opt/homebrew/bin:$PATH\"",
+				"fi",
+				"",
+				"if which sentry-cli >/dev/null; then",
+				"  export SENTRY_ORG=timcodes",
+				"  export SENTRY_PROJECT=cta-helper",
+				"  ERROR=$(sentry-cli debug-files upload --include-sources \"$DWARF_DSYM_FOLDER_PATH\" 2>&1 >/dev/null)",
+				"  if [ ! $? -eq 0 ]; then",
+				"    echo \"warning: sentry-cli - $ERROR\"",
+				"  fi",
+				"else",
+				"  echo \"warning: sentry-cli not installed, download from https://github.com/getsentry/sentry-cli/releases\"",
+				"fi",
+				"",
+			);
 		};
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		013A15143011372B00025551 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 		013A15233011372B00025551 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 		013A152D3011372B00025551 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
@@ -335,7 +325,7 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		013A15393011372B00025551 /* Debug */ = {
+		013A15393011372B00025551 /* Debug configuration for PBXProject "CTA Helper" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -404,7 +394,7 @@
 			};
 			name = Debug;
 		};
-		013A153A3011372B00025551 /* Release */ = {
+		013A153A3011372B00025551 /* Release configuration for PBXProject "CTA Helper" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -466,7 +456,7 @@
 			};
 			name = Release;
 		};
-		013A153C3011372B00025551 /* Debug */ = {
+		013A153C3011372B00025551 /* Debug configuration for PBXNativeTarget "CTA Helper" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -505,7 +495,7 @@
 			};
 			name = Debug;
 		};
-		013A153D3011372B00025551 /* Release */ = {
+		013A153D3011372B00025551 /* Release configuration for PBXNativeTarget "CTA Helper" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -543,7 +533,7 @@
 			};
 			name = Release;
 		};
-		013A153F3011372B00025551 /* Debug */ = {
+		013A153F3011372B00025551 /* Debug configuration for PBXNativeTarget "CTA HelperTests" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -563,7 +553,7 @@
 			};
 			name = Debug;
 		};
-		013A15403011372B00025551 /* Release */ = {
+		013A15403011372B00025551 /* Release configuration for PBXNativeTarget "CTA HelperTests" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -583,7 +573,7 @@
 			};
 			name = Release;
 		};
-		013A15423011372B00025551 /* Debug */ = {
+		013A15423011372B00025551 /* Debug configuration for PBXNativeTarget "CTA HelperUITests" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
@@ -602,7 +592,7 @@
 			};
 			name = Debug;
 		};
-		013A15433011372B00025551 /* Release */ = {
+		013A15433011372B00025551 /* Release configuration for PBXNativeTarget "CTA HelperUITests" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
@@ -627,37 +617,33 @@
 		013A15133011372B00025551 /* Build configuration list for PBXProject "CTA Helper" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				013A15393011372B00025551 /* Debug */,
-				013A153A3011372B00025551 /* Release */,
+				013A15393011372B00025551 /* Debug configuration for PBXProject "CTA Helper" */,
+				013A153A3011372B00025551 /* Release configuration for PBXProject "CTA Helper" */,
 			);
-			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 		013A153B3011372B00025551 /* Build configuration list for PBXNativeTarget "CTA Helper" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				013A153C3011372B00025551 /* Debug */,
-				013A153D3011372B00025551 /* Release */,
+				013A153C3011372B00025551 /* Debug configuration for PBXNativeTarget "CTA Helper" */,
+				013A153D3011372B00025551 /* Release configuration for PBXNativeTarget "CTA Helper" */,
 			);
-			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 		013A153E3011372B00025551 /* Build configuration list for PBXNativeTarget "CTA HelperTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				013A153F3011372B00025551 /* Debug */,
-				013A15403011372B00025551 /* Release */,
+				013A153F3011372B00025551 /* Debug configuration for PBXNativeTarget "CTA HelperTests" */,
+				013A15403011372B00025551 /* Release configuration for PBXNativeTarget "CTA HelperTests" */,
 			);
-			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 		013A15413011372B00025551 /* Build configuration list for PBXNativeTarget "CTA HelperUITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				013A15423011372B00025551 /* Debug */,
-				013A15433011372B00025551 /* Release */,
+				013A15423011372B00025551 /* Debug configuration for PBXNativeTarget "CTA HelperUITests" */,
+				013A15433011372B00025551 /* Release configuration for PBXNativeTarget "CTA HelperUITests" */,
 			);
-			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
