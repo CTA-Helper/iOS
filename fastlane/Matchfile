@@ -4,7 +4,8 @@ storage_mode("git")
 type("appstore")
 team_id("2NFSK2WB24")
 
-# Only the distribution certificate is shared. The project signs automatically, so Xcode fetches the
-# provisioning profiles itself — see the `-allowProvisioningUpdates` in the Fastfile's archive step.
-app_identifier([])
-skip_provisioning_profiles(true)
+# The App Store profile is stored alongside the certificate, because `exportArchive` cannot obtain
+# one on its own: cloud signing is refused for distribution. The archive still signs automatically —
+# the project stays on automatic signing for local development, and only the export consumes this
+# profile, which build_app wires into its export options from match's mapping.
+app_identifier(["codes.tim.CTA-Helper"])

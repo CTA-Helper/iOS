@@ -173,6 +173,9 @@ platform :ios do
     setup_ci # No-op off CI; elsewhere it keeps match out of the login keychain.
     ensure_signing
 
+    # One temp key file, shared by the archive and the export.
+    authentication_args = provisioning_authentication_args
+
     build_app(
       scheme:           SCHEME,
       destination:      platform[:destination],
@@ -180,11 +183,15 @@ platform :ios do
       output_directory: OUTPUT_DIRECTORY,
       # Passing the version on the command line rather than writing it into the project keeps a
       # release from leaving a commit behind, and stamps every target in the archive alike.
-      # `-allowProvisioningUpdates` lets the API key fetch the profiles automatic signing wants;
-      # the certificate itself comes from the certificates repository.
+      #
+      # The archive signs automatically, exactly as it does in Xcode: `-allowProvisioningUpdates`
+      # plus the API key lets it resolve a profile, and the certificate comes from the certificates
+      # repository. The export cannot do the same — cloud signing is refused for distribution — so it
+      # consumes the stored match profile instead, which build_app puts into its export options from
+      # match's mapping. Hence automatic signing here and a managed profile there.
       xcargs:           "MARKETING_VERSION=#{options.fetch(:version)} " \
                         "CURRENT_PROJECT_VERSION=#{options.fetch(:build)} " \
-                        "-allowProvisioningUpdates #{provisioning_authentication_args}"
+                        "-allowProvisioningUpdates #{authentication_args}"
     )
 
     upload_to_app_store(
@@ -211,11 +218,22 @@ platform :ios do
     )
   end
 
-  # Everything an archive needs to be signed and accepted. Provisioning profiles are deliberately
-  # not in the certificates repository — the project signs automatically, and `build_app` passes
-  # `-allowProvisioningUpdates` so the API key can fetch or create them.
+  # Everything an archive needs to be signed and accepted.
+  #
+  # Two certificates, because an archive and its export sign differently: `xcodebuild archive` uses a
+  # development identity, just as Xcode does locally, and `exportArchive` re-signs the payload for
+  # distribution. Keeping the development certificate here means a runner installs it instead of
+  # minting a throwaway one every release — a team holds only a few, and automatic signing will
+  # exhaust the quota.
+  #
+  # Skipping profiles on that first call keeps it platform-agnostic: the archive gets its profile
+  # from `-allowProvisioningUpdates`, and the certificate is all match is being asked for. It must
+  # come first, because match records a profile mapping whether or not it synced any — the
+  # development call maps every bundle identifier to nil, so the App Store call has to be the one
+  # that wins. The export signs with that mapping.
   private_lane :ensure_signing do
     ensure_api_key
+    match(type: "development", readonly: true, skip_provisioning_profiles: true)
     match(readonly: true)
   end
 
@@ -227,14 +245,29 @@ platform :ios do
   # exist — Sentry ships no built-in fastlane action, and no plugin is installed.
   private_lane :upload_debug_symbols do
     dsym_path = lane_context[SharedValues::DSYM_OUTPUT_PATH]
-    UI.user_error!("build_app produced no dSYM archive to upload to Sentry.") if dsym_path.nil?
+    if dsym_path.nil?
+      UI.important("No dSYM archive was produced, so there is nothing to symbolicate.")
+      next
+    end
 
-    required_env("SENTRY_AUTH_TOKEN") # sentry-cli picks it up from the environment on its own.
+    # By the time this runs the binary is already in App Store Connect, so nothing here is allowed to
+    # fail the release — a missing token or a rejected upload costs symbolication, not the build, and
+    # `sentry-cli debug-files upload` can be re-run by hand afterwards.
+    token = ENV.fetch("SENTRY_AUTH_TOKEN", nil)
+    if token.nil? || token.empty?
+      UI.important("SENTRY_AUTH_TOKEN is not set; skipping the Sentry upload of #{dsym_path}.")
+      next
+    end
 
-    sh("sentry-cli", "debug-files", "upload",
-       "--org", SENTRY_ORG,
-       "--project", SENTRY_PROJECT,
-       "--include-sources",
-       dsym_path)
+    begin
+      sh("sentry-cli", "debug-files", "upload",
+         "--org", SENTRY_ORG,
+         "--project", SENTRY_PROJECT,
+         "--include-sources",
+         dsym_path)
+    rescue StandardError => error
+      UI.error("Sentry rejected the dSYM upload: #{error.message}")
+      UI.important("The build itself uploaded fine; re-run sentry-cli once the token is valid.")
+    end
   end
 end
