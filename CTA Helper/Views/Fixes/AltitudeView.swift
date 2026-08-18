@@ -8,6 +8,10 @@ import SwiftUI
  value sits beside it, with the restriction bars on the corrected (operative) value. A
  block stacks its ceiling over its floor and corrects only the floor. An uncorrected
  altitude shows plain. A fix with no published altitude shows a dash.
+
+ Taking ``PublishedAltitude`` apart is the last place whole feet are in hand — the store codes
+ them that way — so every view below holds a measurement that carries its own unit, and none of
+ them can format one as a bare number.
  */
 struct AltitudeView: View {
   /// The correction outcome to render.
@@ -20,31 +24,19 @@ struct AltitudeView: View {
           UnpublishedAltitude()
         case let .single(publishedFt, restriction, glidepathFt):
           SingleAltitude(
-            published: feet(publishedFt),
-            corrected: altitude.correctedFt.map(feet),
+            published: .feet(publishedFt),
+            corrected: altitude.corrected,
             restriction: restriction,
-            glidepath: glidepathFt.map(feet)
+            glidepath: glidepathFt.map { .feet($0) }
           )
         case let .block(ceilingFt, floorFt):
           BlockAltitude(
-            ceiling: feet(ceilingFt),
-            floor: feet(floorFt),
-            correctedFloor: altitude.correctedFt.map(feet)
+            ceiling: .feet(ceilingFt),
+            floor: .feet(floorFt),
+            correctedFloor: altitude.corrected
           )
       }
     }
-  }
-
-  /**
-   The correction engine's scalar feet as the `Measurement` the view layer displays.
-
-   This is the whole boundary: ``CorrectedAltitude`` and ``PublishedAltitude`` speak `Int` feet
-   because the correction tables and the store do, and taking the outcome apart is the one
-   place a scalar is in hand. Converting here leaves every view below holding a value that
-   carries its own unit, so none of them can format one as a bare number.
-   */
-  private func feet(_ ft: Int) -> Measurement<UnitLength> {
-    .init(value: Double(ft), unit: .feet)
   }
 }
 
@@ -206,14 +198,14 @@ private struct RestrictionBar: View {
         "At — corrected",
         CorrectedAltitude(
           published: .single(ft: 4000, restriction: .at, glidepathFt: nil),
-          correction: .add(ft: 300)
+          correction: .add(.feet(300))
         )
       ),
       (
         "At or above — corrected",
         CorrectedAltitude(
           published: .single(ft: 9400, restriction: .atOrAbove, glidepathFt: nil),
-          correction: .add(ft: 300)
+          correction: .add(.feet(300))
         )
       ),
       (
@@ -234,7 +226,7 @@ private struct RestrictionBar: View {
         "Block — floor corrected",
         CorrectedAltitude(
           published: .block(ceilingFt: 7000, floorFt: 5000),
-          correction: .add(ft: 200)
+          correction: .add(.feet(200))
         )
       ),
       (

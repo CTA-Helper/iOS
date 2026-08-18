@@ -32,6 +32,38 @@ enum ColdTemperatureCorrection {
    */
   static let tableCeilingFt = 5000.0
 
+  /// ``tableCeilingFt`` as the measurement the engine compares a segment's height against.
+  static let tableCeiling = Measurement<UnitLength>.feet(tableCeilingFt)
+
+  /**
+   The uncorrected altitude error for a reported temperature and height above the airport.
+
+   This is the engine's way in: it holds measurements, and the scalars the formula is written
+   in go no further up than ``correctionFt(reportedTemperatureC:heightAboveAirportFt:extrapolateAboveTable:)``
+   below it.
+
+   - Parameters:
+     - reportedTemperature: the reported airport temperature.
+     - heightAboveAirport: the height of the altitude being corrected above the airport.
+     - extrapolateAboveTable: when `false`, heights above ``tableCeiling`` are treated as
+       ``tableCeiling``, matching the FAA's worked example; when `true`, the formula is
+       evaluated at the true height.
+   - Returns: the correction to add to the published altitude, never negative.
+   */
+  static func correction(
+    reportedTemperature: Measurement<UnitTemperature>,
+    heightAboveAirport: Measurement<UnitLength>,
+    extrapolateAboveTable: Bool = false
+  ) -> Measurement<UnitLength> {
+    .feet(
+      correctionFt(
+        reportedTemperatureC: reportedTemperature.converted(to: .celsius).value,
+        heightAboveAirportFt: heightAboveAirport.converted(to: .feet).value,
+        extrapolateAboveTable: extrapolateAboveTable
+      )
+    )
+  }
+
   /**
    The uncorrected altitude error, in feet, for a reported temperature and height above the
    airport.

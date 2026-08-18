@@ -56,30 +56,33 @@ struct NavDataImportTests {
     let approach = try #require(airport.approaches.first)
 
     let corrector = ApproachCorrector(
-      elevationFt: airport.elevationFt,
+      elevation: airport.elevation,
       referenceAltitudes: approach.referenceAltitudes,
-      reportedTemperatureC: -12,
+      reportedTemperature: .celsius(-12),
       coldTemperature: airport.coldTemperature,
       method: .allSegments,
       rounding: .nearestHundred,
       extrapolateAboveTable: false,
-      minimumsAltitudeFt: 4520
+      minimumsAltitude: .feet(4520)
     )
 
-    func correctedAltitudeFt(of identifier: String, role: FixRole? = nil) throws -> Int? {
+    func correctedAltitude(
+      of identifier: String,
+      role: FixRole? = nil
+    ) throws -> Measurement<UnitLength>? {
       let fix = try #require(
         approach.fixes.first {
           $0.identifier == identifier && (role == nil || $0.role == role)
         }
       )
-      return corrector.corrected(fix).correctedFt
+      return corrector.corrected(fix).corrected
     }
 
-    #expect(try correctedAltitudeFt(of: "LANNY") == 9700)
-    #expect(try correctedAltitudeFt(of: "CALIP") == 7300)
-    #expect(try correctedAltitudeFt(of: "SUPPY") == 6500)
+    #expect(try correctedAltitude(of: "LANNY") == .feet(9700))
+    #expect(try correctedAltitude(of: "CALIP") == .feet(7300))
+    #expect(try correctedAltitude(of: "SUPPY") == .feet(6500))
     // JENKI is coded twice (an initial IF and the missed holding fix); check the holding one.
-    #expect(try correctedAltitudeFt(of: "JENKI", role: .missedHolding) == 12500)
+    #expect(try correctedAltitude(of: "JENKI", role: .missedHolding) == .feet(12500))
   }
 }
 

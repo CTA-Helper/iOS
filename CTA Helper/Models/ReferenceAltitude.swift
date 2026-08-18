@@ -16,10 +16,10 @@ enum ReferenceAltitude: Codable, Hashable, Sendable {
   /// No reference could be resolved from the coded procedure (about 4% of initial segments).
   case unavailable
 
-  /// The reference altitude in feet, or `nil` when the segment has none to correct from.
-  var altitudeFt: Int? {
+  /// The reference altitude, or `nil` when the segment has none to correct from.
+  var altitude: Measurement<UnitLength>? {
     guard case let .published(ft, _) = self else { return nil }
-    return ft
+    return .feet(ft)
   }
 }
 

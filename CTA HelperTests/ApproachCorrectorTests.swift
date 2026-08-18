@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 
 @testable import CTA_Helper
@@ -68,17 +69,17 @@ struct ApproachCorrectorTests {
     method: CorrectionMethod = .allSegments,
     rounding: CorrectionRounding = .nearestHundred,
     extrapolate: Bool = false,
-    minimumsFt: Int? = 4520
+    minimums: Measurement<UnitLength>? = .feet(4520)
   ) -> ApproachCorrector {
     ApproachCorrector(
-      elevationFt: 3206,
+      elevation: .feet(3206),
       referenceAltitudes: references,
-      reportedTemperatureC: -12,
+      reportedTemperature: .celsius(-12),
       coldTemperature: Self.kmsoRestriction,
       method: method,
       rounding: rounding,
       extrapolateAboveTable: extrapolate,
-      minimumsAltitudeFt: minimumsFt
+      minimumsAltitude: minimums
     )
   }
 
@@ -87,12 +88,12 @@ struct ApproachCorrectorTests {
     let corrector = kmso()
 
     // IAFs and the FAF-and-above fixes correct from the FAF (6200 ft), +300 ft.
-    #expect(corrector.corrected(TestFix(.initial, altitudeFt: 9400)).correctedFt == 9700)
-    #expect(corrector.corrected(TestFix(.intermediate, altitudeFt: 7000)).correctedFt == 7300)
-    #expect(corrector.corrected(TestFix(.intermediate, altitudeFt: 6200)).correctedFt == 6500)
+    #expect(corrector.corrected(TestFix(.initial, altitudeFt: 9400)).corrected == .feet(9700))
+    #expect(corrector.corrected(TestFix(.intermediate, altitudeFt: 7000)).corrected == .feet(7300))
+    #expect(corrector.corrected(TestFix(.intermediate, altitudeFt: 6200)).corrected == .feet(6500))
 
     // The missed holding altitude (12000 ft) is 8794 ft up, capped at the 5000 ft column, +500.
-    #expect(corrector.corrected(TestFix(.missed, altitudeFt: 12000)).correctedFt == 12500)
+    #expect(corrector.corrected(TestFix(.missed, altitudeFt: 12000)).corrected == .feet(12500))
   }
 
   @Test("The final segment differs from the FAA text by 10 ft, deliberately")
@@ -103,12 +104,14 @@ struct ApproachCorrectorTests {
     // text reads "approximately 150 ft" off the chart by eye and so publishes 4990/4670. The
     // formula is exact, so we assert 10 ft lower on purpose — do not "correct" these to match
     // the example without revisiting the math.
-    #expect(corrector.appliedCorrection(for: .final)?.roundedCorrectionFt == 140)
-    #expect(corrector.corrected(TestFix(.final, altitudeFt: 4840)).correctedFt == 4980)
+    #expect(corrector.appliedCorrection(for: .final)?.roundedCorrection == .feet(140))
+    #expect(corrector.corrected(TestFix(.final, altitudeFt: 4840)).corrected == .feet(4980))
 
     // The MDA itself, corrected, is 4520 + 140 = 4660 (the example's 4670).
-    let mdaFt = 4520 + (corrector.appliedCorrection(for: .final)?.roundedCorrectionFt ?? 0)
-    #expect(mdaFt == 4660)
+    let mda =
+      Measurement<UnitLength>.feet(4520)
+      + (corrector.appliedCorrection(for: .final)?.roundedCorrection ?? .feet(0))
+    #expect(mda == .feet(4660))
   }
 
   @Test("The Individual Segments Method corrects only the segments the CTA marks")
@@ -116,19 +119,21 @@ struct ApproachCorrectorTests {
     let corrector = kmso(method: .individualSegments)
 
     // KMSO marks initial, intermediate and final — not missed.
-    #expect(corrector.corrected(TestFix(.intermediate, altitudeFt: 6200)).correctedFt == 6500)
+    #expect(corrector.corrected(TestFix(.intermediate, altitudeFt: 6200)).corrected == .feet(6500))
     let missed = corrector.corrected(TestFix(.missed, altitudeFt: 12000))
     #expect(missed.correction == .unavailable(.segmentNotSelected))
-    #expect(missed.correctedFt == nil)
+    #expect(missed.corrected == nil)
   }
 
   @Test("Capping the height at 5000 ft changes the missed correction")
   func heightCapAffectsTheMissedSegment() {
     #expect(
-      kmso(extrapolate: false).corrected(TestFix(.missed, altitudeFt: 12000)).correctedFt == 12500
+      kmso(extrapolate: false).corrected(TestFix(.missed, altitudeFt: 12000)).corrected
+        == .feet(12500)
     )
     #expect(
-      kmso(extrapolate: true).corrected(TestFix(.missed, altitudeFt: 12000)).correctedFt == 12900
+      kmso(extrapolate: true).corrected(TestFix(.missed, altitudeFt: 12000)).corrected
+        == .feet(12900)
     )
     #expect(kmso(extrapolate: false).appliedCorrection(for: .missed)?.isHeightCapped == true)
   }
@@ -138,9 +143,9 @@ struct ApproachCorrectorTests {
     let corrector = kmso(rounding: .roundUp)
 
     // Initial raw correction 313 ft rounds up to 400.
-    #expect(corrector.corrected(TestFix(.initial, altitudeFt: 9400)).correctedFt == 9800)
+    #expect(corrector.corrected(TestFix(.initial, altitudeFt: 9400)).corrected == .feet(9800))
     // Final raw correction 137 ft rounds up to 200.
-    #expect(corrector.corrected(TestFix(.final, altitudeFt: 4840)).correctedFt == 5040)
+    #expect(corrector.corrected(TestFix(.final, altitudeFt: 4840)).corrected == .feet(5040))
   }
 
   @Test("A block altitude is corrected on its floor, not its ceiling")
@@ -151,7 +156,7 @@ struct ApproachCorrectorTests {
       TestFix(.initial, .block(ceilingFt: 6000, floorFt: 3900))
     )
     #expect(corrected.published == .block(ceilingFt: 6000, floorFt: 3900))
-    #expect(corrected.correctedFt == 4200)
+    #expect(corrected.corrected == .feet(4200))
   }
 
   @Test("A fix the data marks not correctable is left published")
@@ -161,7 +166,7 @@ struct ApproachCorrectorTests {
       TestFix(.final, altitudeFt: 3237, restriction: .at, correctable: false)
     )
     #expect(corrected.correction == .unavailable(.notCorrectable))
-    #expect(corrected.correctedFt == nil)
+    #expect(corrected.corrected == nil)
   }
 
   @Test("A fix publishing no altitude is reported as such, not as uncorrectable")
@@ -171,12 +176,12 @@ struct ApproachCorrectorTests {
     let corrected = kmso().corrected(TestFix(.initial, .unpublished, correctable: false))
 
     #expect(corrected.correction == .unavailable(.noPublishedAltitude))
-    #expect(corrected.correctedFt == nil)
+    #expect(corrected.corrected == nil)
   }
 
   @Test("The final segment cannot be corrected until the DA/MDA is entered")
   func finalSegmentNeedsMinimums() {
-    let corrector = kmso(minimumsFt: nil)
+    let corrector = kmso(minimums: nil)
     let corrected = corrector.corrected(TestFix(.final, altitudeFt: 4840))
     #expect(corrected.correction == .unavailable(.minimumsNotEntered))
   }

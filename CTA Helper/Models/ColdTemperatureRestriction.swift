@@ -11,6 +11,6 @@ struct ColdTemperatureRestriction: Codable, Hashable, Sendable {
 
   /// The temperature at or below which a correction is mandatory.
   var restrictionTemperature: Measurement<UnitTemperature> {
-    .init(value: Double(restrictionTemperatureC), unit: .celsius)
+    .celsius(Double(restrictionTemperatureC))
   }
 }

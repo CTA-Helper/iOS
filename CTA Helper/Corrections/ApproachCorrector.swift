@@ -23,12 +23,12 @@ import Foundation
  published.
  */
 struct ApproachCorrector {
-  /// The airport elevation, in feet, that every reference height is measured above.
-  let elevationFt: Int
+  /// The airport elevation that every reference height is measured above.
+  let elevation: Measurement<UnitLength>
   /// The approach's segment reference altitudes.
   let referenceAltitudes: ReferenceAltitudes
-  /// The temperature to correct for, in °C.
-  let reportedTemperatureC: Double
+  /// The temperature to correct for.
+  let reportedTemperature: Measurement<UnitTemperature>
   /**
    The airport's Cold Temperature Airport restriction, or `nil` at an airport that is not a
    CTA — where the Individual Segments Method has nothing marked and so corrects every
@@ -41,8 +41,8 @@ struct ApproachCorrector {
   let rounding: CorrectionRounding
   /// Whether to evaluate the formula above the table's 5,000 ft ceiling.
   let extrapolateAboveTable: Bool
-  /// The pilot-entered DA or MDA, in feet, or `nil` until entered.
-  let minimumsAltitudeFt: Int?
+  /// The pilot-entered DA or MDA, or `nil` until entered.
+  let minimumsAltitude: Measurement<UnitLength>?
 
   /// The correction in force on a single segment, or `nil` when the segment is not corrected.
   func appliedCorrection(for segment: Segment) -> SegmentCorrection.Applied? {
@@ -69,7 +69,7 @@ struct ApproachCorrector {
     guard fix.isCorrectable else { return .unavailable(.notCorrectable) }
 
     return switch segmentCorrection(for: fix.segment) {
-      case let .applied(applied): .add(ft: applied.roundedCorrectionFt)
+      case let .applied(applied): .add(applied.roundedCorrection)
       case let .unavailable(reason): .unavailable(reason)
     }
   }
@@ -78,26 +78,40 @@ struct ApproachCorrector {
   private func segmentCorrection(for segment: Segment) -> SegmentCorrection {
     if let excluded = exclusionReason(for: segment) { return .unavailable(excluded) }
 
-    guard let referenceAltitudeFt = referenceAltitudeFt(for: segment) else {
+    guard let referenceAltitude = referenceAltitude(for: segment) else {
       return .unavailable(segment == .final ? .minimumsNotEntered : .referenceUnavailable)
     }
 
-    let heightFt = Double(referenceAltitudeFt - elevationFt)
-    let rawCorrectionFt = ColdTemperatureCorrection.correctionFt(
-      reportedTemperatureC: reportedTemperatureC,
-      heightAboveAirportFt: heightFt,
-      extrapolateAboveTable: extrapolateAboveTable
-    )
+    let height = referenceAltitude - elevation
     return .applied(
       SegmentCorrection.Applied(
         segment: segment,
-        referenceAltitudeFt: referenceAltitudeFt,
-        heightAboveAirportFt: referenceAltitudeFt - elevationFt,
-        roundedCorrectionFt: rounding.rounded(rawCorrectionFt, segment: segment),
-        isHeightCapped: !extrapolateAboveTable
-          && heightFt > ColdTemperatureCorrection.tableCeilingFt
+        referenceAltitude: referenceAltitude,
+        heightAboveAirport: height,
+        roundedCorrection: roundedCorrection(for: segment, at: height),
+        isHeightCapped: isHeightCapped(height)
       )
     )
+  }
+
+  /// The ICAO formula evaluated at a segment's height, rounded by the pilot's convention.
+  private func roundedCorrection(
+    for segment: Segment,
+    at height: Measurement<UnitLength>
+  ) -> Measurement<UnitLength> {
+    rounding.rounded(
+      ColdTemperatureCorrection.correction(
+        reportedTemperature: reportedTemperature,
+        heightAboveAirport: height,
+        extrapolateAboveTable: extrapolateAboveTable
+      ),
+      segment: segment
+    )
+  }
+
+  /// Whether the formula was evaluated at the table's ceiling rather than at this height.
+  private func isHeightCapped(_ height: Measurement<UnitLength>) -> Bool {
+    !extrapolateAboveTable && height > ColdTemperatureCorrection.tableCeiling
   }
 
   /**
@@ -111,9 +125,9 @@ struct ApproachCorrector {
     return coldTemperature.affectedSegments.contains(segment) ? nil : .segmentNotSelected
   }
 
-  private func referenceAltitudeFt(for segment: Segment) -> Int? {
+  private func referenceAltitude(for segment: Segment) -> Measurement<UnitLength>? {
     segment == .final
-      ? minimumsAltitudeFt
-      : referenceAltitudes.reference(for: segment, method: method).altitudeFt
+      ? minimumsAltitude
+      : referenceAltitudes.reference(for: segment, method: method).altitude
   }
 }

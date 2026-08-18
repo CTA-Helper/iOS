@@ -2,13 +2,14 @@ import SwiftData
 import SwiftUI
 
 /**
- The temperatures the reported-temperature slider spans, in °C.
+ The temperatures the reported-temperature slider spans.
 
  The correction tables stop at −50 °C, and above +10 °C no US Cold Temperature Airport
  restriction is in force. An observation outside that span is pinned to the nearer end rather
  than left off the track, where the slider could not show it.
  */
-private let reportedTemperatureRangeC = -50.0...10.0
+private let reportedTemperatureRange =
+  Measurement<UnitTemperature>.celsius(-50)...Measurement<UnitTemperature>.celsius(10)
 
 /**
  The app's signature screen: every fix of an approach with its published altitude and the
@@ -36,8 +37,8 @@ struct FixListView: View {
   /// The approach whose fixes are listed.
   let approach: Approach
 
-  @State private var reportedTemperatureC: Double
-  @State private var minimumsFt: Int?
+  @State private var reportedTemperature: Measurement<UnitTemperature>
+  @State private var minimums: Measurement<UnitLength>?
   /**
    The station's latest METAR, once fetched — the source of the reported temperature, and the
    subject of the weather section.
@@ -68,7 +69,7 @@ struct FixListView: View {
   var body: some View {
     List {
       Section {
-        TemperatureControl(reportedTemperatureC: $reportedTemperatureC)
+        TemperatureControl(reportedTemperature: $reportedTemperature)
         if let observation {
           WeatherLink(observation: observation)
         }
@@ -79,7 +80,7 @@ struct FixListView: View {
           fixes: approach.fixes,
           corrector: corrector,
           selectedTransitions: $selectedTransitions,
-          minimumsFt: $minimumsFt,
+          minimums: $minimums,
           isEditingMinimums: $isEditingMinimums
         )
       } else {
@@ -106,20 +107,20 @@ struct FixListView: View {
    */
   private var isCorrectionRequired: Bool {
     guard let coldTemperature = airport.coldTemperature else { return true }
-    return reportedTemperatureC <= Double(coldTemperature.restrictionTemperatureC)
+    return reportedTemperature <= coldTemperature.restrictionTemperature
   }
 
   /// The correction in force, rebuilt from the current controls.
   private var corrector: ApproachCorrector {
     ApproachCorrector(
-      elevationFt: airport.elevationFt,
+      elevation: airport.elevation,
       referenceAltitudes: approach.referenceAltitudes,
-      reportedTemperatureC: reportedTemperatureC,
+      reportedTemperature: reportedTemperature,
       coldTemperature: airport.coldTemperature,
       method: method,
       rounding: rounding,
       extrapolateAboveTable: extrapolateAboveTable,
-      minimumsAltitudeFt: minimumsFt
+      minimumsAltitude: minimums
     )
   }
 
@@ -129,13 +130,17 @@ struct FixListView: View {
    - Parameters:
      - airport: the airport the approach serves.
      - approach: the approach to list.
-     - initialTemperatureC: the temperature the slider starts at, in °C, so a fetched METAR
-       temperature can be injected later; the pilot then adjusts it with the slider.
+     - initialTemperature: the temperature the slider starts at, so a fetched METAR temperature
+       can be injected later; the pilot then adjusts it with the slider.
    */
-  init(airport: Airport, approach: Approach, initialTemperatureC: Double = 0) {
+  init(
+    airport: Airport,
+    approach: Approach,
+    initialTemperature: Measurement<UnitTemperature> = .celsius(0)
+  ) {
     self.airport = airport
     self.approach = approach
-    _reportedTemperatureC = State(initialValue: initialTemperatureC)
+    _reportedTemperature = State(initialValue: initialTemperature)
   }
 
   /**
@@ -143,7 +148,7 @@ struct FixListView: View {
    transition chosen for each segment.
    */
   private func clearEntries() {
-    minimumsFt = nil
+    minimums = nil
     selectedTransitions = [:]
   }
 
@@ -160,9 +165,8 @@ struct FixListView: View {
   private func loadObservation() async {
     guard let metarLoader, let networkMonitor, networkMonitor.isConnected else { return }
     observation = await metarLoader.observation(for: airport.metarStationID)
-    guard let temperatureC = observation?.temperature?.converted(to: .celsius).value
-    else { return }
-    reportedTemperatureC = temperatureC.rounded().clamped(to: reportedTemperatureRangeC)
+    guard let temperature = observation?.temperature else { return }
+    reportedTemperature = temperature.roundedToWholeCelsius.clamped(to: reportedTemperatureRange)
   }
 }
 
@@ -223,41 +227,46 @@ private struct ObservationAge: View {
  so nothing divides the reading from the control that sets it.
  */
 private struct TemperatureControl: View {
-  @Binding var reportedTemperatureC: Double
+  /**
+   The span of ``reportedTemperatureRange`` in the bare degrees `Slider` is defined over.
+
+   The track is the one thing on this screen that cannot hold a measurement — `Slider` works in
+   `BinaryFloatingPoint` — so the scalar is derived here and goes no further.
+   */
+  private static let trackC: ClosedRange<Double> = {
+    let coldest = reportedTemperatureRange.lowerBound.converted(to: .celsius).value
+    let warmest = reportedTemperatureRange.upperBound.converted(to: .celsius).value
+    return coldest...warmest
+  }()
+
+  @Binding var reportedTemperature: Measurement<UnitTemperature>
 
   var body: some View {
     VStack(alignment: .leading) {
       LabeledContent("Reported Temperature") {
-        Text(temperature, format: .reportedTemperature)
+        Text(reportedTemperature, format: .reportedTemperature)
           .monospacedDigit()
       }
-      Slider(value: $reportedTemperatureC, in: reportedTemperatureRangeC, step: 1) {
+      Slider(value: temperatureC, in: Self.trackC, step: 1) {
         Text("Reported Temperature")
       } minimumValueLabel: {
-        Text(coldestTemperature, format: .reportedTemperature)
+        // The ends of the track are labelled in the same unit as the reading above it, so the
+        // span the slider covers is read off the control rather than inferred from where the
+        // thumb stops.
+        Text(reportedTemperatureRange.lowerBound, format: .reportedTemperature)
       } maximumValueLabel: {
-        Text(warmestTemperature, format: .reportedTemperature)
+        Text(reportedTemperatureRange.upperBound, format: .reportedTemperature)
       }
       .accessibilityIdentifier("reportedTemperatureSlider")
     }
   }
 
-  /// The selected temperature as a Celsius measurement.
-  private var temperature: Measurement<UnitTemperature> {
-    Measurement(value: reportedTemperatureC, unit: .celsius)
-  }
-
-  /**
-   The cold end of the track, labelled in the same unit as the reading above it so the span the
-   slider covers is read off the control rather than inferred from where the thumb stops.
-   */
-  private var coldestTemperature: Measurement<UnitTemperature> {
-    Measurement(value: reportedTemperatureRangeC.lowerBound, unit: .celsius)
-  }
-
-  /// The warm end of the track, labelled like ``coldestTemperature``.
-  private var warmestTemperature: Measurement<UnitTemperature> {
-    Measurement(value: reportedTemperatureRangeC.upperBound, unit: .celsius)
+  /// The selected temperature as the degrees the track is drawn in.
+  private var temperatureC: Binding<Double> {
+    Binding(
+      get: { reportedTemperature.converted(to: .celsius).value },
+      set: { reportedTemperature = .celsius($0) }
+    )
   }
 }
 
@@ -296,7 +305,7 @@ private struct SegmentSections: View {
   let fixes: [Fix]
   let corrector: ApproachCorrector
   @Binding var selectedTransitions: [Segment: String]
-  @Binding var minimumsFt: Int?
+  @Binding var minimums: Measurement<UnitLength>?
   @FocusState.Binding var isEditingMinimums: Bool
 
   var body: some View {
@@ -305,7 +314,7 @@ private struct SegmentSections: View {
         group: group,
         selectedTransition: transitionBinding(for: group),
         corrector: corrector,
-        minimumsFt: $minimumsFt,
+        minimums: $minimums,
         isEditingMinimums: $isEditingMinimums
       )
     }
@@ -342,7 +351,7 @@ private struct SegmentSection: View {
   let group: FixGrouping.Group<FixListEntry>
   @Binding var selectedTransition: String?
   let corrector: ApproachCorrector
-  @Binding var minimumsFt: Int?
+  @Binding var minimums: Measurement<UnitLength>?
   @FocusState.Binding var isEditingMinimums: Bool
 
   var body: some View {
@@ -351,7 +360,7 @@ private struct SegmentSection: View {
         CorrectedRow(
           entry: entry,
           corrector: corrector,
-          minimumsFt: $minimumsFt,
+          minimums: $minimums,
           isEditingMinimums: $isEditingMinimums
         )
       }
@@ -418,7 +427,7 @@ private struct TransitionPicker: View {
 private struct CorrectedRow: View {
   let entry: FixListEntry
   let corrector: ApproachCorrector
-  @Binding var minimumsFt: Int?
+  @Binding var minimums: Measurement<UnitLength>?
   @FocusState.Binding var isEditingMinimums: Bool
 
   var body: some View {
@@ -427,7 +436,7 @@ private struct CorrectedRow: View {
         FixRow(fix: fix, altitude: corrector.corrected(fix))
       case .minimums:
         MinimumsRow(
-          minimumsFt: $minimumsFt,
+          minimums: $minimums,
           corrector: corrector,
           isEditing: $isEditingMinimums
         )
@@ -494,7 +503,11 @@ private struct NoCorrectionNotice: View {
   #Preview("Cold") {
     NavigationStack {
       let airport = PreviewData.missoula()
-      FixListView(airport: airport, approach: airport.approaches[0], initialTemperatureC: -20)
+      FixListView(
+        airport: airport,
+        approach: airport.approaches[0],
+        initialTemperature: .celsius(-20)
+      )
     }
     .modelContainer(.preview)
   }
@@ -517,7 +530,11 @@ private struct NoCorrectionNotice: View {
   #Preview("No correction necessary") {
     NavigationStack {
       let airport = PreviewData.missoula()
-      FixListView(airport: airport, approach: airport.approaches[0], initialTemperatureC: 5)
+      FixListView(
+        airport: airport,
+        approach: airport.approaches[0],
+        initialTemperature: .celsius(5)
+      )
     }
     .modelContainer(.preview)
   }

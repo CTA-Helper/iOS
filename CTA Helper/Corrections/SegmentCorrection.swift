@@ -17,12 +17,12 @@ enum SegmentCorrection: Equatable, Sendable {
   struct Applied: Equatable, Sendable {
     /// The segment corrected.
     var segment: Segment
-    /// The altitude the correction is computed from, in feet.
-    var referenceAltitudeFt: Int
-    /// The reference altitude's height above the airport, in feet.
-    var heightAboveAirportFt: Int
-    /// The correction added to the segment's altitudes, in feet, after rounding.
-    var roundedCorrectionFt: Int
+    /// The altitude the correction is computed from.
+    var referenceAltitude: Measurement<UnitLength>
+    /// The reference altitude's height above the airport.
+    var heightAboveAirport: Measurement<UnitLength>
+    /// The correction added to the segment's altitudes, after rounding.
+    var roundedCorrection: Measurement<UnitLength>
     /// Whether the height was capped at the table's 5,000 ft ceiling.
     var isHeightCapped: Bool
   }

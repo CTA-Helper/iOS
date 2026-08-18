@@ -15,15 +15,15 @@ enum CorrectionRounding: String, CaseIterable, Identifiable, Sendable {
   /// Round every correction up to the next 100 ft.
   case roundUp
 
-  /// The step a segment correction is rounded to, in feet.
-  private static let segmentStepFt = 100.0
+  /// The step a segment correction is rounded to.
+  private static let segmentStep = Measurement<UnitLength>.feet(100)
 
   /**
-   The step the final segment's correction is rounded up to under ``nearestHundred``, in feet:
-   the DA/MDA is never rounded down, so it takes the finer step instead of the nearest
-   ``segmentStepFt``.
+   The step the final segment's correction is rounded up to under ``nearestHundred``: the
+   DA/MDA is never rounded down, so it takes the finer step instead of the nearest
+   ``segmentStep``.
    */
-  private static let finalSegmentStepFt = 10.0
+  private static let finalSegmentStep = Measurement<UnitLength>.feet(10)
 
   var id: Self { self }
 
@@ -31,21 +31,22 @@ enum CorrectionRounding: String, CaseIterable, Identifiable, Sendable {
    Round a raw correction for a segment.
 
    - Parameters:
-     - correctionFt: the un-rounded correction, in feet.
+     - correction: the un-rounded correction.
      - segment: the segment the correction applies to; the final segment is never rounded
        down.
-   - Returns: the rounded correction, in feet.
+   - Returns: the rounded correction.
    */
-  func rounded(_ correctionFt: Double, segment: Segment) -> Int {
-    let roundedFt =
-      switch self {
-        case .roundUp:
-          correctionFt.rounded(toMultipleOf: Self.segmentStepFt, rule: .up)
-        case .nearestHundred:
-          segment == .final
-            ? correctionFt.rounded(toMultipleOf: Self.finalSegmentStepFt, rule: .up)
-            : correctionFt.rounded(toMultipleOf: Self.segmentStepFt)
-      }
-    return Int(roundedFt)
+  func rounded(
+    _ correction: Measurement<UnitLength>,
+    segment: Segment
+  ) -> Measurement<UnitLength> {
+    switch self {
+      case .roundUp:
+        correction.rounded(toMultipleOf: Self.segmentStep, rule: .up)
+      case .nearestHundred:
+        segment == .final
+          ? correction.rounded(toMultipleOf: Self.finalSegmentStep, rule: .up)
+          : correction.rounded(toMultipleOf: Self.segmentStep)
+    }
   }
 }

@@ -211,7 +211,7 @@ import SwiftData
     /// A cold observation, the one the fix list's correction is worth doing for.
     static let preview = METARObservation(
       stationID: "KMSO",
-      temperature: Measurement(value: -20, unit: .celsius),
+      temperature: .celsius(-20),
       date: Date(timeIntervalSinceReferenceDate: 806_000_000),
       rawText: "KMSO 241953Z 30012KT 10SM FEW070 M20/M24 A3002 RMK AO2 SLP215"
     )
@@ -222,7 +222,7 @@ import SwiftData
      */
     static let previewOffScale = METARObservation(
       stationID: "KBDN",
-      temperature: Measurement(value: 31, unit: .celsius),
+      temperature: .celsius(31),
       date: Date(timeIntervalSinceReferenceDate: 806_000_000),
       rawText: "KBDN 241953Z 30012KT 10SM CLR 31/M01 A3002 RMK AO2 SLP128"
     )
@@ -243,23 +243,23 @@ import SwiftData
 
      - Parameters:
        - airport: the airport whose first approach is corrected.
-       - temperatureC: the reported temperature, in °C.
-       - minimumsFt: the pilot-entered DA or MDA, in feet, or `nil` for minimums not yet entered.
+       - temperature: the reported temperature.
+       - minimums: the pilot-entered DA or MDA, or `nil` for minimums not yet entered.
      */
     static func preview(
       for airport: Airport,
-      temperatureC: Double = -20,
-      minimumsFt: Int? = 4520
+      temperature: Measurement<UnitTemperature> = .celsius(-20),
+      minimums: Measurement<UnitLength>? = .feet(4520)
     ) -> Self {
       Self(
-        elevationFt: airport.elevationFt,
+        elevation: airport.elevation,
         referenceAltitudes: airport.approaches[0].referenceAltitudes,
-        reportedTemperatureC: temperatureC,
+        reportedTemperature: temperature,
         coldTemperature: airport.coldTemperature,
         method: .allSegments,
         rounding: .nearestHundred,
         extrapolateAboveTable: false,
-        minimumsAltitudeFt: minimumsFt
+        minimumsAltitude: minimums
       )
     }
   }

@@ -22,8 +22,8 @@ enum UncorrectableReason: Equatable, Sendable {
  corrects, or why it adds nothing.
  */
 enum Correction: Equatable, Sendable {
-  /// Add this many feet to the altitude the fix's ``PublishedAltitude`` marks as correctable.
-  case add(ft: Int)
+  /// Add this much to the altitude the fix's ``PublishedAltitude`` marks as correctable.
+  case add(Measurement<UnitLength>)
   /// Add nothing, for this reason.
   case unavailable(UncorrectableReason)
 }
@@ -42,8 +42,8 @@ struct CorrectedAltitude: Equatable, Sendable {
    The corrected value of the altitude ENR 1.8 moves — a block's floor, otherwise the single
    published altitude — or `nil` when no correction applies.
    */
-  var correctedFt: Int? {
-    guard case let .add(addendFt) = correction else { return nil }
-    return published.correctableFt.map { $0 + addendFt }
+  var corrected: Measurement<UnitLength>? {
+    guard case let .add(addend) = correction else { return nil }
+    return published.correctable.map { $0 + addend }
   }
 }

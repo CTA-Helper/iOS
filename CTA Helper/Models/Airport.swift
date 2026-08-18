@@ -73,6 +73,9 @@ final class Airport {
 }
 
 extension Airport {
+  /// The elevation every correction measures its reference height above.
+  var elevation: Measurement<UnitLength> { .feet(elevationFt) }
+
   /**
    The identifier a pilot recognizes: the ICAO code where there is one, else the FAA
    location identifier — `"KMSO"`, but `"05U"`.

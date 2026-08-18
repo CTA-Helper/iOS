@@ -18,10 +18,10 @@ struct MinimumsRow: View {
    The highest airport in the country sits under 15,000 ft, so no published minimum comes near
    this. It is a wrong-order-of-magnitude check — a dropped or doubled digit — not a limit.
    */
-  private static let implausibleMinimums = Measurement(value: 30_000, unit: UnitLength.feet)
+  private static let implausibleMinimums = Measurement<UnitLength>.feet(30_000)
 
-  /// The entered DA or MDA, in feet MSL, or `nil` until the pilot types one.
-  @Binding var minimumsFt: Int?
+  /// The entered DA or MDA, MSL, or `nil` until the pilot types one.
+  @Binding var minimums: Measurement<UnitLength>?
   /// The corrector that resolves the entered minimums.
   let corrector: ApproachCorrector
 
@@ -38,7 +38,7 @@ struct MinimumsRow: View {
         Spacer()
         MeasurementField(
           "minimums",
-          value: minimums,
+          value: $minimums,
           unit: .feet,
           format: .altitude,
           keyboardType: .numberPad,
@@ -58,15 +58,9 @@ struct MinimumsRow: View {
     }
   }
 
-  /**
-   The corrected minimums, or `nil` until the pilot enters them.
-
-   The correction engine works in whole feet; this is the one place the result crosses into the
-   view, so it is where the scalar becomes the measurement the row displays.
-   */
+  /// The corrected minimums, or `nil` until the pilot enters them.
   private var correctedMinimums: Measurement<UnitLength>? {
-    corrector.corrected(MinimumsFix(altitudeFt: minimumsFt)).correctedFt
-      .map { Measurement(value: Double($0), unit: .feet) }
+    corrector.corrected(MinimumsFix(altitude: minimums)).corrected
   }
 
   /**
@@ -75,21 +69,6 @@ struct MinimumsRow: View {
    */
   private var isSuperseded: Bool {
     !isEditing && correctedMinimums != nil
-  }
-
-  /**
-   The entered minimums as an editable measurement, rounded back to the whole feet the
-   correction engine works in.
-
-   The conversion is `Int(exactly:)` rather than `Int(_:)` because a number pad accepts more
-   digits than an `Int` holds, and converting a `Double` past `Int.max` traps outright. A value
-   that large is not a minimum anyone typed on purpose, so it resolves to no entry at all.
-   */
-  private var minimums: Binding<Measurement<UnitLength>?> {
-    Binding(
-      get: { minimumsFt.map { Measurement(value: Double($0), unit: .feet) } },
-      set: { minimumsFt = $0.flatMap { Int(exactly: $0.converted(to: .feet).value.rounded()) } }
-    )
   }
 }
 
@@ -138,50 +117,63 @@ private struct MinimumsFix: CorrectableFix {
   let isCorrectable = true
   let publishedAltitude: PublishedAltitude
 
-  /// Wraps an entered DA or MDA, publishing nothing until the pilot types one.
-  init(altitudeFt: Int?) {
+  /**
+   Wraps an entered DA or MDA, publishing nothing until the pilot types one.
+
+   ``PublishedAltitude`` codes the whole feet the store holds, so the entry is rounded to them
+   here. The conversion is `Int(exactly:)` rather than `Int(_:)` because a number pad accepts
+   more digits than an `Int` holds, and converting a `Double` past `Int.max` traps outright. A
+   value that large is not a minimum anyone typed on purpose, so it publishes nothing at all.
+   */
+  init(altitude: Measurement<UnitLength>?) {
     publishedAltitude =
-      altitudeFt.map { .single(ft: $0, restriction: .atOrAbove, glidepathFt: nil) } ?? .unpublished
+      altitude
+      .flatMap { Int(exactly: $0.converted(to: .feet).value.rounded()) }
+      .map { .single(ft: $0, restriction: .atOrAbove, glidepathFt: nil) } ?? .unpublished
   }
 }
 
 #if DEBUG
   #Preview("Entered") {
-    @Previewable @State var minimumsFt: Int? = 4520
+    @Previewable @State var minimums: Measurement<UnitLength>? = .feet(4520)
     @Previewable @FocusState var isEditing: Bool
     let airport = PreviewData.missoula()
 
     List {
       MinimumsRow(
-        minimumsFt: $minimumsFt,
-        corrector: .preview(for: airport, minimumsFt: minimumsFt),
+        minimums: $minimums,
+        corrector: .preview(for: airport, minimums: minimums),
         isEditing: $isEditing
       )
     }
   }
 
   #Preview("Empty") {
-    @Previewable @State var minimumsFt: Int?
+    @Previewable @State var minimums: Measurement<UnitLength>?
     @Previewable @FocusState var isEditing: Bool
     let airport = PreviewData.missoula()
 
     List {
       MinimumsRow(
-        minimumsFt: $minimumsFt,
-        corrector: .preview(for: airport, minimumsFt: minimumsFt),
+        minimums: $minimums,
+        corrector: .preview(for: airport, minimums: minimums),
         isEditing: $isEditing
       )
     }
   }
 
   #Preview("Uncorrected") {
-    @Previewable @State var minimumsFt: Int? = 4520
+    @Previewable @State var minimums: Measurement<UnitLength>? = .feet(4520)
     @Previewable @FocusState var isEditing: Bool
 
     List {
       MinimumsRow(
-        minimumsFt: $minimumsFt,
-        corrector: .preview(for: PreviewData.missoula(), temperatureC: 20, minimumsFt: minimumsFt),
+        minimums: $minimums,
+        corrector: .preview(
+          for: PreviewData.missoula(),
+          temperature: .celsius(20),
+          minimums: minimums
+        ),
         isEditing: $isEditing
       )
     }

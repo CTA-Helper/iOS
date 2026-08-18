@@ -20,7 +20,7 @@ private let maximumNearestResults = 10
 @Observable
 @MainActor
 final class NearestAirportViewModel {
-  private static let searchRadiusNM = 50.0
+  private static let searchRadius = Measurement<UnitLength>(value: 50, unit: .nauticalMiles)
 
   private static let logger = Logger(subsystem: "codes.tim.CTA-Helper", category: "NearestAirport")
 
@@ -63,7 +63,10 @@ final class NearestAirportViewModel {
       airports = []
       return
     }
-    let box = BoundingBox(around: location.coordinate, radiusNM: Self.searchRadiusNM)
+    let box = BoundingBox(
+      around: location.coordinate,
+      radiusNM: Self.searchRadius.converted(to: .nauticalMiles).value
+    )
 
     fetchTask?.cancel()
     fetchTask = Task { [weak self] in
