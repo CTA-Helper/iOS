@@ -79,6 +79,15 @@ private struct CorrectionsSection: View {
  cycle has been imported.
  */
 private struct NavigationDataSection: View {
+  /**
+   The cycle dates as the AIRAC calendar publishes them: a plain date, read in UTC.
+
+   The manifest carries both date-only, which decodes to UTC midnight, so resolving them
+   against the device's own time zone would report a cycle west of Greenwich as taking
+   effect and expiring a day early.
+   */
+  private static let cycleDate = Date.FormatStyle(timeZone: .gmt).year().month().day()
+
   @Query private var cycles: [NavDataCycle]
 
   var body: some View {
@@ -91,10 +100,10 @@ private struct NavigationDataSection: View {
           .accessibilityValue(cycle.airacCycle)
           .accessibilityIdentifier("airacCycle")
         LabeledContent("Effective") {
-          Text(cycle.effectiveDate, format: .dateTime.year().month().day())
+          Text(cycle.effectiveDate, format: Self.cycleDate)
         }
         LabeledContent("Expires") {
-          Text(cycle.expirationDate, format: .dateTime.year().month().day())
+          Text(cycle.expirationDate, format: Self.cycleDate)
         }
       } else {
         Text("No data")
