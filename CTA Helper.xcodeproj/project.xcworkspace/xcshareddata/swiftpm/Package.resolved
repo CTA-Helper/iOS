@@ -60,8 +60,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/RISCfuture/SwiftMETAR",
       "state" : {
-        "revision" : "465fdf4c4b2919d87262c517a21e0477647521ed",
-        "version" : "3.2.1"
+        "revision" : "b94e1abc6adfeea39e424eba10297813cb428b0f",
+        "version" : "4.0.0"
       }
     },
     {
