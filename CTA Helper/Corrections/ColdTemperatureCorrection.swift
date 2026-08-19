@@ -14,7 +14,7 @@ import Foundation
 
  where `t` is the reported airport temperature in °C, `H` is the height above the airport in
  feet, and `L₀` is the ISA lapse rate. The `273` (not `273.15`) and the halved lapse term are
- what make the result match the FAA's table — see ``ColdTemperatureCorrectionTests``.
+ what make the result match the FAA's table — see `ColdTemperatureCorrectionTests`.
  */
 enum ColdTemperatureCorrection {
   /// ISA temperature lapse rate, in °C per foot.

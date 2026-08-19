@@ -11,7 +11,7 @@ import os
  The Aviation Weather Center publishes every current US METAR as a single gzipped XML file.
  The loader fetches that file, decompresses it, streams it through `SwiftMETAR`, and keeps an
  in-memory `[stationID: METARObservation]` map. To respect the source, it reloads no more often
- than ``reloadInterval`` unless a caller forces a refresh. A transient network failure leaves
+ than `reloadInterval` unless a caller forces a refresh. A transient network failure leaves
  any previously loaded observations in place rather than clearing them.
  */
 actor METARLoader {
@@ -59,7 +59,7 @@ actor METARLoader {
    Whether a reload should proceed, given the last load time and whether it was forced.
 
    A forced reload always proceeds. Otherwise a reload proceeds only if the cache has never
-   been loaded or the last load was at least ``reloadInterval`` ago.
+   been loaded or the last load was at least `reloadInterval` ago.
    */
   static func shouldReload(force: Bool, lastLoad: Date?, now: Date) -> Bool {
     if force { return true }
@@ -83,7 +83,7 @@ actor METARLoader {
    Refreshes the observation cache, subject to the reload interval.
 
    - Parameter force: when `true`, download even if the last load was within
-     ``reloadInterval``.
+     `reloadInterval`.
    */
   func reload(force: Bool = false) async {
     guard !isSeeded else { return }

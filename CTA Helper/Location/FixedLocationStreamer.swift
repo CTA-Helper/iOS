@@ -23,7 +23,7 @@ final class FixedLocationStreamer: LocationStreamer {
    - Parameters:
      - authorizationStatus: what the Nearest tab is told about this app's location permission.
      - location: the position to stream, or `nil` to report none — as an authorization short of
-       ``CoreLocation/CLAuthorizationStatus/authorizedWhenInUse`` always would.
+       `CLAuthorizationStatus.authorizedWhenInUse` always would.
    */
   init(authorizationStatus: CLAuthorizationStatus, location: CLLocation? = nil) {
     self.authorizationStatus = authorizationStatus

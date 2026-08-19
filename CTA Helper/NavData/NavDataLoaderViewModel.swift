@@ -83,7 +83,7 @@ final class NavDataLoaderViewModel {
 
   /**
    Resolve whether the store already holds data. When it does not, the loading screen shows
-   the consent prompt, and the pilot starts the download with ``load()``.
+   the consent prompt, and the pilot starts the download with ``load(force:)``.
    */
   func start() async {
     await refreshHasData()

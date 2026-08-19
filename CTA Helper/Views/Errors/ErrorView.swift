@@ -4,7 +4,7 @@ import SwiftUI
  A blocking error, presented as a sheet: the category description, the specific failure, and
  any recovery suggestion, each as its own element.
 
- Present it with ``SwiftUI/View/errorSheet(_:)`` rather than constructing it directly, and only
+ Present it with ``SwiftUICore/View/errorSheet(_:)`` rather than constructing it directly, and only
  when the failure stops the pilot from continuing: it takes over the screen and has to be
  dismissed before anything else can be done.
  */

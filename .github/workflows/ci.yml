@@ -47,3 +47,33 @@ jobs:
             "xcode-version": "latest-stable"
           }
         ]}
+
+  docs:
+    name: Build Documentation
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set up iOS simulator
+        id: sim
+        uses: RISCfuture/XCUITestKit/ci-templates/setup-ios-simulator@main
+        with:
+          device: "iPhone 17 Pro"
+          device-type: com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro
+          xcode-version: latest-stable
+      - name: Enable macros
+        run: defaults write com.apple.dt.Xcode IDESkipMacroFingerprintValidation -bool YES
+      # The app target sets OTHER_DOCC_FLAGS to --warnings-as-errors, so any DocC warning in the
+      # app's own doc comments fails this job. The flag belongs to the target rather than to this
+      # command because a command-line override reaches the package dependencies too, and their
+      # catalogs are not ours to fix.
+      - name: Build documentation
+        env:
+          UDID: ${{ steps.sim.outputs.udid }}
+        run: |
+          set -o pipefail
+          xcodebuild docbuild \
+            -scheme "CTA Helper" \
+            -destination "platform=iOS Simulator,id=$UDID" \
+            -destination-timeout 300 \
+            -derivedDataPath "$RUNNER_TEMP/DocumentationDerivedData" \
+            | xcbeautify --renderer github-actions
