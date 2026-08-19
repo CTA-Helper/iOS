@@ -1,3 +1,4 @@
+import MeasurementKitUI
 import SwiftUI
 
 /**
@@ -39,9 +40,9 @@ struct MinimumsRow: View {
         MeasurementField(
           "minimums",
           value: $minimums,
-          unit: .feet,
+          in: .feet,
           format: .altitude,
-          keyboardType: .numberPad,
+          keypad: .whole,
           maximum: Self.implausibleMinimums
         )
         // Sized to what it holds rather than to a fixed width, so the slash that strikes it

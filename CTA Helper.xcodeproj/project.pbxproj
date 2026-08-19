@@ -11,6 +11,8 @@
 		43BAC51A24D44E908F705515 /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = 311119389286435C82B937B5 /* Sentry */; };
 		CA0000000000000000000005 /* SwiftMETAR in Frameworks */ = {isa = PBXBuildFile; productRef = CA0000000000000000000003 /* SwiftMETAR */; };
 		CA0000000000000000000006 /* Gzip in Frameworks */ = {isa = PBXBuildFile; productRef = CA0000000000000000000004 /* Gzip */; };
+		CA000000000000000000000A /* MeasurementKit in Frameworks */ = {isa = PBXBuildFile; productRef = CA0000000000000000000008 /* MeasurementKit */; };
+		CA000000000000000000000B /* MeasurementKitUI in Frameworks */ = {isa = PBXBuildFile; productRef = CA0000000000000000000009 /* MeasurementKitUI */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -86,6 +88,8 @@
 				CA0000000000000000000005 /* SwiftMETAR in Frameworks */,
 				CA0000000000000000000006 /* Gzip in Frameworks */,
 				43BAC51A24D44E908F705515 /* Sentry in Frameworks */,
+				CA000000000000000000000A /* MeasurementKit in Frameworks */,
+				CA000000000000000000000B /* MeasurementKitUI in Frameworks */,
 			);
 		};
 		013A15243011372B00025551 /* Frameworks */ = {
@@ -144,6 +148,8 @@
 				CA0000000000000000000003 /* SwiftMETAR */,
 				CA0000000000000000000004 /* Gzip */,
 				311119389286435C82B937B5 /* Sentry */,
+				CA0000000000000000000008 /* MeasurementKit */,
+				CA0000000000000000000009 /* MeasurementKitUI */,
 			);
 			productName = "CTA Helper";
 			productReference = 013A15183011372B00025551 /* CTA Helper.app */;
@@ -231,6 +237,7 @@
 				CA0000000000000000000002 /* XCRemoteSwiftPackageReference "GzipSwift" */,
 				01597BD93016A663008AE3B6 /* XCRemoteSwiftPackageReference "XCUITestKit" */,
 				433C45F5269F45B6BC09085B /* XCRemoteSwiftPackageReference "sentry-cocoa" */,
+				CA0000000000000000000007 /* XCRemoteSwiftPackageReference "MeasurementKit" */,
 			);
 			preferredProjectObjectVersion = 100;
 			productRefGroup = 013A15193011372B00025551 /* Products */;
@@ -685,6 +692,14 @@
 				minimumVersion = 7.0.0;
 			};
 		};
+		CA0000000000000000000007 /* XCRemoteSwiftPackageReference "MeasurementKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/RISCfuture/MeasurementKit";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -707,6 +722,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = CA0000000000000000000002 /* XCRemoteSwiftPackageReference "GzipSwift" */;
 			productName = Gzip;
+		};
+		CA0000000000000000000008 /* MeasurementKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CA0000000000000000000007 /* XCRemoteSwiftPackageReference "MeasurementKit" */;
+			productName = MeasurementKit;
+		};
+		CA0000000000000000000009 /* MeasurementKitUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CA0000000000000000000007 /* XCRemoteSwiftPackageReference "MeasurementKit" */;
+			productName = MeasurementKitUI;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

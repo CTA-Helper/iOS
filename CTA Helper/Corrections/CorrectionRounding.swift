@@ -1,4 +1,5 @@
 import Foundation
+import MeasurementKit
 
 /**
  How a computed correction is rounded before it is added to a published altitude

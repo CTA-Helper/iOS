@@ -227,7 +227,7 @@ struct FixListScreen {
   /**
    Correcting a mistyped DA or MDA replaces it rather than appending to it: the field selects its
    contents when it takes focus. Appending would turn 4,520 into 45,203,200 and present that
-   as a minimum, so the flow is worth driving even though one modifier implements it.
+   as a minimum, so the flow is worth driving even though the field implements it on its own.
 
    Typed raw rather than through `clearAndType`, which clears the field first — the very thing
    under test here, so using it would prove nothing.

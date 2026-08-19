@@ -1,3 +1,5 @@
+import MeasurementKit
+import MeasurementKitUI
 import SwiftData
 import SwiftUI
 
@@ -247,7 +249,7 @@ private struct TemperatureControl: View {
         Text(reportedTemperature, format: .reportedTemperature)
           .monospacedDigit()
       }
-      Slider(value: temperatureC, in: Self.trackC, step: 1) {
+      Slider(value: $reportedTemperature.scalar(in: .celsius), in: Self.trackC, step: 1) {
         Text("Reported Temperature")
       } minimumValueLabel: {
         // The ends of the track are labelled in the same unit as the reading above it, so the
@@ -259,14 +261,6 @@ private struct TemperatureControl: View {
       }
       .accessibilityIdentifier("reportedTemperatureSlider")
     }
-  }
-
-  /// The selected temperature as the degrees the track is drawn in.
-  private var temperatureC: Binding<Double> {
-    Binding(
-      get: { reportedTemperature.converted(to: .celsius).value },
-      set: { reportedTemperature = .celsius($0) }
-    )
   }
 }
 

@@ -11,8 +11,9 @@ numbers, fractions, `Date` / `Duration`.
   `altitudeFt`, `temperatureC`).
 - Use `Measurement` everywhere a physical value is named, including the
   correction engine and its arithmetic — `Support/Measurements.swift` supplies
-  the `.feet` / `.celsius` factories and the rounding Foundation doesn't. Format
-  with `.measurement` + `usage: .asProvided` so the locale can't convert feet.
+  the `.feet` / `.celsius` factories, and MeasurementKit the rounding
+  Foundation doesn't. Format with `.measurement` + `usage: .asProvided` so the
+  locale can't convert feet.
 - Use unit-suffixed primitives in exactly three places: SwiftData `@Model`
   stored properties, Codable DTO fields, and the body of a low-level pure
   function (`ColdTemperatureCorrection.correctionFt`, `BoundingBox`).
