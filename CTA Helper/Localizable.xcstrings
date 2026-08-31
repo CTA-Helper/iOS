@@ -77,7 +77,13 @@
     "Climb to" : {
 
     },
-    "Cold temperature airport, %@" : {
+    "Cold temperature airport, %@, above restriction" : {
+
+    },
+    "Cold temperature airport, %@, correction required" : {
+
+    },
+    "Cold temperature airport, %@, no observation" : {
 
     },
     "Cold temperature altitude corrections for instrument approaches." : {

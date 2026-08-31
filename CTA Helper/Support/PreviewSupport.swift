@@ -236,6 +236,17 @@ import SwiftData
     )
 
     /**
+     An observation above a Cold Temperature Airport's restriction, so the badge shows that
+     nothing needs correcting at Missoula today.
+     */
+    static let previewWarm = METARObservation(
+      stationID: "KMSO",
+      temperature: .celsius(5),
+      date: Date(timeIntervalSinceReferenceDate: 806_000_000),
+      rawText: "KMSO 241953Z 30012KT 10SM FEW070 05/M04 A3002 RMK AO2 SLP215"
+    )
+
+    /**
      An observation warmer than the reported-temperature slider spans, which the fix list pins
      to the slider's warm end.
      */

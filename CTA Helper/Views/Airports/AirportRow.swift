@@ -7,6 +7,13 @@ import SwiftUI
  */
 struct AirportRow: View {
   let airport: Airport
+
+  /**
+   The station's latest observation, where the list resolved one. Rows do not fetch their own —
+   see ``AirportList``, which resolves the whole list from a single call.
+   */
+  var observation: METARObservation?
+
   var showsFavoriteButton = true
 
   var body: some View {
@@ -16,7 +23,10 @@ struct AirportRow: View {
           Text(airport.displayIdentifier)
             .font(.headline)
           if let restriction = airport.coldTemperature {
-            ColdTemperatureBadge(restriction: restriction)
+            ColdTemperatureBadge(
+              restriction: restriction,
+              reportedTemperature: observation?.temperature
+            )
           }
         }
         Text(airport.name.capitalized)
@@ -63,35 +73,18 @@ private struct FavoriteButton: View {
   }
 }
 
-/// The snowflake and restriction temperature shown for a Cold Temperature Airport.
-struct ColdTemperatureBadge: View {
-  let restriction: ColdTemperatureRestriction
-
-  @ScaledMetric(relativeTo: .body)
-  private var size = 14.0
-
-  var body: some View {
-    Label {
-      Text(
-        restriction.restrictionTemperature,
-        format: .measurement(width: .narrow, usage: .asProvided)
-      )
-    } icon: {
-      Image(systemName: "snowflake")
-    }
-    .labelStyle(.narrow)
-    .font(.system(size: size))
-    .foregroundStyle(.blue)
-    .accessibilityLabel(
-      "Cold temperature airport, \(restriction.restrictionTemperature, format: .measurement(width: .wide, usage: .asProvided))"
-    )
-  }
-}
-
 #if DEBUG
-  #Preview {
+  #Preview("No observations") {
     List {
       AirportRow(airport: PreviewData.missoula())
+      AirportRow(airport: PreviewData.sanFrancisco())
+    }
+    .modelContainer(.preview)
+  }
+
+  #Preview("Cold enough today") {
+    List {
+      AirportRow(airport: PreviewData.missoula(), observation: .preview)
       AirportRow(airport: PreviewData.sanFrancisco())
     }
     .modelContainer(.preview)

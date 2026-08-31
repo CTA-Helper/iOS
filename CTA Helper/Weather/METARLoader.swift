@@ -80,6 +80,21 @@ actor METARLoader {
   }
 
   /**
+   Every station's latest observation, loading the cache first if it is stale.
+
+   The whole map rather than one station's entry, so a list of airports resolves every row from a
+   single call. The dictionary is copy-on-write, so handing it out costs nothing, and a list whose
+   airports change under it — a search narrowing, a nearest list moving — answers for the new ones
+   without returning here.
+
+   - Returns: every observation held, keyed by station ID.
+   */
+  func allObservations() async -> [String: METARObservation] {
+    await reload()
+    return observations
+  }
+
+  /**
    Refreshes the observation cache, subject to the reload interval.
 
    - Parameter force: when `true`, download even if the last load was within
@@ -105,11 +120,13 @@ actor METARLoader {
    issue rather than one per status code.
 
    A server that is down is filtered out by ``WeatherError/isReportable``: weather is
-   best-effort here, and nothing about an outage is actionable.
+   best-effort here, and nothing about an outage is actionable. So is a cancelled download — a
+   list the pilot navigated away from mid-fetch is not a fault.
 
    `SwiftMETAR` exports its own concrete `Error`, so the protocol needs naming in full here.
    */
   private func report(_ error: any Swift.Error) {
+    guard !error.isCancellation else { return }
     guard (error as? WeatherError)?.isReportable ?? true else { return }
 
     SentrySDK.capture(error: error) { scope in
