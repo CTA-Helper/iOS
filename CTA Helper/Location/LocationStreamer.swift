@@ -88,7 +88,7 @@ final class CoreLocationStreamer: NSObject, LocationStreamer {
 
   private func streamUpdates() async {
     do {
-      for try await update in CLLocationUpdate.liveUpdates() where !Task.isCancelled {
+      for try await update in CLLocationUpdate.liveUpdates(.airborne) where !Task.isCancelled {
         guard let newLocation = update.location else { continue }
         location = newLocation
         error = nil
