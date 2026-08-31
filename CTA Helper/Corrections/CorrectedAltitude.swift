@@ -46,4 +46,10 @@ struct CorrectedAltitude: Equatable, Sendable {
     guard case let .add(addend) = correction else { return nil }
     return published.correctable.map { $0 + addend }
   }
+
+  /// Why no correction applies, or `nil` where one does.
+  var uncorrectableReason: UncorrectableReason? {
+    guard case let .unavailable(reason) = correction else { return nil }
+    return reason
+  }
 }

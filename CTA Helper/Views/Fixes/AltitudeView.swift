@@ -12,6 +12,11 @@ import SwiftUI
  Taking ``PublishedAltitude`` apart is the last place whole feet are in hand — the store codes
  them that way — so every view below holds a measurement that carries its own unit, and none of
  them can format one as a bare number.
+
+ Every view here is drawn and not spoken. ``FixRow`` merges the whole row into one accessibility
+ element and reads the same ``CorrectedAltitude`` aloud through
+ ``CorrectedAltitude/announcement``, so an accessibility label attached down here would be
+ discarded rather than heard.
  */
 struct AltitudeView: View {
   /// The correction outcome to render.
@@ -45,7 +50,6 @@ private struct UnpublishedAltitude: View {
   var body: some View {
     Text(verbatim: "—")
       .foregroundStyle(.secondary)
-      .accessibilityLabel("No published altitude")
   }
 }
 
@@ -94,8 +98,7 @@ private struct SingleAltitude: View {
  A block: the published ceiling over the floor, with only the floor corrected.
 
  Each half is the single bound it names — the ceiling an ``AltitudeRestriction/atOrBelow``, the
- floor an ``AltitudeRestriction/atOrAbove`` — which draws the one bar that half carries and
- leaves VoiceOver saying which bound of the block it just read.
+ floor an ``AltitudeRestriction/atOrAbove`` — which draws the one bar that half carries.
  */
 private struct BlockAltitude: View {
   let ceiling: Measurement<UnitLength>
@@ -132,7 +135,6 @@ private struct BarredNumber: View {
         if restriction.hasBarBelow { RestrictionBar() }
       }
       .foregroundStyle(.primary)
-      .accessibilityValue(restriction.barDescription)
   }
 }
 
@@ -159,26 +161,6 @@ private struct GlidepathAltitude: View {
       .font(.system(size: size))
       .monospacedDigit()
       .foregroundStyle(.secondary)
-  }
-}
-
-private extension AltitudeRestriction {
-  /**
-   What the restriction bars say, in the terms the FAA chart legend names them by.
-
-   ``RestrictionBar`` draws the bars as rules, which carry no accessibility element of their
-   own: VoiceOver reads the digits and nothing about how the fix is crossed. Reading the
-   wording off the bars rather than off the case keeps the two in step — a description that
-   draws no bar, a glidepath altitude among them, is a recommended altitude and is announced
-   as one.
-   */
-  var barDescription: LocalizedStringKey {
-    switch (hasBarAbove, hasBarBelow) {
-      case (true, true): "Mandatory altitude"
-      case (true, false): "Maximum altitude"
-      case (false, true): "Minimum altitude"
-      case (false, false): "Recommended altitude"
-    }
   }
 }
 

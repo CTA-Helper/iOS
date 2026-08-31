@@ -365,6 +365,29 @@ private struct SegmentSection: View {
       }
     } header: {
       SegmentHeader(group: group, selectedTransition: $selectedTransition)
+    } footer: {
+      SegmentFooter(
+        segment: group.segment,
+        reason: corrector.unavailableReason(for: group.segment)
+      )
+    }
+  }
+}
+
+/**
+ Why a segment's altitudes all stand as published, under the legs the correction did not move.
+
+ The reason belongs to the segment rather than to any one of its fixes, so it is said once here
+ instead of down every row the segment holds. A segment that is corrected says nothing.
+ */
+private struct SegmentFooter: View {
+  let segment: Segment
+  let reason: UncorrectableReason?
+
+  var body: some View {
+    if let note = reason?.segmentNote {
+      Text(note)
+        .accessibilityIdentifier("segmentNote-\(segment.rawValue)")
     }
   }
 }
@@ -524,6 +547,21 @@ private struct NoCorrectionNotice: View {
     .modelContainer(.preview)
     .environment(\.metarLoader, METARLoader(serving: ["KMSO": .preview]))
     .environment(\.networkMonitor, NetworkMonitor(reporting: true))
+  }
+
+  // The Individual Segments Method leaves KMSO's missed approach uncorrected, and the minimums
+  // start unentered, so two segments carry a footer saying why.
+  #Preview("Uncorrected segments") {
+    NavigationStack {
+      let airport = PreviewData.missoula()
+      FixListView(
+        airport: airport,
+        approach: airport.approaches[0],
+        initialTemperature: .celsius(-20)
+      )
+    }
+    .modelContainer(.preview)
+    .defaultAppStorage(.individualSegmentsPreview)
   }
 
   #Preview("No correction necessary") {

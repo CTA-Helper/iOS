@@ -26,7 +26,7 @@ nonisolated final class FirstRunUITests: XCTestCase {
       .openAirport("KMSO")
       .openApproach("R12-Y")
 
-    fixes.reportColdTemperature().assertCorrects("CHARL")
+    fixes.reportColdTemperature().assertCorrectsCodedFixes()
 
     // Off the Search tab before reaching for Settings: an open search field takes the bar the
     // settings button sits in.

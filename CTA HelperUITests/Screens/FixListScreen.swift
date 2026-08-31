@@ -6,11 +6,19 @@ struct FixListScreen {
   /// The accessibility label the corrected minimums carry until the pilot enters a DA or MDA.
   private static let noCorrectedMinimums = "No corrected minimums"
 
+  /// The altitude the seeded approach publishes at `CHARL`, which a correction moves it off.
+  private static let charlPublishedFt = "10,000"
+
   /// The identifier of the key that closes the number pad, which has no return key of its own.
   private static let dismissKeyboardID = "dismissKeyboard"
 
-  /// How many swipes it may take to reach the end of the longest approach in the seeded data.
-  private static let maximumScrolls: UInt = 5
+  /**
+   How many swipes it may take to reach the end of the longest approach in the seeded data.
+
+   A segment that corrects nothing prints a footer saying why, and a fix ENR 1.8 never corrects
+   prints a line of its own, so the list is taller than the fixes alone make it.
+   */
+  private static let maximumScrolls: UInt = 7
 
   /// How long the list may take to draw a row that is already on screen.
   private static let renderProbeSeconds: TimeInterval = 1
@@ -78,9 +86,8 @@ struct FixListScreen {
   }
 
   /**
-   Below the restriction, the coded fixes replace the notice. A corrected fix shows two
-   altitudes — the published one it supersedes and the value that replaces it — where an
-   uncorrected one shows a single published altitude.
+   Below the restriction, the coded fixes replace the notice, and a corrected fix reads out the
+   value that supersedes its published one rather than the published one itself.
 
    The initial segment opens on `CHARL`, the first of the approach's transitions by name, so
    that is the transition whose legs are on screen to check.
@@ -89,16 +96,11 @@ struct FixListScreen {
     fixRow("CHARL").assertExists("Corrected fixes did not appear")
     XCTAssertFalse(notice.exists, "Notice still shown below the restriction")
 
-    let altitudes = fixAltitudes("CHARL")
-    XCTAssertEqual(
-      altitudes.count,
-      2,
-      "Expected CHARL’s published altitude beside its correction, got: \(altitudes)"
-    )
-    XCTAssertTrue(altitudes.contains("10,000"), "CHARL’s published altitude is not shown")
+    let flown = reading(of: "CHARL")
+    XCTAssertFalse(flown.isEmpty, "CHARL’s row reads out no altitude at all")
     XCTAssertFalse(
-      altitudes.allSatisfy { $0 == "10,000" },
-      "CHARL’s published altitude was not corrected to a different value"
+      flown.contains(Self.charlPublishedFt),
+      "CHARL still reads out its published altitude, so it was not corrected: \(flown)"
     )
   }
 
@@ -159,33 +161,25 @@ struct FixListScreen {
   }
 
   /**
-   The altitudes a fix's row shows: the published value alone, or the published value beside
-   the correction that supersedes it.
+   The altitude a fix's row reads out: the corrected value where a correction applies, and the
+   published one where none does.
+
+   The row is a single accessibility element, so the value it carries is the whole of what the
+   correction came to — and the only part of it a test can see. What was published and what was
+   added are `AXCustomContent`, which XCUITest does not expose, so a change in the correction is
+   proved by the reading moving rather than by counting the values on the row.
    */
-  func altitudes(of identifier: String) -> [String] {
-    scroll(to: fixRow(identifier), .up, describedAs: "Fix \(identifier)")
-    return fixAltitudes(identifier)
+  func reading(of identifier: String) -> String {
+    let row = fixRow(identifier)
+    scroll(to: row, .up, describedAs: "Fix \(identifier)")
+    return (row.value as? String) ?? ""
   }
 
-  /// A fix whose published altitude is struck through by a corrected one shows both values.
+  /// The segment said why it corrected nothing, in the footer under the legs it left alone.
   @discardableResult
-  func assertCorrects(_ identifier: String) -> Self {
-    XCTAssertEqual(
-      altitudes(of: identifier).count,
-      2,
-      "\(identifier) shows one altitude, so it was not corrected"
-    )
-    return self
-  }
-
-  /// A fix outside the correction shows the single altitude the procedure publishes.
-  @discardableResult
-  func assertDoesNotCorrect(_ identifier: String) -> Self {
-    XCTAssertEqual(
-      altitudes(of: identifier).count,
-      1,
-      "\(identifier) shows a second altitude, so it was corrected"
-    )
+  func assertExplains(_ segment: Segment) -> Self {
+    app.descendant(id: "segmentNote-\(segment.rawValue)")
+      .assertExists("The \(segment.rawValue) segment gives no reason for correcting nothing")
     return self
   }
 
@@ -264,21 +258,13 @@ struct FixListScreen {
     element.assertExists("\(description) not found after scrolling the approach")
   }
 
-  /**
-   The altitude values shown on a fix's row. SwiftUI propagates an accessibility identifier
-   to every text beneath it, so the altitude view's identifier names each value it renders.
-   */
-  private func fixAltitudes(_ identifier: String) -> [String] {
-    let values = app.staticTexts
-      .matching(identifier: "fixAltitude-\(identifier)")
-      .allElementsBoundByIndex
-    // `XCUIElement.label` is main actor-isolated, so `\.label` cannot form a key path.
-    // swiftlint:disable:next prefer_key_path
-    return values.map { $0.label }
-  }
-
   /// One of the methods ENR 1.8 5.f offers, by the name the app identifies it with.
   enum Method: String {
     case allSegments, individualSegments
+  }
+
+  /// One of the four segments ENR 1.8 5.f divides an approach into, by the name it is coded under.
+  enum Segment: String {
+    case initial, intermediate, final, missed
   }
 }

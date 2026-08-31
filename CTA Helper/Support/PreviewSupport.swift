@@ -279,6 +279,7 @@ import SwiftData
     static func preview(
       for airport: Airport,
       temperature: Measurement<UnitTemperature> = .celsius(-20),
+      method: CorrectionMethod = .allSegments,
       minimums: Measurement<UnitLength>? = .feet(4520)
     ) -> Self {
       Self(
@@ -286,12 +287,30 @@ import SwiftData
         referenceAltitudes: airport.approaches[0].referenceAltitudes,
         reportedTemperature: temperature,
         coldTemperature: airport.coldTemperature,
-        method: .allSegments,
+        method: method,
         rounding: .nearestHundred,
         extrapolateAboveTable: false,
         minimumsAltitude: minimums
       )
     }
+  }
+
+  extension UserDefaults {
+    /**
+     A settings store previewing the Individual Segments Method, which a preview hands to
+     `@AppStorage` through `defaultAppStorage(_:)`.
+
+     A screen driven by a stored setting can only be previewed in one of its states otherwise,
+     and the state worth seeing is the one where a segment goes uncorrected.
+     */
+    @MainActor static let individualSegmentsPreview: UserDefaults = {
+      let defaults = UserDefaults(suiteName: "preview.individualSegments") ?? .standard
+      defaults.set(
+        CorrectionMethod.individualSegments.rawValue,
+        forKey: SettingsKey.correctionMethod
+      )
+      return defaults
+    }()
   }
 
   extension ModelContainer {
