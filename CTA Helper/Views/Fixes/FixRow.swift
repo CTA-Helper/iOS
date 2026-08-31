@@ -15,7 +15,7 @@ import SwiftUI
  fragments it draws, a corrected row announces two numbers with no word saying which is
  published and which is flown. It reads out as the fix and the altitude the pilot flies, with
  everything behind that value — what was published, what the correction came to, why there was
- none — attached as ``AltitudeDetail``.
+ none — attached as `AltitudeDetail`.
  */
 struct FixRow: View {
   /// The fix this row describes.

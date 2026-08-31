@@ -56,7 +56,7 @@ struct ApproachCorrector {
    A segment is only ever excluded by the method in force, by a reference altitude the procedure
    does not code, or by minimums the pilot has not entered. The two reasons that belong to a
    single fix — an altitude ENR 1.8 never corrects, and a leg that publishes none — are resolved
-   in ``correction(for:)`` before a segment is consulted, and never reach here.
+   in `correction(for:)` before a segment is consulted, and never reach here.
    */
   func unavailableReason(for segment: Segment) -> UncorrectableReason? {
     guard case let .unavailable(reason) = segmentCorrection(for: segment) else { return nil }

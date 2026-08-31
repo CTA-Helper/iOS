@@ -274,6 +274,7 @@ import SwiftData
      - Parameters:
        - airport: the airport whose first approach is corrected.
        - temperature: the reported temperature.
+       - method: the correction method the preview applies.
        - minimums: the pilot-entered DA or MDA, or `nil` for minimums not yet entered.
      */
     static func preview(
