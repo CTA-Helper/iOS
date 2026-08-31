@@ -56,6 +56,24 @@ struct FixListScreen {
     return WeatherScreen(app: app)
   }
 
+  /// Open the approach plate, with the corrected altitudes laid over it.
+  func openChart() -> ChartScreen {
+    app.descendant(id: "chartButton")
+      .assertExists("The fix list offers no way through to the approach plate")
+      .tap(
+        untilExists: app.descendant(id: "chartDisclaimer"),
+        using: XCUIElement.TapStrategy.escalating
+      )
+    return ChartScreen(app: app)
+  }
+
+  /// What the chart button says it can do, which is not the same with and without a network.
+  func chartButtonLabel() -> String {
+    app.descendant(id: "chartButton")
+      .assertExists("The fix list offers no way through to the approach plate")
+      .label
+  }
+
   @discardableResult
   func goBack() -> ApproachListScreen {
     let approaches = ApproachListScreen(app: app)
@@ -197,7 +215,29 @@ struct FixListScreen {
       "Minimums corrected before any were entered"
     )
     field.clearAndType(altitudeFt, app: app, doneButtonIdentifier: Self.dismissKeyboardID)
+    dismissNumberPad()
     return self
+  }
+
+  /**
+   Wait for the number pad to leave, pressing the key that closes it if it is still standing.
+
+   `clearAndType` dismisses the pad itself, but on iPad it intermittently returns with the pad
+   still up, and a screen object that hands back mid-edit leaves the next step racing an edit
+   that never ended. The field selects its contents only when it *takes* focus, so a pad still
+   up means the next tap lands in a field that already has focus, and typing appends to the
+   value instead of replacing it — which reads as a broken field rather than an unfinished edit.
+   */
+  private func dismissNumberPad() {
+    let keyboard = app.keyboards.firstMatch
+    guard keyboard.exists else { return }
+
+    let done = app.buttons[Self.dismissKeyboardID]
+    if done.exists, done.isHittable { done.tap() }
+    XCTAssertTrue(
+      keyboard.waitForNonExistence(timeout: ScaledTimeouts.element),
+      "The number pad stayed up after the key that closes it was pressed"
+    )
   }
 
   /**
@@ -227,6 +267,11 @@ struct FixListScreen {
    under test here, so using it would prove nothing.
    */
   func assertRetypingReplacesMinimums(_ altitudeFt: String) {
+    XCTAssertFalse(
+      app.keyboards.firstMatch.exists,
+      "The number pad was still up, so the field never took focus afresh and had nothing to select"
+    )
+
     let field = minimumsField
     field.forceTap()
     field.typeText(altitudeFt)

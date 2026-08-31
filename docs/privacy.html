@@ -190,11 +190,16 @@
           <h3>Network Requests</h3>
 
           <p>
-            The Application downloads two kinds of public data: navigation data cycles,
-            published as GitHub releases, and aviation weather observations (METARs),
-            published by aviationweather.gov. These requests carry no account, identifier,
-            or personal information. Requesting a weather observation necessarily discloses
-            the airport identifier being requested to that service.
+            The Application downloads three kinds of public data: navigation data cycles,
+            published as GitHub releases; aviation weather observations (METARs), published
+            by aviationweather.gov; and instrument approach plates, published by the FAA at
+            aeronav.faa.gov. These requests carry no account, identifier, or personal
+            information. Requesting a weather observation necessarily discloses the airport
+            identifier being requested to that service, and requesting an approach plate
+            necessarily discloses which plate is being requested to the FAA. Approach plates
+            are downloaded only when you open or download them, never in the background, and
+            are stored on your device until you clear them or the AIRAC cycle they belong to
+            is superseded.
           </p>
 
           <h3>Tracking</h3>
@@ -210,10 +215,10 @@
 
           <p>
             Crash and diagnostic data is transmitted to Sentry (a third-party service) for
-            error monitoring. Weather and navigation data requests are made to
-            aviationweather.gov and GitHub respectively, as described above. No other data
-            is shared with third parties. Location data is never sent to the Service
-            Provider or any third party.
+            error monitoring. Weather, navigation data, and approach plate requests are made
+            to aviationweather.gov, GitHub, and the FAA respectively, as described above. No
+            other data is shared with third parties. Location data is never sent to the
+            Service Provider or any third party.
           </p>
 
           <h2>What are my opt-out rights?</h2>

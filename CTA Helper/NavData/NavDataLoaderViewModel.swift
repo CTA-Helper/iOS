@@ -30,6 +30,7 @@ final class NavDataLoaderViewModel {
 
   private let container: ModelContainer
   private let importContainer: ModelContainer
+  private let chartStore: ChartStore?
   private var isLoading = false
   /**
    Whether the expired cycle's update has been settled for this launch — the pilot deferred it,
@@ -46,8 +47,15 @@ final class NavDataLoaderViewModel {
   /// Whether the pilot may defer an update, which they may only when a usable cycle is imported.
   var canSkip: Bool { hasData }
 
-  init(container: ModelContainer) {
+  /**
+   - Parameters:
+     - container: the store the app reads.
+     - chartStore: the plate cache to clear of superseded cycles after an import, or `nil` in a
+       preview, where nothing has been cached to clear.
+   */
+  init(container: ModelContainer, chartStore: ChartStore? = nil) {
     self.container = container
+    self.chartStore = chartStore
     importContainer = Self.makeImportContainer(matching: container)
   }
 
@@ -153,7 +161,7 @@ final class NavDataLoaderViewModel {
   /// How one download and import ended, having published nothing.
   private func outcome(of loader: NavDataLoader, force: Bool) async -> LoadOutcome {
     do {
-      try await loader.load(force: force)
+      try await loader.load(force: force, purgingChartsFrom: chartStore)
       return .finished(await loader.state)
     } catch is CancellationError {
       return .cancelled

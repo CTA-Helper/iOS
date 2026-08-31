@@ -38,6 +38,8 @@ struct CTA_HelperApp: App {
    environment's own default stays untouched until then.
    */
   let locationStreamer: FixedLocationStreamer?
+  /// The approach plates held on disk, and the only thing that fetches one.
+  let chartStore: ChartStore
 
   @State private var loaderViewModel: NavDataLoaderViewModel?
   @State private var networkMonitor: NetworkMonitor
@@ -49,7 +51,8 @@ struct CTA_HelperApp: App {
           loaderViewModel: loaderViewModel,
           metarLoader: metarLoader,
           networkMonitor: networkMonitor,
-          locationStreamer: locationStreamer
+          locationStreamer: locationStreamer,
+          chartStore: chartStore
         )
         .modelContainer(modelContainer)
       } else {
@@ -63,15 +66,20 @@ struct CTA_HelperApp: App {
 
     let isUITest = UITestConfiguration.isRunning
     metarLoader = Self.makeMETARLoader(isUITest: isUITest)
-    _networkMonitor = State(initialValue: isUITest ? NetworkMonitor(reporting: true) : .init())
+    _networkMonitor = State(
+      initialValue: isUITest ? NetworkMonitor(reporting: !UITestConfiguration.isOffline) : .init()
+    )
     locationStreamer = UITestConfiguration.locationStreamer
+    chartStore = .makeDefault()
     if isUITest { Self.discardSettings() }
 
     do {
       let container = try Self.makeContainer(inMemory: isUITest)
       Self.seedIfRequested(container)
       modelContainer = container
-      _loaderViewModel = State(initialValue: NavDataLoaderViewModel(container: container))
+      _loaderViewModel = State(
+        initialValue: NavDataLoaderViewModel(container: container, chartStore: chartStore)
+      )
     } catch {
       Self.logger.error("Could not open the nav data store: \(error)")
       SentrySDK.capture(error: error) { scope in
@@ -217,6 +225,7 @@ private struct AppContent: View {
   let metarLoader: METARLoader?
   let networkMonitor: NetworkMonitor
   let locationStreamer: FixedLocationStreamer?
+  let chartStore: ChartStore
 
   var body: some View {
     let content =
@@ -224,6 +233,7 @@ private struct AppContent: View {
       .environment(loaderViewModel)
       .environment(\.metarLoader, metarLoader)
       .environment(\.networkMonitor, networkMonitor)
+      .environment(\.chartStore, chartStore)
 
     if let locationStreamer {
       content.environment(\.locationStreamer, locationStreamer)

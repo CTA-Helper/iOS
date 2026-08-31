@@ -50,6 +50,11 @@ struct AirportIDList: RawRepresentable, Codable, Equatable, Sendable {
     Self(contains(id) ? ids.filter { $0 != id } : ids + [id])
   }
 
+  /// Add an identifier if the list does not already carry it.
+  func adding(_ id: String) -> Self {
+    contains(id) ? self : Self(ids + [id])
+  }
+
   /// Move an identifier to the end (most recent), dropping the oldest beyond `recentAirportsLimit`.
   func appendingRecent(_ id: String) -> Self {
     var updated = ids.filter { $0 != id }

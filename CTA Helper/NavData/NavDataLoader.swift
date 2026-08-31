@@ -48,10 +48,12 @@ actor NavDataLoader {
   /**
    Update the store to the newest published cycle, or do nothing if it is already imported.
 
-   - Parameter force: when `true`, re-import even if the manifest's SHA-256 matches the
-     imported cycle.
+   - Parameters:
+     - force: when `true`, re-import even if the manifest's SHA-256 matches the imported cycle.
+     - chartStore: the plate cache to clear of superseded cycles once the import commits, or
+       `nil` to leave it alone.
    */
-  func load(force: Bool = false) async throws {
+  func load(force: Bool = false, purgingChartsFrom chartStore: ChartStore? = nil) async throws {
     state = .checking
     let manifest = try await fetchManifest()
 
@@ -73,6 +75,12 @@ actor NavDataLoader {
     try clearCycle()
     try await replaceAirports(with: document)
     try recordCycle(manifest)
+
+    // Only once the new cycle is committed. A load that failed partway leaves the old plates
+    // standing, which the next successful import clears — the safe direction to fail in, and
+    // the reason the purge reads what to discard off the cache rather than off a record of what
+    // it discarded last time.
+    await chartStore?.removeCharts(outside: manifest.airacCycle)
 
     state = .finished
   }

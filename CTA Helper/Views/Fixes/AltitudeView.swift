@@ -127,13 +127,7 @@ private struct BarredNumber: View {
     Text(altitude, format: .altitudeDigits)
       .fontWeight(isEmphasized ? .bold : .regular)
       .monospacedDigit()
-      .padding(.vertical, 3)
-      .overlay(alignment: .top) {
-        if restriction.hasBarAbove { RestrictionBar() }
-      }
-      .overlay(alignment: .bottom) {
-        if restriction.hasBarBelow { RestrictionBar() }
-      }
+      .restrictionBars(restriction)
       .foregroundStyle(.primary)
   }
 }
@@ -161,15 +155,6 @@ private struct GlidepathAltitude: View {
       .font(.system(size: size))
       .monospacedDigit()
       .foregroundStyle(.secondary)
-  }
-}
-
-/// A thin rule standing in for the over/under restriction bar SwiftUI has no primitive for.
-private struct RestrictionBar: View {
-  var body: some View {
-    Rectangle()
-      .frame(height: 1.5)
-      .padding(.horizontal, -3)
   }
 }
 
