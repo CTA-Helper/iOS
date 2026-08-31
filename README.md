@@ -76,9 +76,12 @@ examples directly.
 
 Approach and fix data is published as a versioned AIRAC cycle at
 [CTA-Helper/Navdata](https://github.com/CTA-Helper/Navdata). On launch the app
-polls the release manifest, and when a newer cycle is available downloads the
-gzipped document, **verifies it against the SHA-256 and byte counts the manifest
-publishes**, and imports it into SwiftData in bounded transactions.
+checks whether the imported cycle has expired, and offers the current one when it
+has — to download now, or to defer and fly the stored cycle for the rest of the
+launch. Downloading polls the release manifest, fetches the gzipped document,
+**verifies it against the SHA-256 and byte counts the manifest publishes**, and
+imports it into SwiftData in bounded transactions. The import replaces the
+store's airports, so it is never run behind the pilot's back.
 
 ### Weather
 

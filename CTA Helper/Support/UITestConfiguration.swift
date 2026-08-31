@@ -28,6 +28,15 @@ import Gzip
     /// Whether the store opens seeded with sample airports rather than empty.
     static var seedsStore: Bool { arguments.contains("\(argumentPrefix)Seed") }
 
+    /**
+     Whether the cycle standing over the seeded airports has already expired, so the app opens
+     offering the update rather than the airports.
+
+     It qualifies ``seedsStore`` rather than replacing it: a test that wants this passes both
+     flags, the way one that wants seeded airports and a fixture to update them from does.
+     */
+    static var seedsExpiredCycle: Bool { arguments.contains("\(argumentPrefix)SeedExpiredCycle") }
+
     /// What ``NavDataLoader`` fetches, in place of the published release.
     static var navData: NavDataFixture? {
       if arguments.contains("\(argumentPrefix)NavDataBundled") { return .bundled }
@@ -79,6 +88,13 @@ import Gzip
           data["sha256"] = packedFixture.sha256
           manifest["data"] = data
 
+          // The cycle dates are filled in for the same reason the digest is: committed ones
+          // expire with the calendar, and a fixture that lands already out of date would have the
+          // app offering its replacement the moment it finished importing.
+          let cycle = currentCycleDates()
+          manifest["cycleEffective"] = cycle.effective
+          manifest["cycleExpires"] = cycle.expires
+
           let url = URL.temporaryDirectory.appending(component: "uiTestManifest.json")
           try JSONSerialization.data(withJSONObject: manifest).write(to: url)
           return url
@@ -115,6 +131,17 @@ import Gzip
           case .bundled: Self.packedFixture.url
           case .unreachable: Self.unreachable("uiTestNavData.json.gz")
         }
+      }
+
+      /// A cycle window standing over today, as the plain dates a manifest publishes.
+      private static func currentCycleDates() -> (effective: String, expires: String) {
+        let day: TimeInterval = 24 * 3600
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withFullDate]
+        return (
+          effective: formatter.string(from: .now.addingTimeInterval(-7 * day)),
+          expires: formatter.string(from: .now.addingTimeInterval(21 * day))
+        )
       }
 
       private static func bundled(_ name: String) -> URL {
@@ -173,6 +200,9 @@ import Gzip
 
     /// Always `false`: the store a release build opens is the pilot's own.
     static var seedsStore: Bool { false }
+
+    /// Always `false`: a release build seeds no cycle, expired or otherwise.
+    static var seedsExpiredCycle: Bool { false }
 
     /// Always `nil`: a release build fetches the published cycle and nothing else.
     static var navData: NavDataFixture? { nil }

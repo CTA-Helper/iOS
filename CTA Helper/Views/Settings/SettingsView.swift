@@ -102,9 +102,14 @@ private struct NavigationDataSection: View {
         LabeledContent("Effective") {
           Text(cycle.effectiveDate, format: Self.cycleDate)
         }
-        LabeledContent("Expires") {
+        // A pilot who deferred the update at launch dismissed that prompt for the session, so
+        // this row is what is left to say the data is out of date. The label carries the state
+        // rather than the color alone, which Dynamic Type and color-blind pilots both need.
+        LabeledContent(cycle.hasExpired ? "Expired" : "Expires") {
           Text(cycle.expirationDate, format: Self.cycleDate)
+            .foregroundStyle(cycle.hasExpired ? Color.red : Color.primary)
         }
+        .accessibilityIdentifier(cycle.hasExpired ? "cycleExpired" : "cycleExpires")
       } else {
         Text("No data")
           .foregroundStyle(.secondary)
@@ -117,35 +122,19 @@ private struct NavigationDataSection: View {
 #if DEBUG
   #Preview("No Cycle") {
     SettingsView()
-      .modelContainer(.preview)
+      .modelContainer(.makeInMemory())
   }
 
   #Preview("Current Cycle") {
     let container = ModelContainer.makeInMemory()
-    container.mainContext.insert(
-      NavDataCycle(
-        airacCycle: "2607",
-        effectiveDate: .now.addingTimeInterval(-7 * 24 * 3600),
-        expirationDate: .now.addingTimeInterval(21 * 24 * 3600),
-        sha256: "preview",
-        importedAt: .now
-      )
-    )
+    container.mainContext.insert(PreviewData.navDataCycle())
     return SettingsView()
       .modelContainer(container)
   }
 
   #Preview("Expired Cycle") {
     let container = ModelContainer.makeInMemory()
-    container.mainContext.insert(
-      NavDataCycle(
-        airacCycle: "2605",
-        effectiveDate: .now.addingTimeInterval(-56 * 24 * 3600),
-        expirationDate: .now.addingTimeInterval(-28 * 24 * 3600),
-        sha256: "preview",
-        importedAt: .now.addingTimeInterval(-56 * 24 * 3600)
-      )
-    )
+    container.mainContext.insert(PreviewData.navDataCycle(expired: true))
     return SettingsView()
       .modelContainer(container)
   }

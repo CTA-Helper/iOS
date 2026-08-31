@@ -11,6 +11,8 @@ import XCUITestKit
 enum LaunchArgument {
   /// Open an in-memory store holding KMSO — favorited — and KSFO, so nothing is downloaded.
   static let seedStore = "-uiTestSeed"
+  /// Expire the cycle standing over the seeded airports, so the app opens offering the update.
+  static let expiredCycle = "-uiTestSeedExpiredCycle"
   /// Serve the bundled sample cycle when the nav data is fetched.
   static let bundledNavData = "-uiTestNavDataBundled"
   /// Serve nothing, so the fetch fails and the loading screen has an error to report.
@@ -49,6 +51,17 @@ func launchSeededApp(
     $0.descendant(id: AirportListScreen.landingID)
   }
   return AirportListScreen(app: app)
+}
+
+/**
+ Launches the app against the seeded store with an expired cycle over it, and returns the loading
+ screen it opens on offering the update.
+ */
+func launchExpiredCycleApp() -> LoadingScreen {
+  let app = launchApp([LaunchArgument.seedStore, LaunchArgument.expiredCycle]) {
+    $0.descendant(id: LoadingScreen.landingID)
+  }
+  return LoadingScreen(app: app)
 }
 
 /**

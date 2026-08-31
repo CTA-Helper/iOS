@@ -81,6 +81,25 @@ import SwiftData
       )
     }
 
+    /**
+     A cycle to stand over seeded airports, current or already expired.
+
+     Seeded data with no cycle beside it reads as a half-written import, and the app would offer
+     to download the nav data rather than show the airports — so anything that seeds a store
+     seeds one of these too.
+     */
+    static func navDataCycle(expired: Bool = false) -> NavDataCycle {
+      let day: TimeInterval = 24 * 3600
+      let effectiveDate = Date.now.addingTimeInterval(expired ? -56 * day : -7 * day)
+      return NavDataCycle(
+        airacCycle: expired ? "2605" : "2607",
+        effectiveDate: effectiveDate,
+        expirationDate: effectiveDate.addingTimeInterval(28 * day),
+        sha256: "preview",
+        importedAt: effectiveDate
+      )
+    }
+
     private static func rnavY12() -> Approach {
       let approach = Approach(
         identifier: "R12-Y",
@@ -270,6 +289,7 @@ import SwiftData
       let container = makeInMemory()
       container.mainContext.insert(PreviewData.missoula())
       container.mainContext.insert(PreviewData.sanFrancisco())
+      container.mainContext.insert(PreviewData.navDataCycle())
       return container
     }()
 

@@ -185,6 +185,11 @@ struct CTA_HelperApp: App {
       let missoula = PreviewData.missoula()
       container.mainContext.insert(missoula)
       container.mainContext.insert(PreviewData.sanFrancisco())
+      // Seeded airports with no cycle beside them read as a half-written import, and the app
+      // would offer the download rather than show them.
+      container.mainContext.insert(
+        PreviewData.navDataCycle(expired: UITestConfiguration.seedsExpiredCycle)
+      )
       UserDefaults.standard.set(
         AirportIDList([missoula.siteNumber]).rawValue,
         forKey: SettingsKey.favoriteAirports

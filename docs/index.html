@@ -149,7 +149,7 @@
                 "name": "How current is the nav data?",
                 "acceptedAnswer": {
                   "@type": "Answer",
-                  "text": "The app checks for a new AIRAC cycle on launch and downloads it in the background, verifying it against a published SHA-256 and byte count before importing."
+                  "text": "The app checks on every launch whether the imported AIRAC cycle has expired, and offers the current one when it has. You can download it then, or defer and keep flying the cycle you have; Settings goes on showing that it is out of date. Downloads are verified against a published SHA-256 and byte count before importing."
                 }
               },
               {
@@ -621,9 +621,11 @@
             <details>
               <summary>How current is the nav data?</summary>
               <p>
-                The app checks for a new AIRAC cycle on launch and downloads it in the
-                background, verifying it against a published SHA-256 and byte count before
-                importing.
+                The app checks on every launch whether the imported AIRAC cycle has expired,
+                and offers the current one when it has. You can download it then, or defer and
+                keep flying the cycle you have &mdash; Settings goes on showing that it is out
+                of date. Downloads are verified against a published SHA-256 and byte count
+                before importing.
               </p>
             </details>
 

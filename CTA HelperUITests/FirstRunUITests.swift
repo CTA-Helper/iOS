@@ -1,9 +1,9 @@
 import XCTest
 
 /**
- The one screen every pilot sees before any other: an app with an empty store can do nothing
- until a cycle has been downloaded, so the first run is driven end to end — through the
- download, into the data it produced, and through a download that fails.
+ The screen that stands between the pilot and their data, driven end to end: an app with an empty
+ store can do nothing until a cycle has been downloaded, and one whose cycle has expired asks
+ before it replaces it.
  */
 nonisolated final class FirstRunUITests: XCTestCase {
   override func setUpWithError() throws {
@@ -50,5 +50,18 @@ nonisolated final class FirstRunUITests: XCTestCase {
       .assertReportsAFailure()
       .dismissFailure()
       .assertOffersTheDownload()
+  }
+
+  /**
+   An expired cycle asks before it spends a download, and a pilot who would rather fly the data
+   they already have can — with Settings left saying that data is out of date.
+   */
+  @MainActor
+  func testDefersAnExpiredCycleOntoTheStoredData() throws {
+    launchExpiredCycleApp()
+      .assertOffersToUpdate()
+      .deferUpdate()
+      .openSettings()
+      .assertReportsAnExpiredCycle()
   }
 }

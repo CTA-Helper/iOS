@@ -58,6 +58,14 @@ struct SettingsScreen {
     return self
   }
 
+  /// Settings goes on saying the data is out of date, which is what a deferred update leaves.
+  @discardableResult
+  func assertReportsAnExpiredCycle() -> Self {
+    app.descendant(id: "cycleExpired")
+      .assertExists("Settings does not say the imported cycle has expired")
+    return self
+  }
+
   func openAbout() -> AboutScreen {
     let about = AboutScreen(app: app)
     app.descendant(id: "aboutLink")
