@@ -29,6 +29,10 @@ private let reportedTemperatureRange =
  so everything below the temperature slider collapses to a note saying so. An airport that is
  not a CTA has no such threshold and is corrected at any temperature.
 
+ This is the one screen a pilot reads without touching it — yoke-mounted, hands on the
+ controls, eyes moving between the corrected altitudes and the panel — so it holds the display
+ on for as long as it is showing.
+
  The correction is a cheap pure computation, so the view rebuilds an ``ApproachCorrector``
  from its inputs each time rather than caching it. The minimums are deliberately not
  persisted: they are cleared every time the screen appears.
@@ -99,6 +103,7 @@ struct FixListView: View {
       }
     }
     .navigationTitle(approach.name)
+    .keepsScreenAwake()
     .onAppear(perform: clearEntries)
     .task(id: approach.identifier) { await loadObservation() }
   }
