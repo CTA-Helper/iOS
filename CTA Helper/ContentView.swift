@@ -1,3 +1,4 @@
+import AppIntents
 import SwiftData
 import SwiftUI
 
@@ -21,6 +22,8 @@ struct ContentView: View {
     }
     .environment(router)
     .task { await loaderViewModel.start() }
+    .onAppIntentExecution(OpenAirportIntent.self) { router.route(to: $0.target.route) }
+    .onAppIntentExecution(OpenApproachIntent.self) { router.route(to: $0.target.route) }
   }
 }
 
@@ -31,7 +34,8 @@ struct ContentView: View {
  Both layouts push off the router's selections, so choosing an airport clears the approach chosen
  under the previous one — and records the airport as recently viewed — no matter which of them is
  on screen. A route the router is holding is applied here, and only here: this view is drawn once
- the store holds data, which is the condition a route has to wait for.
+ the store holds data, which is the condition a route has to wait for, and the same condition the
+ Spotlight donation waits on.
  */
 private struct AirportSplitView: View {
   @Environment(\.horizontalSizeClass)
@@ -40,6 +44,11 @@ private struct AirportSplitView: View {
   private var modelContext
   @Environment(AirportRouter.self)
   private var router
+
+  @AppStorage(SettingsKey.favoriteAirports)
+  private var favorites = AirportIDList()
+  @AppStorage(SettingsKey.recentAirports)
+  private var recents = AirportIDList()
 
   var body: some View {
     Group {
@@ -50,6 +59,13 @@ private struct AirportSplitView: View {
       }
     }
     .task(id: router.pendingRoute) { applyPendingRoute() }
+    .task(id: [favorites, recents]) {
+      await EntitySpotlightIndex.donate(
+        favorites: favorites,
+        recents: recents,
+        container: modelContext.container
+      )
+    }
   }
 
   /// Show the held route's screen, dropping a route the populated store cannot resolve.
