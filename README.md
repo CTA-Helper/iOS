@@ -54,11 +54,12 @@ The app source is grouped by concern:
 | Directory | Holds |
 | --- | --- |
 | `Corrections/` | The correction engine. No SwiftData, no SwiftUI. |
-| `Models/` | The SwiftData `@Model` types: airports, approaches, fixes. |
+| `Models/` | The SwiftData `@Model` types — airports, approaches, fixes — and the store holding them. |
 | `NavData/` | Downloading, verifying, and importing an AIRAC cycle. |
 | `Charts/` | Fetching and caching approach plates. |
 | `Weather/` | Fetching and decoding METARs. |
 | `Location/` | Resolving nearest airports, on device. |
+| `Intents/` | App Intents: what the system holds an airport and an approach as. |
 | `Views/` | SwiftUI. |
 | `Support/` | Settings, formatting, and the rest of the shared odds and ends. |
 
@@ -101,6 +102,24 @@ airborne.
 METARs come from [aviationweather.gov](https://aviationweather.gov)'s cache,
 throttled to one fetch per 15 minutes and decoded with
 [SwiftMETAR](https://github.com/RISCfuture/SwiftMETAR).
+
+### App Intents
+
+`Intents/` teaches the system what an airport and an approach are, so Shortcuts, Spotlight and
+Siri can hold one and hand it back. Both entities are keyed by the FAA site number and the ARINC
+424 identifier — never by a code the FAA reassigns — so a Shortcut saved one cycle still opens
+the right screen the next. An intent that fires before the first cycle has been imported answers
+with nothing rather than opening onto an empty store.
+
+Landing on the screen is `ContentView`'s `onAppIntentExecution(_:perform:)`, which runs before
+the app is foregrounded. It hands the route to a router the two navigation layouts share, which
+is what lets a screen be named from outside the view hierarchy at all — and it holds the route
+until the store has data behind it.
+
+Spotlight is given the airports the pilot has favorited or opened, and the approaches under them.
+Not the whole database: twenty thousand landing facilities is a long indexing pass after every
+cycle for content nobody searches from the home screen. One App Shortcut is published, on the
+airport, which is also what puts the app on the Action button and the Lock Screen.
 
 ### Crash reporting
 
