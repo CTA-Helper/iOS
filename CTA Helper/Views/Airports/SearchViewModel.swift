@@ -11,7 +11,6 @@ private let searchLogger = Logger(subsystem: "codes.tim.CTA-Helper", category: "
 @MainActor
 final class SearchViewModel {
   private static let debounce = Duration.milliseconds(250)
-  private static let minimumQueryLength = 2
 
   var query: String = "" {
     didSet { scheduleSearch() }
@@ -29,7 +28,7 @@ final class SearchViewModel {
   private func scheduleSearch() {
     searchTask?.cancel()
     let query = query.trimmingCharacters(in: .whitespaces)
-    guard query.count >= Self.minimumQueryLength else {
+    guard query.count >= AirportSearch.minimumQueryLength else {
       results = []
       return
     }
