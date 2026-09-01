@@ -9,6 +9,8 @@ struct ContentView: View {
   @Environment(NavDataLoaderViewModel.self)
   private var loaderViewModel
 
+  @State private var router = AirportRouter()
+
   var body: some View {
     Group {
       if loaderViewModel.showLoader {
@@ -17,6 +19,7 @@ struct ContentView: View {
         AirportSplitView()
       }
     }
+    .environment(router)
     .task { await loaderViewModel.start() }
   }
 }
@@ -25,35 +28,36 @@ struct ContentView: View {
  The airport → approach → fixes navigation, in the shape the width allows: two panes side by
  side where there is room for them, and a single drill-down stack on iPhone.
 
- Both layouts push off these same selections, so choosing an airport clears the approach
- chosen under the previous one — and records the airport as recently viewed — no matter which
- of them is on screen.
+ Both layouts push off the router's selections, so choosing an airport clears the approach chosen
+ under the previous one — and records the airport as recently viewed — no matter which of them is
+ on screen. A route the router is holding is applied here, and only here: this view is drawn once
+ the store holds data, which is the condition a route has to wait for.
  */
 private struct AirportSplitView: View {
   @Environment(\.horizontalSizeClass)
   private var horizontalSizeClass
-
-  @State private var selectedAirport: Airport?
-  @State private var selectedApproach: Approach?
-
-  @AppStorage(SettingsKey.recentAirports)
-  private var recents = AirportIDList()
+  @Environment(\.modelContext)
+  private var modelContext
+  @Environment(AirportRouter.self)
+  private var router
 
   var body: some View {
     Group {
       if horizontalSizeClass == .compact {
-        CompactAirportNavigation(
-          selectedAirport: $selectedAirport,
-          selectedApproach: $selectedApproach
-        )
+        CompactAirportNavigation(router: router)
       } else {
-        AirportPanes(selectedAirport: $selectedAirport, selectedApproach: $selectedApproach)
+        AirportPanes(router: router)
       }
     }
-    .onChange(of: selectedAirport) { _, airport in
-      selectedApproach = nil
-      if let airport { recents = recents.appendingRecent(airport.siteNumber) }
-    }
+    .task(id: router.pendingRoute) { applyPendingRoute() }
+  }
+
+  /// Show the held route's screen, dropping a route the populated store cannot resolve.
+  private func applyPendingRoute() {
+    guard let route = router.pendingRoute else { return }
+    defer { router.clearPendingRoute() }
+    guard let resolved = try? route.resolve(in: modelContext) else { return }
+    router.show(resolved.approach, at: resolved.airport)
   }
 }
 
@@ -67,14 +71,13 @@ private struct AirportSplitView: View {
  leaving the selection out of step with what is on screen and every later selection ignored.
  */
 private struct CompactAirportNavigation: View {
-  @Binding var selectedAirport: Airport?
-  @Binding var selectedApproach: Approach?
+  @Bindable var router: AirportRouter
 
   var body: some View {
     NavigationStack {
-      AirportPane(selection: $selectedAirport) { airport in
-        ApproachListView(airport: airport, selection: $selectedApproach)
-          .navigationDestination(item: $selectedApproach) { approach in
+      AirportPane(selection: $router.airport) { airport in
+        ApproachListView(airport: airport, selection: $router.approach)
+          .navigationDestination(item: $router.approach) { approach in
             FixListView(airport: airport, approach: approach)
           }
       }
@@ -91,19 +94,18 @@ private struct CompactAirportNavigation: View {
  replacing the column.
  */
 private struct AirportPanes: View {
-  @Binding var selectedAirport: Airport?
-  @Binding var selectedApproach: Approach?
+  @Bindable var router: AirportRouter
 
   var body: some View {
     NavigationSplitView {
       NavigationStack {
-        AirportPane(selection: $selectedAirport) {
-          ApproachListView(airport: $0, selection: $selectedApproach)
+        AirportPane(selection: $router.airport) {
+          ApproachListView(airport: $0, selection: $router.approach)
         }
       }
     } detail: {
       NavigationStack {
-        SelectedApproachDetail(airport: selectedAirport, approach: selectedApproach)
+        SelectedApproachDetail(airport: router.airport, approach: router.approach)
       }
     }
   }
@@ -150,16 +152,14 @@ private struct SelectedApproachDetail: View {
   }
 
   #Preview("Drill-down stack") {
-    @Previewable @State var selectedAirport: Airport?
-    @Previewable @State var selectedApproach: Approach?
-    CompactAirportNavigation(selectedAirport: $selectedAirport, selectedApproach: $selectedApproach)
+    @Previewable @State var router = AirportRouter()
+    CompactAirportNavigation(router: router)
       .modelContainer(.preview)
   }
 
   #Preview("Side-by-side panes") {
-    @Previewable @State var selectedAirport: Airport?
-    @Previewable @State var selectedApproach: Approach?
-    AirportPanes(selectedAirport: $selectedAirport, selectedApproach: $selectedApproach)
+    @Previewable @State var router = AirportRouter()
+    AirportPanes(router: router)
       .modelContainer(.preview)
   }
 
