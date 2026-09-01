@@ -65,3 +65,24 @@ struct AirportIDList: RawRepresentable, Codable, Equatable, Sendable {
     return Self(updated)
   }
 }
+
+extension UserDefaults {
+  /**
+   The airport list stored under a key.
+
+   `@AppStorage` reads and writes the same JSON string, so a list written here reaches every view
+   observing the key. It is what the router uses, which is outside a `View` and so has no
+   `@AppStorage` of its own.
+
+   - Parameter key: the settings key to read.
+   - Returns: the stored list, or an empty one where nothing readable is stored.
+   */
+  func airportIDList(forKey key: String) -> AirportIDList {
+    string(forKey: key).flatMap(AirportIDList.init(rawValue:)) ?? .init()
+  }
+
+  /// Store an airport list, in the form `@AppStorage` reads back.
+  func set(_ list: AirportIDList, forKey key: String) {
+    set(list.rawValue, forKey: key)
+  }
+}
