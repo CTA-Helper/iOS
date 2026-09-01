@@ -30,7 +30,7 @@ struct AirportEntityQuery: EntityStringQuery {
   }
 
   func suggestedEntities() async throws -> [AirportEntity] {
-    let favorites = UserDefaults.standard.airportIDList(forKey: SettingsKey.favoriteAirports)
-    return await AppEntityLookup.lookUp(in: container) { try await $0.airports(for: favorites.ids) }
+    let suggested = UserDefaults.standard.suggestedAirportIDs
+    return await AppEntityLookup.lookUp(in: container) { try await $0.airports(for: suggested) }
   }
 }

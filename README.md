@@ -118,8 +118,17 @@ until the store has data behind it.
 
 Spotlight is given the airports the pilot has favorited or opened, and the approaches under them.
 Not the whole database: twenty thousand landing facilities is a long indexing pass after every
-cycle for content nobody searches from the home screen. One App Shortcut is published, on the
-airport, which is also what puts the app on the Action button and the Lock Screen.
+cycle for content nobody searches from the home screen.
+
+There is deliberately no `AppShortcutsProvider`. `OpenIntent` carries a single `target` with no
+default, so an App Shortcut over one has to declare an `AppShortcutParameterPresentation` naming
+where its options come from — without one, running it fails with “Unable to run App Shortcut”.
+With one declared, and with `updateAppShortcutParameters()` called as the options change, the
+shortcut stopped registering at all: it never appeared in the Shortcuts library, on an iPhone 16
+Pro or in the simulator, with an empty store or with a cycle imported and an airport starred.
+Both intents still reach Shortcuts as ordinary app actions, so the pilot builds the shortcut they
+want — onto the Action button or the Lock Screen — for the airport they actually fly. That is the
+path `TODO.md` argued was the real one anyway.
 
 ### Crash reporting
 

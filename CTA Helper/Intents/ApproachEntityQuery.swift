@@ -24,9 +24,9 @@ struct ApproachEntityQuery: EntityStringQuery {
   }
 
   func suggestedEntities() async throws -> [ApproachEntity] {
-    let favorites = UserDefaults.standard.airportIDList(forKey: SettingsKey.favoriteAirports)
+    let suggested = UserDefaults.standard.suggestedAirportIDs
     return await AppEntityLookup.lookUp(in: container) {
-      try await $0.approaches(atAirports: favorites.ids)
+      try await $0.approaches(atAirports: suggested)
     }
   }
 }

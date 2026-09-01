@@ -68,6 +68,19 @@ struct AirportIDList: RawRepresentable, Codable, Equatable, Sendable {
 
 extension UserDefaults {
   /**
+   The airports to offer where something has to offer a few: the starred ones, or the recently
+   opened where none are starred.
+
+   Shortcuts fills its picker from this list, so it has to be short and it has to be the airports
+   this pilot flies. The twenty thousand US landing facilities are neither.
+   */
+  var suggestedAirportIDs: [String] {
+    let favorites = airportIDList(forKey: SettingsKey.favoriteAirports).ids
+    guard favorites.isEmpty else { return favorites }
+    return airportIDList(forKey: SettingsKey.recentAirports).ids.reversed()
+  }
+
+  /**
    The airport list stored under a key.
 
    `@AppStorage` reads and writes the same JSON string, so a list written here reaches every view
