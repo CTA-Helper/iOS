@@ -62,6 +62,21 @@ jobs:
           xcode-version: latest-stable
       - name: Enable macros
         run: defaults write com.apple.dt.Xcode IDESkipMacroFingerprintValidation -bool YES
+      - name: Record toolchain version
+        id: toolchain
+        run: echo "xcode=$(xcodebuild -version | tr '\n' '-')" >> "$GITHUB_OUTPUT"
+      - name: Cache SwiftPM dependencies
+        uses: actions/cache@v6
+        with:
+          path: ~/Library/Caches/org.swift.swiftpm
+          key: spm-${{ runner.os }}-${{ hashFiles('**/Package.resolved') }}
+          restore-keys: |
+            spm-${{ runner.os }}-
+      - name: Cache Xcode build products
+        uses: actions/cache@v6
+        with:
+          path: ${{ runner.temp }}/DocumentationDerivedData
+          key: derived-docs-macos-26-${{ steps.toolchain.outputs.xcode }}-${{ hashFiles('**/Package.resolved') }}
       # The app target sets OTHER_DOCC_FLAGS to --warnings-as-errors, so any DocC warning in the
       # app's own doc comments fails this job. The flag belongs to the target rather than to this
       # command because a command-line override reaches the package dependencies too, and their
