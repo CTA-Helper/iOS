@@ -5,9 +5,10 @@ import SwiftData
 /**
  How Shortcuts, Siri and Spotlight find an ``AirportEntity``.
 
- The suggestions are the pilot's favorites: an airport they fly is the one they are picking, and
- offering all twenty thousand US landing facilities before they have typed anything is offering
- nothing.
+ The suggestions are the airports this pilot flies — the ones they have starred, or the ones they
+ have opened lately where they have starred none. An airport they fly is the one they are picking,
+ and offering all twenty thousand US landing facilities before they have typed anything is
+ offering nothing.
  */
 struct AirportEntityQuery: EntityStringQuery {
   private let container: ModelContainer?
@@ -30,7 +31,7 @@ struct AirportEntityQuery: EntityStringQuery {
   }
 
   func suggestedEntities() async throws -> [AirportEntity] {
-    let favorites = UserDefaults.standard.airportIDList(forKey: SettingsKey.favoriteAirports)
-    return await AppEntityLookup.lookUp(in: container) { try await $0.airports(for: favorites.ids) }
+    let suggested = UserDefaults.standard.suggestedAirportIDs
+    return await AppEntityLookup.lookUp(in: container) { try await $0.airports(for: suggested) }
   }
 }

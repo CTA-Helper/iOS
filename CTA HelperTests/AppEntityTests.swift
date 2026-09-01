@@ -11,7 +11,9 @@ import Testing
  code, neither of which the FAA reassigns — has to survive the round trip through the string the
  system stores, because a parse that comes back empty drops the Shortcut without saying so. And
  an intent that fires before the first cycle has been imported has to answer "no such airport",
- not throw and not open a screen onto an empty store.
+ not throw and not open a screen onto an empty store. The order airports come back in is pinned
+ too: a fetch answers in import order, and the suggestions a picker shows are ordered by the pilot
+ — starred as they starred them, opened newest first.
  */
 @MainActor
 @Suite("App entities", .serialized)
@@ -47,13 +49,15 @@ struct AppEntityTests {
     #expect(found.map(\.id) == [missoula.siteNumber])
   }
 
+  // Asked both ways round: one order or the other is the one the store would have answered in on
+  // its own, so a single direction can pass without the airports having been ordered at all.
   @Test("Resolves saved airports in the order the system asked for them")
   func resolvesSavedAirportsInOrder() async throws {
     let siteNumbers = [eureka.siteNumber, missoula.siteNumber]
+    let reversed = Array(siteNumbers.reversed())
 
-    let found = try await airports.entities(for: siteNumbers)
-
-    #expect(found.map(\.id) == siteNumbers)
+    #expect(try await airports.entities(for: siteNumbers).map(\.id) == siteNumbers)
+    #expect(try await airports.entities(for: reversed).map(\.id) == reversed)
   }
 
   @Test("Answers with nothing for a query too short to name an airport")
