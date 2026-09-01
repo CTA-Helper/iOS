@@ -56,6 +56,7 @@ The app source is grouped by concern:
 | `Corrections/` | The correction engine. No SwiftData, no SwiftUI. |
 | `Models/` | The SwiftData `@Model` types: airports, approaches, fixes. |
 | `NavData/` | Downloading, verifying, and importing an AIRAC cycle. |
+| `Charts/` | Fetching and caching approach plates. |
 | `Weather/` | Fetching and decoding METARs. |
 | `Location/` | Resolving nearest airports, on device. |
 | `Views/` | SwiftUI. |
@@ -76,9 +77,24 @@ examples directly.
 
 Approach and fix data is published as a versioned AIRAC cycle at
 [CTA-Helper/Navdata](https://github.com/CTA-Helper/Navdata). On launch the app
-polls the release manifest, and when a newer cycle is available downloads the
-gzipped document, **verifies it against the SHA-256 and byte counts the manifest
-publishes**, and imports it into SwiftData in bounded transactions.
+checks whether the imported cycle has expired, and offers the current one when it
+has — to download now, or to defer and fly the stored cycle for the rest of the
+launch. Downloading polls the release manifest, fetches the gzipped document,
+**verifies it against the SHA-256 and byte counts the manifest publishes**, and
+imports it into SwiftData in bounded transactions. The import replaces the
+store's airports, so it is never run behind the pilot's back.
+
+### Approach charts
+
+`Charts/` fetches the FAA approach plate an approach publishes and files it under
+`Application Support/Charts/<cycle>/`, so the chart screen can lay the corrected
+altitudes over the plate — the one thing a chart app cannot show. The FAA serves
+plates `no-store`, so `URLCache` caches nothing and the store is hand-built: a
+200 MB budget, least-recently-opened eviction, and a whole cycle's plates dropped
+when a new one is imported. Nothing is fetched in the background — a plate is
+downloaded when the pilot opens it, or when they ask for an airport's whole set —
+because a cache that fills itself on a guess is one the pilot cannot rely on
+airborne.
 
 ### Weather
 

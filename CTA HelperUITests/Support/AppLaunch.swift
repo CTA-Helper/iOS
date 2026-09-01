@@ -11,6 +11,8 @@ import XCUITestKit
 enum LaunchArgument {
   /// Open an in-memory store holding KMSO — favorited — and KSFO, so nothing is downloaded.
   static let seedStore = "-uiTestSeed"
+  /// Expire the cycle standing over the seeded airports, so the app opens offering the update.
+  static let expiredCycle = "-uiTestSeedExpiredCycle"
   /// Serve the bundled sample cycle when the nav data is fetched.
   static let bundledNavData = "-uiTestNavDataBundled"
   /// Serve nothing, so the fetch fails and the loading screen has an error to report.
@@ -19,6 +21,10 @@ enum LaunchArgument {
   static let authorizedLocation = "-uiTestLocationAuthorized"
   /// Report location as refused, so the Nearest tab has to explain itself.
   static let deniedLocation = "-uiTestLocationDenied"
+  /// Serve a synthesized one-page plate when a chart is fetched, so no test touches the network.
+  static let bundledCharts = "-uiTestChartsBundled"
+  /// Report the device as offline, so the states that depend on having no network can be driven.
+  static let offline = "-uiTestOffline"
 }
 
 /**
@@ -49,6 +55,17 @@ func launchSeededApp(
     $0.descendant(id: AirportListScreen.landingID)
   }
   return AirportListScreen(app: app)
+}
+
+/**
+ Launches the app against the seeded store with an expired cycle over it, and returns the loading
+ screen it opens on offering the update.
+ */
+func launchExpiredCycleApp() -> LoadingScreen {
+  let app = launchApp([LaunchArgument.seedStore, LaunchArgument.expiredCycle]) {
+    $0.descendant(id: LoadingScreen.landingID)
+  }
+  return LoadingScreen(app: app)
 }
 
 /**
@@ -83,9 +100,24 @@ private func launchApp(
 }
 
 extension XCUIApplication {
-  /// Tap the back button of whichever pane is frontmost, popping one screen.
+  /// The identifiers UIKit gives the back button it synthesizes for a pushed screen.
+  private static let backButtonIDs = ["back-nav-button", "BackButton"]
+
+  /**
+   Tap the back button of whichever pane is frontmost, popping one screen.
+
+   The back button is picked out by identifier rather than taken to be the first button in a
+   navigation bar. A bar carries its screen's own toolbar items beside the back button, so
+   "the first button" is the back button only until a screen puts something else in its bar —
+   after which a pop silently becomes a tap on whatever that is. On iPad, where the fix list
+   is the detail pane and its bar holds the chart button but no back button of its own, that
+   turned every pop into a push and left the chart screen standing where the test expected the
+   airport list.
+   */
   func popNavigationStack() {
-    navigationBars.buttons.firstMatch
+    navigationBars.buttons
+      .matching(NSPredicate(format: "identifier IN %@", Self.backButtonIDs))
+      .firstMatch
       .assertExists("No back button to pop the screen")
       .forceTap()
   }

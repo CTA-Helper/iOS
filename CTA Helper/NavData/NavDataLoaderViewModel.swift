@@ -7,9 +7,10 @@ import os
 /**
  Coordinates nav data loading and the loading UI's state.
 
- On launch it checks whether the store holds any airports. If it does not, the app shows the
- loading screen, whose ``load(force:)`` downloads and imports a cycle. Once data exists the app
- runs against it, without touching the network again until ``load(force:)`` is called.
+ On launch it reads what the store holds. With no airports, or with a cycle that has expired over
+ them, the app shows the loading screen, whose ``load(force:)`` downloads and imports the
+ published cycle. A pilot who already has usable data can defer that update with ``loadLater()``
+ and fly the stored cycle for the rest of the launch. Nothing else touches the network.
  */
 @Observable
 @MainActor
@@ -24,17 +25,37 @@ final class NavDataLoaderViewModel {
 
   private(set) var state: NavDataLoader.State = .idle
   private(set) var hasData = false
+  private(set) var cycleHasExpired = false
   var error: (any Error)?
 
   private let container: ModelContainer
   private let importContainer: ModelContainer
+  private let chartStore: ChartStore?
   private var isLoading = false
+  /**
+   Whether the expired cycle's update has been settled for this launch — the pilot deferred it,
+   or the download it was offering has already been made.
+   */
+  private var updateSettled = false
 
-  /// Whether the blocking loading screen should be shown: only when the store is empty.
-  var showLoader: Bool { !hasData }
+  /**
+   Whether the blocking loading screen should be shown: the store is empty, or the cycle standing
+   over it has expired and the pilot has not deferred the update.
+   */
+  var showLoader: Bool { (!hasData || cycleHasExpired) && !updateSettled }
 
-  init(container: ModelContainer) {
+  /// Whether the pilot may defer an update, which they may only when a usable cycle is imported.
+  var canSkip: Bool { hasData }
+
+  /**
+   - Parameters:
+     - container: the store the app reads.
+     - chartStore: the plate cache to clear of superseded cycles after an import, or `nil` in a
+       preview, where nothing has been cached to clear.
+   */
+  init(container: ModelContainer, chartStore: ChartStore? = nil) {
     self.container = container
+    self.chartStore = chartStore
     importContainer = Self.makeImportContainer(matching: container)
   }
 
@@ -67,26 +88,38 @@ final class NavDataLoaderViewModel {
 
   #if DEBUG
     /**
-     Builds an instance pinned to a given `state` and `error`, for SwiftUI previews that need to
-     show a stage other than the initial `.idle` consent prompt.
+     Builds an instance pinned to a given `state`, `error` and store contents, for SwiftUI
+     previews that need a stage other than the initial `.idle` first-run prompt.
      */
     static func previewing(
       state: NavDataLoader.State,
-      error: (any Error)? = nil
+      error: (any Error)? = nil,
+      hasData: Bool = false
     ) -> NavDataLoaderViewModel {
       let viewModel = NavDataLoaderViewModel(container: .preview)
       viewModel.state = state
       viewModel.error = error
+      viewModel.hasData = hasData
       return viewModel
     }
   #endif
 
   /**
-   Resolve whether the store already holds data. When it does not, the loading screen shows
-   the consent prompt, and the pilot starts the download with ``load(force:)``.
+   Resolve what the store holds. When it is empty, or the cycle over it has expired, the loading
+   screen shows the consent prompt and the pilot starts the download with ``load(force:)``.
    */
   func start() async {
-    await refreshHasData()
+    await refreshState()
+  }
+
+  /**
+   Dismiss the update prompt for the rest of this launch, leaving the imported cycle in place.
+
+   Deferring is deliberately not persisted: a pilot who puts off an expired cycle is asked again
+   the next time they open the app, rather than never.
+   */
+  func loadLater() {
+    if canSkip { updateSettled = true }
   }
 
   /**
@@ -128,7 +161,7 @@ final class NavDataLoaderViewModel {
   /// How one download and import ended, having published nothing.
   private func outcome(of loader: NavDataLoader, force: Bool) async -> LoadOutcome {
     do {
-      try await loader.load(force: force)
+      try await loader.load(force: force, purgingChartsFrom: chartStore)
       return .finished(await loader.state)
     } catch is CancellationError {
       return .cancelled
@@ -142,7 +175,11 @@ final class NavDataLoaderViewModel {
     switch outcome {
       case .finished(let loaderState):
         state = loaderState
-        await refreshHasData()
+        await refreshState()
+        // A cycle still out of date once imported is the newest one published, so there is
+        // nothing further to offer: prompting again would ask the pilot to repeat the download
+        // they have just finished.
+        if cycleHasExpired { updateSettled = true }
       case .failed(let error):
         // Log the whole error, including any wrapped `underlying`, which the pilot-facing
         // message deliberately leaves out.
@@ -150,6 +187,9 @@ final class NavDataLoaderViewModel {
         report(error)
         self.error = error
         state = .idle
+        // An import that failed partway through has emptied the store, so read it again: the
+        // prompt the pilot lands back on has to be the one their store actually calls for.
+        await refreshState()
       case .cancelled:
         break
     }
@@ -181,14 +221,33 @@ final class NavDataLoaderViewModel {
     }
   }
 
-  private func refreshHasData() async {
-    hasData = await storedAirportCount() > 0
+  private func refreshState() async {
+    let stored = await storedState()
+    hasData = stored.hasData
+    cycleHasExpired = stored.cycleHasExpired
   }
 
+  /// What the store holds, read on a context of its own so launch does no main-actor fetching.
   @concurrent
-  private func storedAirportCount() async -> Int {
+  private func storedState() async -> StoredState {
     let context = ModelContext(container)
-    return (try? context.fetchCount(FetchDescriptor<Airport>())) ?? 0
+    var cycleDescriptor = FetchDescriptor<NavDataCycle>()
+    cycleDescriptor.fetchLimit = 1
+    let cycle = (try? context.fetch(cycleDescriptor))?.first
+    let airportCount = (try? context.fetchCount(FetchDescriptor<Airport>())) ?? 0
+
+    return StoredState(
+      hasData: airportCount > 0,
+      // Airports with no cycle standing over them are a half-written import, which is exactly
+      // when the published cycle should be fetched again.
+      cycleHasExpired: cycle?.hasExpired ?? true
+    )
+  }
+
+  /// What the store holds, resolved away from the main actor and applied on it.
+  private struct StoredState {
+    let hasData: Bool
+    let cycleHasExpired: Bool
   }
 
   /// How a load ended, held until the stage mirroring has stopped and it can be published.

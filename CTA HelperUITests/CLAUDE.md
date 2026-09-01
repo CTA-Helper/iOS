@@ -113,6 +113,14 @@ itself and blamed the correction engine.
 - Don't reach for `clearAndType` in `assertRetypingReplacesMinimums`. It clears
   the field first, which is the behaviour that test exists to prove, so it would
   pass whatever the field did.
+- Read a merged row off the row. `FixRow` merges its subtree into one element, so
+  `fixAltitude-<id>` no longer exists and counting the texts under a row cannot
+  say whether it was corrected. `FixListScreen.reading(of:)` takes the row's
+  accessibility `value`, and a correction is proved by that reading moving —
+  `testCorrectionMethodDecidesWhichSegmentsAreCorrected` compares JENKI across
+  the two methods with SUPPY, in a segment the restriction marks, as the control
+  that fails if the corrector merely stopped correcting. What was published and
+  what was added are `AXCustomContent`, which XCUITest does not expose.
 - A screen object owns its elements and its waiting, and every method that
   navigates returns the next screen's object. Keep what is being proved in the
   test body and how it is checked on the object.

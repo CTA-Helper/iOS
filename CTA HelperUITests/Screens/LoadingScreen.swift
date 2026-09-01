@@ -2,8 +2,8 @@ import XCTest
 import XCUITestKit
 
 /**
- The first-run screen: the one-time download the app cannot run without, and whatever came of
- asking for it.
+ The screen that stands between the pilot and their data: the one-time first-run download, the
+ replacement an expired cycle asks for, and whatever came of asking.
  */
 struct LoadingScreen {
   /// The element whose presence means this screen is up.
@@ -15,6 +15,7 @@ struct LoadingScreen {
   let app: XCUIApplication
 
   private var downloadButton: XCUIElement { app.descendant(id: Self.landingID) }
+  private var deferButton: XCUIElement { app.descendant(id: "deferNavDataButton") }
 
   @discardableResult
   func assertOffersTheDownload() -> Self {
@@ -23,6 +24,25 @@ struct LoadingScreen {
       timeout: ScaledTimeouts.launch
     )
     return self
+  }
+
+  /// An expired cycle offers the same download, plus the choice to fly the stored one for now.
+  @discardableResult
+  func assertOffersToUpdate() -> Self {
+    downloadButton.assertExists(
+      "An expired cycle offers no way to download its replacement",
+      timeout: ScaledTimeouts.launch
+    )
+    deferButton.assertExists("An expired cycle offers no way to defer the update")
+    return self
+  }
+
+  /// The airport picker the pilot reaches by flying the expired cycle for now.
+  func deferUpdate() -> AirportListScreen {
+    let airports = app.descendant(id: AirportListScreen.landingID)
+    deferButton.tap(untilExists: airports, using: XCUIElement.TapStrategy.escalating)
+    airports.assertExists("Deferring the update did not reach the stored airports")
+    return AirportListScreen(app: app)
   }
 
   @discardableResult

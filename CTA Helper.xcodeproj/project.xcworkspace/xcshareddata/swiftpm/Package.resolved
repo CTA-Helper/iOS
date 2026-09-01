@@ -42,8 +42,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/getsentry/sentry-cocoa/",
       "state" : {
-        "revision" : "afa7510e05b99f35c1febe47566bfd868fa53fb9",
-        "version" : "9.23.0"
+        "revision" : "cd213f98af160e6497eeff0707bc3f6a205b159c",
+        "version" : "9.26.0"
       }
     },
     {
@@ -97,7 +97,7 @@
       "location" : "https://github.com/RISCfuture/XCUITestKit",
       "state" : {
         "branch" : "main",
-        "revision" : "57b98f7e96f0034004e280d920ebff7e21c35488"
+        "revision" : "797d5d183a67b0bb3034250d34d27f838f6cbab5"
       }
     }
   ],

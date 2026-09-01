@@ -81,6 +81,25 @@ import SwiftData
       )
     }
 
+    /**
+     A cycle to stand over seeded airports, current or already expired.
+
+     Seeded data with no cycle beside it reads as a half-written import, and the app would offer
+     to download the nav data rather than show the airports — so anything that seeds a store
+     seeds one of these too.
+     */
+    static func navDataCycle(expired: Bool = false) -> NavDataCycle {
+      let day: TimeInterval = 24 * 3600
+      let effectiveDate = Date.now.addingTimeInterval(expired ? -56 * day : -7 * day)
+      return NavDataCycle(
+        airacCycle: expired ? "2605" : "2607",
+        effectiveDate: effectiveDate,
+        expirationDate: effectiveDate.addingTimeInterval(28 * day),
+        sha256: "preview",
+        importedAt: effectiveDate
+      )
+    }
+
     private static func rnavY12() -> Approach {
       let approach = Approach(
         identifier: "R12-Y",
@@ -217,6 +236,17 @@ import SwiftData
     )
 
     /**
+     An observation above a Cold Temperature Airport's restriction, so the badge shows that
+     nothing needs correcting at Missoula today.
+     */
+    static let previewWarm = METARObservation(
+      stationID: "KMSO",
+      temperature: .celsius(5),
+      date: Date(timeIntervalSinceReferenceDate: 806_000_000),
+      rawText: "KMSO 241953Z 30012KT 10SM FEW070 05/M04 A3002 RMK AO2 SLP215"
+    )
+
+    /**
      An observation warmer than the reported-temperature slider spans, which the fix list pins
      to the slider's warm end.
      */
@@ -244,11 +274,13 @@ import SwiftData
      - Parameters:
        - airport: the airport whose first approach is corrected.
        - temperature: the reported temperature.
+       - method: the correction method the preview applies.
        - minimums: the pilot-entered DA or MDA, or `nil` for minimums not yet entered.
      */
     static func preview(
       for airport: Airport,
       temperature: Measurement<UnitTemperature> = .celsius(-20),
+      method: CorrectionMethod = .allSegments,
       minimums: Measurement<UnitLength>? = .feet(4520)
     ) -> Self {
       Self(
@@ -256,12 +288,30 @@ import SwiftData
         referenceAltitudes: airport.approaches[0].referenceAltitudes,
         reportedTemperature: temperature,
         coldTemperature: airport.coldTemperature,
-        method: .allSegments,
+        method: method,
         rounding: .nearestHundred,
         extrapolateAboveTable: false,
         minimumsAltitude: minimums
       )
     }
+  }
+
+  extension UserDefaults {
+    /**
+     A settings store previewing the Individual Segments Method, which a preview hands to
+     `@AppStorage` through `defaultAppStorage(_:)`.
+
+     A screen driven by a stored setting can only be previewed in one of its states otherwise,
+     and the state worth seeing is the one where a segment goes uncorrected.
+     */
+    @MainActor static let individualSegmentsPreview: UserDefaults = {
+      let defaults = UserDefaults(suiteName: "preview.individualSegments") ?? .standard
+      defaults.set(
+        CorrectionMethod.individualSegments.rawValue,
+        forKey: SettingsKey.correctionMethod
+      )
+      return defaults
+    }()
   }
 
   extension ModelContainer {
@@ -270,6 +320,7 @@ import SwiftData
       let container = makeInMemory()
       container.mainContext.insert(PreviewData.missoula())
       container.mainContext.insert(PreviewData.sanFrancisco())
+      container.mainContext.insert(PreviewData.navDataCycle())
       return container
     }()
 

@@ -29,9 +29,15 @@ private let reportedTemperatureRange =
  so everything below the temperature slider collapses to a note saying so. An airport that is
  not a CTA has no such threshold and is corrected at any temperature.
 
+ This is the one screen a pilot reads without touching it — yoke-mounted, hands on the
+ controls, eyes moving between the corrected altitudes and the panel — so it holds the display
+ on for as long as it is showing.
+
  The correction is a cheap pure computation, so the view rebuilds an ``ApproachCorrector``
- from its inputs each time rather than caching it. The minimums are deliberately not
- persisted: they are cleared every time the screen appears.
+ from its inputs each time rather than caching it. Nothing the pilot sets is persisted across
+ launches, and what survives within one depends on whose it is: the minimums and the chosen
+ transitions belong to the approach, so another approach starts them over, while the reported
+ temperature belongs to the airport and stands across every approach to it.
  */
 struct FixListView: View {
   /// The airport whose elevation and cold temperature restriction the correction uses.
@@ -51,6 +57,25 @@ struct FixListView: View {
    entry shows the first transition it codes.
    */
   @State private var selectedTransitions: [Segment: String] = [:]
+
+  /**
+   The approach the typed minimums and chosen transitions belong to.
+
+   They are the approach's own: a DA/MDA is the one charted for this procedure, and a transition
+   is one this procedure codes. Opening another approach starts both over. The identity is the
+   persistent one rather than the ARINC identifier, which two airports can both publish.
+   */
+  @State private var preparedApproach: PersistentIdentifier?
+
+  /**
+   The airport the reported temperature was filled from a METAR for.
+
+   The temperature is the airport's weather rather than the approach's — it is the station's
+   reading the pilot is overriding — so it goes on standing when they open another approach to
+   the same field. Filling it per approach would pull the slider back to the METAR every time
+   they compared two approaches at one airport, discarding a reading they had deliberately set.
+   */
+  @State private var filledFromAirport: PersistentIdentifier?
 
   @FocusState private var isEditingMinimums: Bool
 
@@ -90,6 +115,14 @@ struct FixListView: View {
       }
     }
     .toolbar {
+      ToolbarItem(placement: .topBarTrailing) {
+        ChartToolbarButton(
+          approach: approach,
+          corrector: corrector,
+          transitions: selectedTransitions,
+          minimums: minimums
+        )
+      }
       // The number pad has no return key, and the minimums sit at the foot of the list, so
       // without this the keyboard covers the corrected value it was opened to produce.
       ToolbarItemGroup(placement: .keyboard) {
@@ -99,8 +132,8 @@ struct FixListView: View {
       }
     }
     .navigationTitle(approach.name)
-    .onAppear(perform: clearEntries)
-    .task(id: approach.identifier) { await loadObservation() }
+    .keepsScreenAwake()
+    .task(id: approach.persistentModelID) { await prepare() }
   }
 
   /**
@@ -146,18 +179,34 @@ struct FixListView: View {
   }
 
   /**
-   Discard the entries that belong to the approach being left: the typed minimums, and the
-   transition chosen for each segment.
+   Start the screen on an approach: drop what belonged to the one before it, and fill the
+   reported temperature from the station's latest METAR.
+
+   The two halves are keyed apart because they belong to different things — the entries to the
+   approach, the temperature to the airport — so switching approaches at one field clears the
+   minimums without disturbing the reading they are corrected against.
+
+   Both are guarded rather than run on sight, because a `task` starts afresh every time the view
+   appears, and this screen appears again whenever the plate pushed over it is dismissed. Left
+   unguarded, coming back from the chart would blank the minimums the overlay was just showing
+   and pull the temperature back to the METAR's.
    */
-  private func clearEntries() {
-    minimums = nil
-    selectedTransitions = [:]
+  private func prepare() async {
+    if preparedApproach != approach.persistentModelID {
+      preparedApproach = approach.persistentModelID
+      minimums = nil
+      selectedTransitions = [:]
+    }
+
+    guard filledFromAirport != airport.persistentModelID else { return }
+    filledFromAirport = airport.persistentModelID
+    observation = nil
+    await loadObservation()
   }
 
   /**
    Fetch the airport's latest METAR when the network is available, and fill the reported
-   temperature from it. Runs once per approach; the pilot's later slider adjustments are
-   preserved.
+   temperature from it.
 
    An observation warmer or colder than the slider spans is pinned to the nearer end. Off the
    track the thumb is unreadable and the value is one the control cannot express, and a
@@ -360,6 +409,29 @@ private struct SegmentSection: View {
       }
     } header: {
       SegmentHeader(group: group, selectedTransition: $selectedTransition)
+    } footer: {
+      SegmentFooter(
+        segment: group.segment,
+        reason: corrector.unavailableReason(for: group.segment)
+      )
+    }
+  }
+}
+
+/**
+ Why a segment's altitudes all stand as published, under the legs the correction did not move.
+
+ The reason belongs to the segment rather than to any one of its fixes, so it is said once here
+ instead of down every row the segment holds. A segment that is corrected says nothing.
+ */
+private struct SegmentFooter: View {
+  let segment: Segment
+  let reason: UncorrectableReason?
+
+  var body: some View {
+    if let note = reason?.segmentNote {
+      Text(note)
+        .accessibilityIdentifier("segmentNote-\(segment.rawValue)")
     }
   }
 }
@@ -519,6 +591,21 @@ private struct NoCorrectionNotice: View {
     .modelContainer(.preview)
     .environment(\.metarLoader, METARLoader(serving: ["KMSO": .preview]))
     .environment(\.networkMonitor, NetworkMonitor(reporting: true))
+  }
+
+  // The Individual Segments Method leaves KMSO's missed approach uncorrected, and the minimums
+  // start unentered, so two segments carry a footer saying why.
+  #Preview("Uncorrected segments") {
+    NavigationStack {
+      let airport = PreviewData.missoula()
+      FixListView(
+        airport: airport,
+        approach: airport.approaches[0],
+        initialTemperature: .celsius(-20)
+      )
+    }
+    .modelContainer(.preview)
+    .defaultAppStorage(.individualSegmentsPreview)
   }
 
   #Preview("No correction necessary") {

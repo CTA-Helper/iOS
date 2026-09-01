@@ -1,6 +1,7 @@
 import CoreLocation
 import Foundation
 import Gzip
+import UIKit
 
 #if DEBUG
 
@@ -28,6 +29,44 @@ import Gzip
     /// Whether the store opens seeded with sample airports rather than empty.
     static var seedsStore: Bool { arguments.contains("\(argumentPrefix)Seed") }
 
+    /**
+     Whether the cycle standing over the seeded airports has already expired, so the app opens
+     offering the update rather than the airports.
+
+     It qualifies ``seedsStore`` rather than replacing it: a test that wants this passes both
+     flags, the way one that wants seeded airports and a fixture to update them from does.
+     */
+    static var seedsExpiredCycle: Bool { arguments.contains("\(argumentPrefix)SeedExpiredCycle") }
+
+    /**
+     Whether the app reports itself offline, so the states that depend on having no network can
+     be driven.
+
+     Weather and charts both branch on ``NetworkMonitor/isConnected``, and a test that means to
+     see a chart open from the cache alone has no other way to say so.
+     */
+    static var isOffline: Bool { arguments.contains("\(argumentPrefix)Offline") }
+
+    /// What ``ChartStore`` fetches, in place of the published plates.
+    static var charts: ChartFixture? {
+      arguments.contains("\(argumentPrefix)ChartsBundled") ? .bundled : nil
+    }
+
+    /**
+     Where a UI test files its plates, or `nil` to leave the pilot's own store in place.
+
+     The SwiftData store a test opens is in memory, but a chart store is real files that outlive
+     the process. Without a root of its own the suite would carry plates from one run into the
+     next and, on a device, into the store the pilot's own app reads.
+     */
+    static var chartStoreRoot: URL? {
+      guard isRunning else { return nil }
+      return URL.temporaryDirectory.appending(
+        component: "uiTestCharts-\(ProcessInfo.processInfo.processIdentifier)",
+        directoryHint: .isDirectory
+      )
+    }
+
     /// What ``NavDataLoader`` fetches, in place of the published release.
     static var navData: NavDataFixture? {
       if arguments.contains("\(argumentPrefix)NavDataBundled") { return .bundled }
@@ -54,6 +93,45 @@ import Gzip
       return nil
     }
 
+    /// Where a UI test serves approach plates from, in place of the published ones.
+    enum ChartFixture {
+      /// A plate synthesized at launch, which downloads and files the way a published one does.
+      case bundled
+
+      /**
+       A one-page PDF written out once, standing in for every plate.
+
+       Synthesized rather than committed: a real plate is about a megabyte of federal PDF that
+       would have to be kept out of the release bundle by hand, and what these tests prove is
+       that a fetched plate is filed and drawn — not what is printed on it.
+       */
+      private static let synthesized: URL = {
+        let bounds = CGRect(x: 0, y: 0, width: 612, height: 792)
+        let data = UIGraphicsPDFRenderer(bounds: bounds).pdfData { context in
+          context.beginPage()
+          "UI TEST PLATE".draw(
+            at: CGPoint(x: 72, y: 72),
+            withAttributes: [.font: UIFont.systemFont(ofSize: 36)]
+          )
+        }
+
+        do {
+          let url = URL.temporaryDirectory.appending(component: "uiTestPlate.pdf")
+          try data.write(to: url)
+          return url
+        } catch {
+          preconditionFailure("Could not write the approach plate fixture: \(error)")
+        }
+      }()
+
+      /// Where the plate for `id` is served from.
+      func url(for _: ChartID) -> URL {
+        switch self {
+          case .bundled: Self.synthesized
+        }
+      }
+    }
+
     /// Where a UI test serves a nav data cycle from, in place of the published release.
     enum NavDataFixture {
       /// The sample cycle bundled with the app, which downloads and imports the way a release does.
@@ -78,6 +156,13 @@ import Gzip
           data["uncompressedBytes"] = packedFixture.uncompressedBytes
           data["sha256"] = packedFixture.sha256
           manifest["data"] = data
+
+          // The cycle dates are filled in for the same reason the digest is: committed ones
+          // expire with the calendar, and a fixture that lands already out of date would have the
+          // app offering its replacement the moment it finished importing.
+          let cycle = currentCycleDates()
+          manifest["cycleEffective"] = cycle.effective
+          manifest["cycleExpires"] = cycle.expires
 
           let url = URL.temporaryDirectory.appending(component: "uiTestManifest.json")
           try JSONSerialization.data(withJSONObject: manifest).write(to: url)
@@ -115,6 +200,17 @@ import Gzip
           case .bundled: Self.packedFixture.url
           case .unreachable: Self.unreachable("uiTestNavData.json.gz")
         }
+      }
+
+      /// A cycle window standing over today, as the plain dates a manifest publishes.
+      private static func currentCycleDates() -> (effective: String, expires: String) {
+        let day: TimeInterval = 24 * 3600
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withFullDate]
+        return (
+          effective: formatter.string(from: .now.addingTimeInterval(-7 * day)),
+          expires: formatter.string(from: .now.addingTimeInterval(21 * day))
+        )
       }
 
       private static func bundled(_ name: String) -> URL {
@@ -174,11 +270,28 @@ import Gzip
     /// Always `false`: the store a release build opens is the pilot's own.
     static var seedsStore: Bool { false }
 
+    /// Always `false`: a release build seeds no cycle, expired or otherwise.
+    static var seedsExpiredCycle: Bool { false }
+
+    /// Always `false`: a release build reads the device's own network path.
+    static var isOffline: Bool { false }
+
+    /// Always `nil`: a release build fetches published plates and nothing else.
+    static var charts: ChartFixture? { nil }
+
+    /// Always `nil`: a release build files plates where the pilot's own app reads them.
+    static var chartStoreRoot: URL? { nil }
+
     /// Always `nil`: a release build fetches the published cycle and nothing else.
     static var navData: NavDataFixture? { nil }
 
     /// Always `nil`: a release build reads the device's own location.
     @MainActor static var locationStreamer: FixedLocationStreamer? { nil }
+
+    /// Uninhabited, so no release build can name a plate fixture to serve.
+    enum ChartFixture {
+      func url(for _: ChartID) -> URL { switch self {} }
+    }
 
     /// Uninhabited, so no release build can name a fixture to serve.
     enum NavDataFixture {

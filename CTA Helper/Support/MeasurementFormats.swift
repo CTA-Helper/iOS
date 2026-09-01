@@ -31,6 +31,36 @@ extension FormatStyle where Self == Measurement<UnitLength>.FormatStyle {
       numberFormatStyle: .number.precision(.fractionLength(0))
     )
   }
+
+  /**
+   An altitude with its unit spelled out, for a value VoiceOver reads rather than one the pilot
+   sees.
+
+   The fix list establishes feet by its column and prints digits alone; speech has no column, so
+   an unqualified number read out of a row is a number with no unit at all.
+   */
+  static var spokenAltitude: Self {
+    .measurement(
+      width: .wide,
+      usage: .asProvided,
+      numberFormatStyle: .number.precision(.fractionLength(0))
+    )
+  }
+
+  /**
+   A cold temperature correction, signed, with its unit spelled out.
+
+   The sign is written rather than implied: the addend is the one number on the row a sighted
+   pilot works out by subtracting two others, so the direction it moves the altitude is part of
+   the value rather than something to infer from it.
+   */
+  static var spokenCorrection: Self {
+    .measurement(
+      width: .wide,
+      usage: .asProvided,
+      numberFormatStyle: .number.precision(.fractionLength(0)).sign(strategy: .always())
+    )
+  }
 }
 
 /**

@@ -17,6 +17,9 @@ final class NavDataCycle {
   var sha256: String
   var importedAt: Date
 
+  /// Whether the AIRAC cycle this data came from has ended, so a newer one is published.
+  var hasExpired: Bool { expirationDate < .now }
+
   init(
     airacCycle: String,
     effectiveDate: Date,

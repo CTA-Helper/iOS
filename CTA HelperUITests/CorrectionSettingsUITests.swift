@@ -55,10 +55,10 @@ nonisolated final class CorrectionSettingsUITests: XCTestCase {
   func testExtrapolationChangesACorrectionAboveTheTable() throws {
     let airports = launchSeededApp()
 
-    let capped = correctedAltitudes(of: "CHARL", from: airports, method: .individualSegments)
+    let capped = correctedAltitude(of: "CHARL", from: airports, method: .individualSegments)
 
     airports.openSettings().toggleExtrapolation().close()
-    let extrapolated = correctedAltitudes(of: "CHARL", from: airports, method: .individualSegments)
+    let extrapolated = correctedAltitude(of: "CHARL", from: airports, method: .individualSegments)
 
     XCTAssertNotEqual(
       capped,
@@ -79,8 +79,23 @@ nonisolated final class CorrectionSettingsUITests: XCTestCase {
       .openApproach("R12-Y")
       .reportColdTemperature()
 
-    fixes.selectCorrectionMethod(.allSegments).assertCorrects("JENKI")
-    fixes.selectCorrectionMethod(.individualSegments).assertDoesNotCorrect("JENKI")
+    // SUPPY is the FAF, in the intermediate segment the restriction does mark. It is the control:
+    // a corrector that simply stopped correcting would move JENKI too, and prove nothing.
+    fixes.selectCorrectionMethod(.allSegments)
+    let (missed, marked) = (fixes.reading(of: "JENKI"), fixes.reading(of: "SUPPY"))
+
+    fixes.selectCorrectionMethod(.individualSegments)
+    XCTAssertNotEqual(
+      missed,
+      fixes.reading(of: "JENKI"),
+      "Correcting individual segments still corrected the missed approach"
+    )
+    XCTAssertEqual(
+      marked,
+      fixes.reading(of: "SUPPY"),
+      "Correcting individual segments changed a segment the restriction marks"
+    )
+    fixes.assertExplains(.missed)
   }
 
   /// The advisory-use disclaimer and the build the pilot is flying are both reachable.
@@ -101,18 +116,18 @@ nonisolated final class CorrectionSettingsUITests: XCTestCase {
     return corrected
   }
 
-  /// Correct the seeded approach under a given method, and report what a fix's row shows.
+  /// Correct the seeded approach under a given method, and report what a fix's row reads out.
   @MainActor
-  private func correctedAltitudes(
+  private func correctedAltitude(
     of identifier: String,
     from airports: AirportListScreen,
     method: FixListScreen.Method
-  ) -> [String] {
+  ) -> String {
     let fixes = openSeededApproach(from: airports)
     fixes.selectCorrectionMethod(method)
-    let altitudes = fixes.altitudes(of: identifier)
+    let altitude = fixes.reading(of: identifier)
     leave(fixes)
-    return altitudes
+    return altitude
   }
 
   @MainActor

@@ -3,6 +3,9 @@ import XCUITestKit
 
 /// The settings sheet: the correction preferences, the imported cycle, and the About screen.
 struct SettingsScreen {
+  /// How many swipes it may take to reach the foot of the settings form on the smallest screen.
+  private static let maximumScrolls: UInt = 6
+
   let app: XCUIApplication
 
   /// The element whose presence means the sheet is up, and whose absence means it is gone.
@@ -58,9 +61,26 @@ struct SettingsScreen {
     return self
   }
 
+  /// Settings goes on saying the data is out of date, which is what a deferred update leaves.
+  @discardableResult
+  func assertReportsAnExpiredCycle() -> Self {
+    app.descendant(id: "cycleExpired")
+      .assertExists("Settings does not say the imported cycle has expired")
+    return self
+  }
+
+  /**
+   Open About, scrolling the form down to reach it.
+
+   About is the last section of a form that has grown past a phone screen — the correction
+   preferences, the imported cycle, and what the downloaded charts occupy all sit above it — so
+   the link is routinely below the fold and a tap aimed at where it used to be lands on nothing.
+   */
   func openAbout() -> AboutScreen {
     let about = AboutScreen(app: app)
-    app.descendant(id: "aboutLink")
+    let link = app.descendant(id: "aboutLink")
+    app.scrollToElement(link, direction: .up, maxSwipes: Self.maximumScrolls)
+    link
       .assertExists("No way through to About")
       .tap(untilExists: about.landing, using: XCUIElement.TapStrategy.escalating)
     return about

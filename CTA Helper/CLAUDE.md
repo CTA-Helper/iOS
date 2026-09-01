@@ -22,6 +22,12 @@
 - A control a UI test drives gets an identifier; a picker's options get one each
   (`roundingOption-…`, `transitionOption-…`), since a test must never match on
   localized copy.
+- A row dense enough to merge is the other shape. `FixRow` is one accessibility
+  element (`children: .ignore`) and identifies itself, so `fixRow-<id>` names the
+  whole row and there is nothing beneath it left to name — the opposite of
+  `AirportRow`, which identifies its label column precisely so the star keeps an
+  identifier of its own. A merged row is read through its `label` and `value`;
+  its `accessibilityCustomContent` is not reachable from XCUITest at all.
 
 ## Location
 

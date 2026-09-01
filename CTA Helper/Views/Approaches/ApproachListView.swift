@@ -24,6 +24,11 @@ struct ApproachListView: View {
     }
     .navigationTitle(airport.displayIdentifier)
     .navigationSubtitle(airport.name)
+    .toolbar {
+      ToolbarItem(placement: .topBarTrailing) {
+        AirportChartsButton(airport: airport)
+      }
+    }
   }
 }
 

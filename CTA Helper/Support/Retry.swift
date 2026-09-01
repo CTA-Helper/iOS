@@ -53,8 +53,7 @@ func withRetry<T>(
     do {
       return try await operation()
     } catch {
-      if error is CancellationError { throw error }
-      if let urlError = error as? URLError, urlError.code == .cancelled { throw urlError }
+      if error.isCancellation { throw error }
       if !shouldRetry(error) { throw error }
       if attempt == maximumRetryCount { throw error }
     }
