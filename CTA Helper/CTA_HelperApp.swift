@@ -33,9 +33,9 @@ struct CTA_HelperApp: App {
   /**
    The location source a UI test asked for, or `nil` to leave the device's own in place.
 
-   Only a test ever replaces it, and only a test ever reads it before the pilot opens the
-   Nearest tab — building a ``CoreLocationStreamer`` raises the permission alert, so the
-   environment's own default stays untouched until then.
+   Only a test ever names one. Left `nil`, the environment resolves its own default the first
+   time a view reads it — which is when the pilot opens the Nearest tab, so nothing asks Core
+   Location for anything on behalf of a screen they may never open.
    */
   let locationStreamer: FixedLocationStreamer?
   /// The approach plates held on disk, and the only thing that fetches one.
@@ -181,9 +181,9 @@ struct CTA_HelperApp: App {
 /**
  The window's contents with the sources the app was built around in the environment.
 
- The location source is the one source that is set only when there is one to set: its default
- is a ``CoreLocationStreamer``, and building one asks the pilot for permission, which is a
- question to raise when they open the Nearest tab rather than when the app launches.
+ The location source is the one source that is set only when there is one to set: leaving the
+ key alone lets the environment build its own ``CoreLocationStreamer`` when the Nearest tab first
+ reads it, rather than at launch on behalf of a screen the pilot may never open.
  */
 private struct AppContent: View {
   let loaderViewModel: NavDataLoaderViewModel
