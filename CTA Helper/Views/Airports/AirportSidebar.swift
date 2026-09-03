@@ -1,4 +1,3 @@
-import CoreLocation
 import SwiftData
 import SwiftUI
 
@@ -10,18 +9,15 @@ struct AirportSidebar: View {
   @Binding var selection: Airport?
 
   @State private var tab: AirportTab = .favorites
-  @State private var showsNearest = false
   @State private var showsSettings = false
 
   var body: some View {
     VStack(spacing: 0) {
       Picker("Airports", selection: $tab) {
         ForEach(AirportTab.allCases) { tab in
-          if tab != .nearest || showsNearest {
-            Text(tab.label)
-              .tag(tab)
-              .accessibilityIdentifier("airportTab-\(tab.rawValue)")
-          }
+          Text(tab.label)
+            .tag(tab)
+            .accessibilityIdentifier("airportTab-\(tab.rawValue)")
         }
       }
       .pickerStyle(.segmented)
@@ -43,15 +39,6 @@ struct AirportSidebar: View {
     }
     .sheet(isPresented: $showsSettings) {
       SettingsView()
-    }
-    // Resolved here rather than through the environment's streamer, which the pilot has not yet
-    // asked for: reading it would build a `CLLocationManager` and raise the permission alert
-    // before they have opened the tab that needs one.
-    .task {
-      // `locationServicesEnabled()` blocks, so resolve availability off the main actor.
-      showsNearest = await Task.detached {
-        CLLocationManager.locationServicesEnabled()
-      }.value
     }
   }
 }
