@@ -82,13 +82,10 @@ import UIKit
      */
     @MainActor static var locationStreamer: FixedLocationStreamer? {
       if arguments.contains("\(argumentPrefix)LocationAuthorized") {
-        return FixedLocationStreamer(
-          authorizationStatus: .authorizedWhenInUse,
-          location: .nearMissoula
-        )
+        return FixedLocationStreamer(availability: .available, location: .nearMissoula)
       }
       if arguments.contains("\(argumentPrefix)LocationDenied") {
-        return FixedLocationStreamer(authorizationStatus: .denied)
+        return FixedLocationStreamer(availability: .authorizationDenied)
       }
       return nil
     }

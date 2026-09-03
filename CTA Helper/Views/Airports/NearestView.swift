@@ -2,7 +2,7 @@ import CoreLocation
 import SwiftData
 import SwiftUI
 
-/// Airports nearest the device, or a prompt to enable location.
+/// Airports nearest the device, or an account of why there are none to list.
 struct NearestView: View {
   @Binding var selection: Airport?
 
@@ -10,66 +10,78 @@ struct NearestView: View {
   private var modelContext
   @Environment(\.locationStreamer)
   private var locationStreamer
+  @Environment(\.scenePhase)
+  private var scenePhase
 
   @State private var viewModel: NearestAirportViewModel?
 
   var body: some View {
     NearestContent(
-      authorization: locationStreamer.authorizationStatus,
+      availability: locationStreamer.availability,
       airports: viewModel?.airports ?? [],
       selection: $selection
     )
-    .task { startIfAuthorized() }
+    .task {
+      await locationStreamer.start()
+      viewModel = NearestAirportViewModel(
+        container: modelContext.container,
+        locationStreamer: locationStreamer
+      )
+    }
     .onDisappear {
-      let viewModel = viewModel
-      Task { await viewModel?.stop() }
+      viewModel?.cancel()
+      viewModel = nil
+      Task { await locationStreamer.stop() }
     }
-  }
-
-  private var isAuthorized: Bool {
-    switch locationStreamer.authorizationStatus {
-      case .authorizedWhenInUse, .authorizedAlways: true
-      default: false
+    .onChange(of: scenePhase) { _, phase in
+      // A pilot who allowed location in Settings comes back to a refusal that is no longer true,
+      // and Core Location only revises it on a fresh stream.
+      guard phase == .active, locationStreamer.availability?.deniesAuthorization == true
+      else { return }
+      Task { await locationStreamer.retry() }
     }
-  }
-
-  private func startIfAuthorized() {
-    guard viewModel == nil, isAuthorized else { return }
-    viewModel = NearestAirportViewModel(
-      container: modelContext.container,
-      locationStreamer: locationStreamer
-    )
   }
 }
 
 /**
- What the Nearest tab shows for a given location authorization: the airports themselves once
- the pilot has allowed location, and otherwise an explanation of why the list is empty that
- distinguishes a decision not yet made from one made against us.
+ What the Nearest tab shows for a given location availability: the airports themselves once a fix
+ has arrived, and otherwise why there are none to show.
+
+ The empty states are not interchangeable. A question still being asked resolves itself, a
+ refusal the pilot can lift asks them to go to Settings, and one they cannot lift asks them to
+ stop waiting — so each says which it is.
  */
 private struct NearestContent: View {
-  let authorization: CLAuthorizationStatus
+  let availability: LocationAvailability?
   let airports: [Airport]
 
   @Binding var selection: Airport?
 
   var body: some View {
-    switch authorization {
-      case .denied, .restricted:
-        ContentUnavailableView {
-          Label("Location Off", systemImage: "location.slash")
-        } description: {
-          Text("Enable location access in Settings to see nearby airports.")
-        }
-        .accessibilityIdentifier("locationOffNotice")
-      case .notDetermined:
+    switch availability {
+      case nil:
+        ProgressView("Finding your location…")
+      case .requestingAuthorization:
         ContentUnavailableView {
           Label("Nearby Airports", systemImage: "location")
         } description: {
           Text("Allow location access to see airports near you.")
         }
         .accessibilityIdentifier("locationPromptNotice")
-      default:
+      case .authorizationDenied:
+        LocationRefusedView(reason: .app)
+      case .authorizationDeniedGlobally:
+        LocationRefusedView(reason: .deviceWide)
+      case .authorizationRestricted:
+        LocationRefusedView(reason: .restricted)
+      case .locationUnavailable:
+        ContentUnavailableView {
+          Label("Location Unavailable", systemImage: "location.slash")
+        } description: {
+          Text("Your position can’t be determined right now.")
+        }
+        .accessibilityIdentifier("locationUnavailableNotice")
+      case .available:
         AirportList(
           airports: airports,
           emptyMessage: "No airports within 50 NM.",
@@ -86,16 +98,31 @@ private struct NearestContent: View {
       NearestView(selection: $selection)
     }
     .modelContainer(.preview)
-    .environment(\.locationStreamer, FixedLocationStreamer(authorizationStatus: .denied))
+    .environment(\.locationStreamer, FixedLocationStreamer(availability: .authorizationDenied))
   }
 
-  #Preview("Not Determined") {
+  #Preview("Location Services Off") {
     @Previewable @State var selection: Airport?
     NavigationStack {
       NearestView(selection: $selection)
     }
     .modelContainer(.preview)
-    .environment(\.locationStreamer, FixedLocationStreamer(authorizationStatus: .notDetermined))
+    .environment(
+      \.locationStreamer,
+      FixedLocationStreamer(availability: .authorizationDeniedGlobally)
+    )
+  }
+
+  #Preview("Awaiting Permission") {
+    @Previewable @State var selection: Airport?
+    NavigationStack {
+      NearestView(selection: $selection)
+    }
+    .modelContainer(.preview)
+    .environment(
+      \.locationStreamer,
+      FixedLocationStreamer(availability: .requestingAuthorization)
+    )
   }
 
   #Preview("Authorized") {
@@ -106,7 +133,7 @@ private struct NearestContent: View {
     .modelContainer(.preview)
     .environment(
       \.locationStreamer,
-      FixedLocationStreamer(authorizationStatus: .authorizedWhenInUse, location: .nearMissoula)
+      FixedLocationStreamer(availability: .available, location: .nearMissoula)
     )
   }
 #endif
