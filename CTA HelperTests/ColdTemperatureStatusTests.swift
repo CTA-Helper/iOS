@@ -3,8 +3,8 @@ import Testing
 
 @testable import CTA_Helper
 
-@Suite("Cold temperature status")
-struct ColdTemperatureStatusTests {
+@Suite
+struct `Cold temperature status` {
   private static let restriction = ColdTemperatureRestriction(
     restrictionTemperatureC: -11,
     affectedSegments: [.initial, .intermediate, .final]
@@ -17,23 +17,23 @@ struct ColdTemperatureStatusTests {
     )
   }
 
-  @Test("A temperature at the restriction requires a correction")
-  func atTheRestriction() {
+  @Test
+  func `a temperature at the restriction requires a correction`() {
     #expect(Self.status(at: -11) == .correctionRequired)
   }
 
-  @Test("A temperature below the restriction requires a correction")
-  func belowTheRestriction() {
+  @Test
+  func `a temperature below the restriction requires a correction`() {
     #expect(Self.status(at: -20) == .correctionRequired)
   }
 
-  @Test("A temperature above the restriction requires nothing")
-  func aboveTheRestriction() {
+  @Test
+  func `a temperature above the restriction requires nothing`() {
     #expect(Self.status(at: -10) == .aboveRestriction)
   }
 
-  @Test("An unreported temperature is not an answer either way")
-  func withoutATemperature() {
+  @Test
+  func `an unreported temperature is not an answer either way`() {
     #expect(Self.status(at: nil) == .noObservation)
   }
 }

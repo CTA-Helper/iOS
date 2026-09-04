@@ -14,8 +14,8 @@ import Testing
  not throw and not open a screen onto an empty store.
  */
 @MainActor
-@Suite("App entities", .serialized)
-struct AppEntityTests {
+@Suite(.serialized)
+struct `App entities` {
   private let container: ModelContainer
   private let missoula: Airport
 
@@ -29,31 +29,31 @@ struct AppEntityTests {
     try container.mainContext.save()
   }
 
-  @Test("Finds an airport by what the pilot typed")
-  func findsAnAirportByQuery() async throws {
+  @Test
+  func `finds an airport by what the pilot typed`() async throws {
     let found = try await airports.entities(matching: "KMSO")
 
     #expect(found.map(\.id) == [missoula.siteNumber])
     #expect(found.map(\.identifier) == ["KMSO"])
   }
 
-  @Test("Resolves the airport a saved Shortcut names")
-  func resolvesASavedAirport() async throws {
+  @Test
+  func `resolves the airport a saved Shortcut names`() async throws {
     let found = try await airports.entities(for: [missoula.siteNumber])
 
     #expect(found.map(\.id) == [missoula.siteNumber])
   }
 
-  @Test("Reads a typed approach query as the airport that publishes the procedures")
-  func findsApproachesByAirport() async throws {
+  @Test
+  func `reads a typed approach query as the airport that publishes the procedures`() async throws {
     let found = try await approaches.entities(matching: "KMSO")
 
     #expect(found.count == missoula.approaches.count)
     #expect(found.allSatisfy { $0.id.siteNumber == missoula.siteNumber })
   }
 
-  @Test("Resolves the approach a saved Shortcut names")
-  func resolvesASavedApproach() async throws {
+  @Test
+  func `resolves the approach a saved Shortcut names`() async throws {
     let approach = try #require(missoula.approaches.first)
     let id = ApproachID(
       siteNumber: missoula.siteNumber,
@@ -66,27 +66,27 @@ struct AppEntityTests {
     #expect(found.map(\.name) == [approach.name])
   }
 
-  @Test("An approach's identity survives the round trip through what the system stores")
-  func anApproachIdentityRoundTrips() throws {
+  @Test
+  func `an approach's identity survives the round trip through what the system stores`() throws {
     let id = ApproachID(siteNumber: "00218.12A", approachIdentifier: "R12-Y")
 
     #expect(ApproachID.entityIdentifier(for: id.entityIdentifierString) == id)
   }
 
-  @Test("An identity the system cannot have written resolves to nothing")
-  func aMalformedIdentityResolvesToNothing() {
+  @Test
+  func `an identity the system cannot have written resolves to nothing`() {
     #expect(ApproachID.entityIdentifier(for: "12453.A") == nil)
   }
 
-  @Test("Answers with nothing before the first cycle is imported")
-  func answersWithNothingBeforeAnImport() async throws {
+  @Test
+  func `answers with nothing before the first cycle is imported`() async throws {
     let empty = AirportEntityQuery(container: .makeInMemory())
 
     #expect(try await empty.entities(matching: "KMSO").isEmpty)
   }
 
-  @Test("Answers with nothing when the app could not open a store at all")
-  func answersWithNothingWithoutAStore() async throws {
+  @Test
+  func `answers with nothing when the app could not open a store at all`() async throws {
     let storeless = AirportEntityQuery(container: nil)
 
     #expect(try await storeless.entities(for: [missoula.siteNumber]).isEmpty)
