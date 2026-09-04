@@ -25,7 +25,7 @@ final class NearestAirportViewModel {
   private static let logger = Logger(subsystem: "codes.tim.CTA-Helper", category: "NearestAirport")
 
   private(set) var airports: [Airport] = []
-  private(set) var error: Error?
+  private(set) var error: (any Error)?
 
   private let container: ModelContainer
   private let streamer: any LocationStreamer
