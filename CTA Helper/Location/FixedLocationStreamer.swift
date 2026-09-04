@@ -15,7 +15,7 @@ final class FixedLocationStreamer: LocationStreamer {
   var availability: LocationAvailability?
 
   let location: CLLocation?
-  let error: Error? = nil
+  let error: (any Error)? = nil
 
   /**
    Creates a streamer reporting a fixed availability and position.

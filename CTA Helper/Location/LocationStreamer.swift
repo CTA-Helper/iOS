@@ -84,7 +84,7 @@ protocol LocationStreamer: AnyObject, Observable, Sendable {
   /// The most recent location, or `nil` if unavailable.
   var location: CLLocation? { get }
   /// Any error from location updates.
-  var error: Error? { get }
+  var error: (any Error)? { get }
   /// Whether a location is available, and if not why — or `nil` before the first update arrives.
   var availability: LocationAvailability? { get }
 
@@ -123,7 +123,7 @@ final class CoreLocationStreamer: LocationStreamer {
   private static let logger = Logger(subsystem: "codes.tim.CTA-Helper", category: "Location")
 
   private(set) var location: CLLocation?
-  private(set) var error: Error?
+  private(set) var error: (any Error)?
   private(set) var availability: LocationAvailability?
 
   private var updateTask: Task<Void, Never>?
