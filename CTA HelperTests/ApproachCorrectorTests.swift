@@ -83,8 +83,8 @@ struct ApproachCorrectorTests {
     )
   }
 
-  @Test("The All Segments Method matches the ENR 1.8 6.a worked example")
-  func allSegmentsMatchesTheExample() {
+  @Test
+  func `the All Segments Method matches the ENR 1.8 6.a worked example`() {
     let corrector = kmso()
 
     // IAFs and the FAF-and-above fixes correct from the FAF (6200 ft), +300 ft.
@@ -96,8 +96,8 @@ struct ApproachCorrectorTests {
     #expect(corrector.corrected(TestFix(.missed, altitudeFt: 12000)).corrected == .feet(12500))
   }
 
-  @Test("The final segment differs from the FAA text by 10 ft, deliberately")
-  func finalSegmentIsTenFeetLowerThanTheExample() {
+  @Test
+  func `the final segment differs from the FAA text by 10 ft, deliberately`() {
     let corrector = kmso()
 
     // The MDA (4520 ft) is 1314 ft up; the formula gives 136.6 ft, rounded up to 140. The FAA
@@ -114,8 +114,8 @@ struct ApproachCorrectorTests {
     #expect(mda == .feet(4660))
   }
 
-  @Test("The Individual Segments Method corrects only the segments the CTA marks")
-  func individualSegmentsHonoursTheMarkedSegments() {
+  @Test
+  func `the Individual Segments Method corrects only the segments the CTA marks`() {
     let corrector = kmso(method: .individualSegments)
 
     // KMSO marks initial, intermediate and final — not missed.
@@ -125,8 +125,8 @@ struct ApproachCorrectorTests {
     #expect(missed.corrected == nil)
   }
 
-  @Test("Capping the height at 5000 ft changes the missed correction")
-  func heightCapAffectsTheMissedSegment() {
+  @Test
+  func `capping the height at 5000 ft changes the missed correction`() {
     #expect(
       kmso(extrapolate: false).corrected(TestFix(.missed, altitudeFt: 12000)).corrected
         == .feet(12500)
@@ -138,8 +138,8 @@ struct ApproachCorrectorTests {
     #expect(kmso(extrapolate: false).appliedCorrection(for: .missed)?.isHeightCapped == true)
   }
 
-  @Test("Round-up rounding raises corrections to the next 100 ft")
-  func roundUpMode() {
+  @Test
+  func `round-up rounding raises corrections to the next 100 ft`() {
     let corrector = kmso(rounding: .roundUp)
 
     // Initial raw correction 313 ft rounds up to 400.
@@ -148,8 +148,8 @@ struct ApproachCorrectorTests {
     #expect(corrector.corrected(TestFix(.final, altitudeFt: 4840)).corrected == .feet(5040))
   }
 
-  @Test("A block altitude is corrected on its floor, not its ceiling")
-  func blockAltitudeCorrectsTheFloor() {
+  @Test
+  func `a block altitude is corrected on its floor, not its ceiling`() {
     // A block in the initial segment: ceiling 6000, floor 3900. All Segments corrects the
     // initial segment from the FAF (6200 ft), +300 ft, applied to the floor.
     let corrected = kmso().corrected(
@@ -159,8 +159,8 @@ struct ApproachCorrectorTests {
     #expect(corrected.corrected == .feet(4200))
   }
 
-  @Test("A fix the data marks not correctable is left published")
-  func notCorrectableFixIsUntouched() {
+  @Test
+  func `a fix the data marks not correctable is left published`() {
     // The runway threshold at the MAP is coded not correctable.
     let corrected = kmso().corrected(
       TestFix(.final, altitudeFt: 3237, restriction: .at, correctable: false)
@@ -169,8 +169,8 @@ struct ApproachCorrectorTests {
     #expect(corrected.corrected == nil)
   }
 
-  @Test("A fix publishing no altitude is reported as such, not as uncorrectable")
-  func unpublishedAltitudeIsReportedAsUnpublished() {
+  @Test
+  func `a fix publishing no altitude is reported as such, not as uncorrectable`() {
     // Path terminators code no altitude and the data marks them not correctable, but the
     // missing altitude is what the row has to explain.
     let corrected = kmso().corrected(TestFix(.initial, .unpublished, correctable: false))
@@ -179,15 +179,15 @@ struct ApproachCorrectorTests {
     #expect(corrected.corrected == nil)
   }
 
-  @Test("The final segment cannot be corrected until the DA/MDA is entered")
-  func finalSegmentNeedsMinimums() {
+  @Test
+  func `the final segment cannot be corrected until the DA/MDA is entered`() {
     let corrector = kmso(minimums: nil)
     let corrected = corrector.corrected(TestFix(.final, altitudeFt: 4840))
     #expect(corrected.correction == .unavailable(.minimumsNotEntered))
   }
 
-  @Test("An unavailable reference leaves its segment uncorrected")
-  func unavailableReferenceIsReported() {
+  @Test
+  func `an unavailable reference leaves its segment uncorrected`() {
     // The Individual Segments Method reads the initial segment's own reference, and KMSO marks
     // that segment, so the unavailable reference is the only thing left to stop the correction.
     let corrector = kmso(

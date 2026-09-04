@@ -16,8 +16,8 @@ import Testing
  — starred as they starred them, opened newest first.
  */
 @MainActor
-@Suite("App entities", .serialized)
-struct AppEntityTests {
+@Suite(.serialized)
+struct `App entities` {
   private let container: ModelContainer
   private let missoula: Airport
   private let eureka: Airport
@@ -34,16 +34,16 @@ struct AppEntityTests {
     try container.mainContext.save()
   }
 
-  @Test("Finds an airport by what the pilot typed")
-  func findsAnAirportByQuery() async throws {
+  @Test
+  func `finds an airport by what the pilot typed`() async throws {
     let found = try await airports.entities(matching: "KMSO")
 
     #expect(found.map(\.id) == [missoula.siteNumber])
     #expect(found.map(\.identifier) == ["KMSO"])
   }
 
-  @Test("Resolves the airport a saved Shortcut names")
-  func resolvesASavedAirport() async throws {
+  @Test
+  func `resolves the airport a saved Shortcut names`() async throws {
     let found = try await airports.entities(for: [missoula.siteNumber])
 
     #expect(found.map(\.id) == [missoula.siteNumber])
@@ -51,8 +51,8 @@ struct AppEntityTests {
 
   // Asked both ways round: one order or the other is the one the store would have answered in on
   // its own, so a single direction can pass without the airports having been ordered at all.
-  @Test("Resolves saved airports in the order the system asked for them")
-  func resolvesSavedAirportsInOrder() async throws {
+  @Test
+  func `resolves saved airports in the order the system asked for them`() async throws {
     let siteNumbers = [eureka.siteNumber, missoula.siteNumber]
     let reversed = Array(siteNumbers.reversed())
 
@@ -60,21 +60,21 @@ struct AppEntityTests {
     #expect(try await airports.entities(for: reversed).map(\.id) == reversed)
   }
 
-  @Test("Answers with nothing for a query too short to name an airport")
-  func answersWithNothingForATooShortQuery() async throws {
+  @Test
+  func `answers with nothing for a query too short to name an airport`() async throws {
     #expect(try await airports.entities(matching: "M").isEmpty)
   }
 
-  @Test("Reads a typed approach query as the airport that publishes the procedures")
-  func findsApproachesByAirport() async throws {
+  @Test
+  func `reads a typed approach query as the airport that publishes the procedures`() async throws {
     let found = try await approaches.entities(matching: "KMSO")
 
     #expect(found.count == missoula.approaches.count)
     #expect(found.allSatisfy { $0.id.siteNumber == missoula.siteNumber })
   }
 
-  @Test("Resolves the approach a saved Shortcut names")
-  func resolvesASavedApproach() async throws {
+  @Test
+  func `resolves the approach a saved Shortcut names`() async throws {
     let approach = try #require(missoula.approaches.first)
     let id = ApproachID(
       siteNumber: missoula.siteNumber,
@@ -87,27 +87,27 @@ struct AppEntityTests {
     #expect(found.map(\.name) == [approach.name])
   }
 
-  @Test("An approach's identity survives the round trip through what the system stores")
-  func anApproachIdentityRoundTrips() throws {
+  @Test
+  func `an approach's identity survives the round trip through what the system stores`() throws {
     let id = ApproachID(siteNumber: "00218.12A", approachIdentifier: "R12-Y")
 
     #expect(ApproachID.entityIdentifier(for: id.entityIdentifierString) == id)
   }
 
-  @Test("An identity the system cannot have written resolves to nothing")
-  func aMalformedIdentityResolvesToNothing() {
+  @Test
+  func `an identity the system cannot have written resolves to nothing`() {
     #expect(ApproachID.entityIdentifier(for: "12453.A") == nil)
   }
 
-  @Test("Answers with nothing before the first cycle is imported")
-  func answersWithNothingBeforeAnImport() async throws {
+  @Test
+  func `answers with nothing before the first cycle is imported`() async throws {
     let empty = AirportEntityQuery(container: .makeInMemory())
 
     #expect(try await empty.entities(matching: "KMSO").isEmpty)
   }
 
-  @Test("Answers with nothing when the app could not open a store at all")
-  func answersWithNothingWithoutAStore() async throws {
+  @Test
+  func `answers with nothing when the app could not open a store at all`() async throws {
     let storeless = AirportEntityQuery(container: nil)
 
     #expect(try await storeless.entities(for: [missoula.siteNumber]).isEmpty)

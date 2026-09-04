@@ -27,8 +27,8 @@ struct ColdTemperatureCorrectionTests {
     [60, 90, 120, 150, 180, 210, 240, 270, 300, 450, 590, 890, 1190, 1500]
   ]
 
-  @Test("The formula reproduces every cell of the ICAO table, rounded up to 10 ft")
-  func reproducesTheTable() {
+  @Test
+  func `the formula reproduces every cell of the ICAO table, rounded up to 10 ft`() {
     for (row, temperatureC) in Self.temperaturesC.enumerated() {
       for (column, heightFt) in Self.heightsFt.enumerated() {
         let rawFt = ColdTemperatureCorrection.correctionFt(
@@ -44,8 +44,8 @@ struct ColdTemperatureCorrectionTests {
     }
   }
 
-  @Test("A temperature at or above ISA needs no correction")
-  func warmYieldsZero() {
+  @Test
+  func `a temperature at or above ISA needs no correction`() {
     #expect(
       ColdTemperatureCorrection.correctionFt(reportedTemperatureC: 15, heightAboveAirportFt: 3000)
         == 0
@@ -56,16 +56,16 @@ struct ColdTemperatureCorrectionTests {
     )
   }
 
-  @Test("Zero height needs no correction")
-  func zeroHeightYieldsZero() {
+  @Test
+  func `zero height needs no correction`() {
     #expect(
       ColdTemperatureCorrection.correctionFt(reportedTemperatureC: -40, heightAboveAirportFt: 0)
         == 0
     )
   }
 
-  @Test("Heights above the table are capped by default and extrapolated on request")
-  func heightAboveTheTable() {
+  @Test
+  func `heights above the table are capped by default and extrapolated on request`() {
     let cappedFt = ColdTemperatureCorrection.correctionFt(
       reportedTemperatureC: -12,
       heightAboveAirportFt: 8794

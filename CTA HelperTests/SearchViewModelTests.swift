@@ -10,8 +10,8 @@ import Testing
  SwiftData rather than run in Swift, so that it matches at all is worth pinning.
  */
 @MainActor
-@Suite("Airport search", .serialized)
-struct SearchViewModelTests {
+@Suite(.serialized)
+struct `Airport search` {
   private func search(_ query: String) async throws -> [String] {
     let container = ModelContainer.makeInMemory()
     container.mainContext.insert(PreviewData.missoula())
@@ -25,23 +25,23 @@ struct SearchViewModelTests {
     return viewModel.results.map(\.displayIdentifier)
   }
 
-  @Test("Finds an airport by its ICAO code")
-  func findsByICAOCode() async throws {
+  @Test
+  func `finds an airport by its ICAO code`() async throws {
     #expect(try await search("KMSO") == ["KMSO"])
   }
 
-  @Test("Finds the same airport by its FAA location identifier")
-  func findsByFAAIdentifier() async throws {
+  @Test
+  func `finds the same airport by its FAA location identifier`() async throws {
     #expect(try await search("MSO") == ["KMSO"])
   }
 
-  @Test("Finds an airport that has no ICAO code by its location identifier")
-  func findsAnAirportWithoutAnICAOCode() async throws {
+  @Test
+  func `finds an airport that has no ICAO code by its location identifier`() async throws {
     #expect(try await search("05U") == ["05U"])
   }
 
-  @Test("Finds an airport by city")
-  func findsByCity() async throws {
+  @Test
+  func `finds an airport by city`() async throws {
     #expect(try await search("Eureka") == ["05U"])
   }
 }

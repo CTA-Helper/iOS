@@ -8,34 +8,34 @@ private struct Procedure: ChartedProcedure {
   let name: String
 }
 
-@Suite("Jeppesen chart order")
-struct JeppesenChartOrderTests {
-  @Test(
-    "Reads the chart type from the ARINC 424 route type",
-    arguments: [
-      ("I12", JeppesenChartType.ils),
-      ("L30", .ils),
-      ("B12", .ils),
-      ("X26L", .ils),
-      ("U08", .ils),
-      ("R12-Y", .gps),
-      ("P16", .gps),
-      ("H35-Z", .gps),
-      ("V-A", .vor),
-      ("D22", .vor),
-      ("S04", .vor),
-      ("N30", .ndb),
-      ("Q17", .ndb),
-      ("", .other),
-      ("ZZZ", .other)
-    ]
-  )
-  func readsChartType(identifier: String, expected: JeppesenChartType) {
+@Suite
+struct `Jeppesen chart order` {
+  @Test(arguments: [
+    ("I12", JeppesenChartType.ils),
+    ("L30", .ils),
+    ("B12", .ils),
+    ("X26L", .ils),
+    ("U08", .ils),
+    ("R12-Y", .gps),
+    ("P16", .gps),
+    ("H35-Z", .gps),
+    ("V-A", .vor),
+    ("D22", .vor),
+    ("S04", .vor),
+    ("N30", .ndb),
+    ("Q17", .ndb),
+    ("", .other),
+    ("ZZZ", .other)
+  ])
+  func `reads the chart type from the ARINC 424 route type`(
+    identifier: String,
+    expected: JeppesenChartType
+  ) {
     #expect(JeppesenChartType(arincIdentifier: identifier) == expected)
   }
 
-  @Test("Files the most precise approach first, whatever order they arrive in")
-  func filesMostPreciseFirst() {
+  @Test
+  func `files the most precise approach first, whatever order they arrive in`() {
     let ordered = [
       Procedure(identifier: "N12", name: "NDB RWY 12"),
       Procedure(identifier: "V12", name: "VOR RWY 12"),
@@ -48,8 +48,8 @@ struct JeppesenChartOrderTests {
     )
   }
 
-  @Test("Sequences same-type charts by charted name")
-  func sequencesSameTypeByName() {
+  @Test
+  func `sequences same-type charts by charted name`() {
     let ordered = [
       Procedure(identifier: "R12-Z", name: "RNAV (GPS) Z RWY 12"),
       Procedure(identifier: "R12-Y", name: "RNAV (GPS) Y RWY 12"),
@@ -59,8 +59,8 @@ struct JeppesenChartOrderTests {
     #expect(ordered.map(\.identifier) == ["R12-X", "R12-Y", "R12-Z"])
   }
 
-  @Test("Sorts an unrecognized route type last")
-  func sortsUnrecognizedLast() {
+  @Test
+  func `sorts an unrecognized route type last`() {
     let ordered = [
       Procedure(identifier: "?12", name: "SOMETHING RWY 12"),
       Procedure(identifier: "N12", name: "NDB RWY 12")

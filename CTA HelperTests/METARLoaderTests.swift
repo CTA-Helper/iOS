@@ -10,24 +10,24 @@ import Testing
 struct METARLoaderTests {
   private static let now = Date(timeIntervalSinceReferenceDate: 1_000_000)
 
-  @Test("A forced reload always proceeds")
-  func forcedReloadProceeds() {
+  @Test
+  func `a forced reload always proceeds`() {
     #expect(METARLoader.shouldReload(force: true, lastLoad: Self.now, now: Self.now))
   }
 
-  @Test("The first reload proceeds when nothing has loaded yet")
-  func firstReloadProceeds() {
+  @Test
+  func `the first reload proceeds when nothing has loaded yet`() {
     #expect(METARLoader.shouldReload(force: false, lastLoad: nil, now: Self.now))
   }
 
-  @Test("A reload within the interval is skipped")
-  func recentReloadSkipped() {
+  @Test
+  func `a reload within the interval is skipped`() {
     let lastLoad = Self.now.addingTimeInterval(-14 * 60)
     #expect(!METARLoader.shouldReload(force: false, lastLoad: lastLoad, now: Self.now))
   }
 
-  @Test("A reload past the interval proceeds")
-  func staleReloadProceeds() {
+  @Test
+  func `a reload past the interval proceeds`() {
     let lastLoad = Self.now.addingTimeInterval(-15 * 60)
     #expect(METARLoader.shouldReload(force: false, lastLoad: lastLoad, now: Self.now))
   }

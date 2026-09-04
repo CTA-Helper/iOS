@@ -8,10 +8,10 @@ import Testing
  of what a pilot flying on VoiceOver hears — a number that names neither its unit nor which
  altitude it is would be indistinguishable from the one beside it.
  */
-@Suite("Altitude announcements")
-struct AltitudeAnnouncementTests {
-  @Test("A corrected altitude reads out the value that supersedes the published one")
-  func correctedAltitudeReadsTheOperativeValue() {
+@Suite
+struct `Altitude announcements` {
+  @Test
+  func `a corrected altitude reads out the value that supersedes the published one`() {
     let altitude = CorrectedAltitude(
       published: .single(ft: 10000, restriction: .atOrAbove, glidepathFt: nil),
       correction: .add(.feet(700))
@@ -22,8 +22,8 @@ struct AltitudeAnnouncementTests {
     #expect(altitude.correctionAnnouncement == "+700 feet")
   }
 
-  @Test("An uncorrected altitude reads out what the procedure published")
-  func uncorrectedAltitudeReadsThePublishedValue() {
+  @Test
+  func `an uncorrected altitude reads out what the procedure published`() {
     let altitude = CorrectedAltitude(
       published: .single(ft: 6200, restriction: .atOrAbove, glidepathFt: nil),
       correction: .unavailable(.segmentNotSelected)
@@ -39,8 +39,8 @@ struct AltitudeAnnouncementTests {
    bounds are spoken. Flattened to one number, the row would announce an altitude it does not
    claim.
    */
-  @Test("A block reads out both bounds, over the corrected floor")
-  func blockReadsBothBounds() {
+  @Test
+  func `a block reads out both bounds, over the corrected floor`() {
     let altitude = CorrectedAltitude(
       published: .block(ceilingFt: 7000, floorFt: 5000),
       correction: .add(.feet(200))
@@ -55,8 +55,8 @@ struct AltitudeAnnouncementTests {
    corrected one is the worst confusion this screen could produce, so it is named separately
    rather than folded into the reading.
    */
-  @Test("A glidepath altitude is named apart from the altitude that was corrected")
-  func glidepathIsNamedApartFromThePrimaryAltitude() {
+  @Test
+  func `a glidepath altitude is named apart from the altitude that was corrected`() {
     let altitude = CorrectedAltitude(
       published: .single(ft: 3200, restriction: .glideslope, glidepathFt: 2100),
       correction: .unavailable(.notCorrectable)
@@ -66,8 +66,8 @@ struct AltitudeAnnouncementTests {
     #expect(altitude.glidepathAnnouncement == "2,100 feet")
   }
 
-  @Test("A leg publishing no altitude says so rather than reading out a dash")
-  func unpublishedAltitudeSaysSo() {
+  @Test
+  func `a leg publishing no altitude says so rather than reading out a dash`() {
     let altitude = CorrectedAltitude(
       published: .unpublished,
       correction: .unavailable(.noPublishedAltitude)

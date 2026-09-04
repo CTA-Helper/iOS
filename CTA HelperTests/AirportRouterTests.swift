@@ -12,8 +12,8 @@ import Testing
  once and the approach it just named has to stay.
  */
 @MainActor
-@Suite("Airport routing", .serialized)
-struct AirportRouterTests {
+@Suite(.serialized)
+struct `Airport routing` {
   private let container: ModelContainer
   private let defaults: UserDefaults
   private let missoula: Airport
@@ -37,8 +37,8 @@ struct AirportRouterTests {
 
   private func makeRouter() -> AirportRouter { .init(defaults: defaults) }
 
-  @Test("Choosing an airport clears the approach chosen under the previous one")
-  func choosingAnAirportClearsTheApproach() {
+  @Test
+  func `choosing an airport clears the approach chosen under the previous one`() {
     let router = makeRouter()
     router.airport = missoula
     router.approach = missoula.approaches[0]
@@ -48,8 +48,8 @@ struct AirportRouterTests {
     #expect(router.approach == nil)
   }
 
-  @Test("Choosing an airport records it as recently opened")
-  func choosingAnAirportRecordsARecent() {
+  @Test
+  func `choosing an airport records it as recently opened`() {
     let router = makeRouter()
     router.airport = missoula
     router.airport = sanFrancisco
@@ -57,8 +57,8 @@ struct AirportRouterTests {
     #expect(recents == [missoula.siteNumber, sanFrancisco.siteNumber])
   }
 
-  @Test("A route sets both selections without clearing the approach it names")
-  func aRouteSetsBothSelections() throws {
+  @Test
+  func `a route sets both selections without clearing the approach it names`() throws {
     let router = makeRouter()
     let approach = try #require(missoula.approaches.first)
 
@@ -69,8 +69,8 @@ struct AirportRouterTests {
     #expect(recents == [missoula.siteNumber])
   }
 
-  @Test("A route to the airport already shown keeps the approach it names")
-  func aRouteToTheAirportAlreadyShown() throws {
+  @Test
+  func `a route to the airport already shown keeps the approach it names`() throws {
     let router = makeRouter()
     router.airport = missoula
     let approach = try #require(missoula.approaches.last)
@@ -80,8 +80,8 @@ struct AirportRouterTests {
     #expect(router.approach == approach)
   }
 
-  @Test("A route resolves to the airport and approach the store holds")
-  func aRouteResolves() throws {
+  @Test
+  func `a route resolves to the airport and approach the store holds`() throws {
     let approach = try #require(missoula.approaches.first)
     let route = AirportRoute(
       airportSiteNumber: missoula.siteNumber,
@@ -94,15 +94,15 @@ struct AirportRouterTests {
     #expect(resolved.approach == approach)
   }
 
-  @Test("A route naming an airport the store does not hold resolves to nothing")
-  func anUnknownAirportResolvesToNothing() throws {
+  @Test
+  func `a route naming an airport the store does not hold resolves to nothing`() throws {
     let route = AirportRoute(airportSiteNumber: "00000.A", approachIdentifier: nil)
 
     #expect(try route.resolve(in: container.mainContext) == nil)
   }
 
-  @Test("A route naming no approach resolves to the airport alone")
-  func aRouteToAnAirportAlone() throws {
+  @Test
+  func `a route naming no approach resolves to the airport alone`() throws {
     let route = AirportRoute(airportSiteNumber: missoula.siteNumber, approachIdentifier: nil)
 
     let resolved = try #require(try route.resolve(in: container.mainContext))

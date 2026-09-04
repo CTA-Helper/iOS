@@ -17,8 +17,8 @@ private struct Leg {
   }
 }
 
-@Suite("Fix grouping")
-struct FixGroupingTests {
+@Suite
+struct `Fix grouping` {
   private func groups(_ legs: [Leg]) -> [FixGrouping.Group<Leg>] {
     FixGrouping.groups(
       legs,
@@ -28,8 +28,8 @@ struct FixGroupingTests {
     )
   }
 
-  @Test("Orders sections by segment, omitting the segments no fix falls in")
-  func ordersSectionsBySegment() {
+  @Test
+  func `orders sections by segment, omitting the segments no fix falls in`() {
     let result = groups([
       Leg("JENKI", .missed, sequence: 90),
       Leg("SUPPY", .intermediate, sequence: 30),
@@ -45,8 +45,8 @@ struct FixGroupingTests {
    between launches. These legs are deliberately given in an order first appearance would sort
    the other way.
    */
-  @Test("Collects a segment's transitions by name, whatever order its legs arrive in")
-  func collectsTransitionsByName() {
+  @Test
+  func `collects a segment's transitions by name, whatever order its legs arrive in`() {
     let result = groups([
       Leg("ODIRE", .initial, transition: "JENKI", sequence: 20),
       Leg("DENIM", .initial, transition: "DENIM", sequence: 10),
@@ -59,8 +59,8 @@ struct FixGroupingTests {
     #expect(result[0].transitions[1].elements.map(\.name) == ["LANNY", "ODIRE"])
   }
 
-  @Test("Flies the selected transition's legs before the legs they converge onto")
-  func fliesTheTransitionBeforeTheCommonRoute() {
+  @Test
+  func `flies the selected transition's legs before the legs they converge onto`() {
     let result = groups([
       Leg("ODIRE", .initial, sequence: 10),
       Leg("LANNY", .initial, transition: "JENKI", sequence: 40),
@@ -72,8 +72,8 @@ struct FixGroupingTests {
     #expect(result[0].elements(via: "CHARL").map(\.name) == ["CHARL", "ODIRE"])
   }
 
-  @Test("Sorts a segment with no transitions by sequence alone")
-  func sortsBySequence() {
+  @Test
+  func `sorts a segment with no transitions by sequence alone`() {
     let result = groups([
       Leg("RW12", .final, sequence: 50),
       Leg("BEGPE", .final, sequence: 40),
@@ -86,39 +86,33 @@ struct FixGroupingTests {
   }
 }
 
-@Suite("Leg instructions")
-struct LegInstructionTests {
-  @Test(
-    "Reads the instruction off the leg's path terminator",
-    arguments: [
-      (LegType.courseToAltitude, "Climb to"),
-      (LegType.headingToAltitude, "Climb to"),
-      (LegType.fixToAltitude, "Climb to"),
-      (LegType.holdToManualTermination, "Hold at"),
-      (LegType.holdToFix, "Hold at"),
-      (LegType.holdToAltitude, "Hold at"),
-      (LegType.procedureTurn, "Procedure turn at"),
-      (LegType.headingToIntercept, "Turn to intercept"),
-      (LegType.courseToRadial, "Turn to intercept"),
-      (LegType.headingToDME, "Proceed to"),
-      (LegType.arcToFix, "Arc to"),
-      (LegType.headingToManualTermination, "Proceed from")
-    ]
-  )
-  func instructsFromLegType(legType: LegType, expected: String) {
+@Suite
+struct `Leg instructions` {
+  @Test(arguments: [
+    (LegType.courseToAltitude, "Climb to"),
+    (LegType.headingToAltitude, "Climb to"),
+    (LegType.fixToAltitude, "Climb to"),
+    (LegType.holdToManualTermination, "Hold at"),
+    (LegType.holdToFix, "Hold at"),
+    (LegType.holdToAltitude, "Hold at"),
+    (LegType.procedureTurn, "Procedure turn at"),
+    (LegType.headingToIntercept, "Turn to intercept"),
+    (LegType.courseToRadial, "Turn to intercept"),
+    (LegType.headingToDME, "Proceed to"),
+    (LegType.arcToFix, "Arc to"),
+    (LegType.headingToManualTermination, "Proceed from")
+  ])
+  func `reads the instruction off the leg's path terminator`(legType: LegType, expected: String) {
     #expect(LegInstruction.instruction(for: legType) == expected)
   }
 
-  @Test(
-    "Instructs nothing for a leg that only tracks to its fix",
-    arguments: [LegType.initialFix, .trackToFix, .courseToFix, .directToFix]
-  )
-  func instructsNothingForATrackToAFix(legType: LegType) {
+  @Test(arguments: [LegType.initialFix, .trackToFix, .courseToFix, .directToFix])
+  func `instructs nothing for a leg that only tracks to its fix`(legType: LegType) {
     #expect(LegInstruction.instruction(for: legType) == nil)
   }
 
-  @Test("Instructs nothing for a leg type the app does not recognize")
-  func instructsNothingForUnknownLegType() {
+  @Test
+  func `instructs nothing for a leg type the app does not recognize`() {
     #expect(LegInstruction.instruction(for: nil) == nil)
   }
 }
