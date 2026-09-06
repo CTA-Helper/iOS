@@ -174,18 +174,30 @@ GitHub Actions runs on every push and pull request to `main`:
 - **Periphery** (`periphery.yml`) runs `periphery scan --strict` as a dead-code
   gate.
 
-Actions never signs or uploads. The archive that reaches App Store Connect is
-built by Xcode Cloud, which bootstraps itself through `ci_scripts/ci_post_clone.sh`.
+Pushing a version tag releases:
+
+- **Release** (`release.yml`) delegates to XCUITestKit's reusable release
+  workflow, which resolves the next build number from App Store Connect,
+  archives, signs, and uploads. It re-runs no tests, so tag a commit CI has
+  already passed.
+
+The build lands in App Store Connect against a version record created there
+beforehand — that record carries the "What's New" text, so the workflow ships a
+binary and nothing else. Attaching the build and submitting it stay manual.
 
 ```sh
-bundle exec fastlane screenshots       # capture the App Store screenshot set
-bundle exec fastlane site_screenshots  # capture the site's set, light and dark
-bundle exec fastlane beta              # build and upload to TestFlight
-bundle exec fastlane release           # build and upload to the App Store
+bundle exec fastlane screenshots        # capture the App Store screenshot set
+bundle exec fastlane upload_screenshots # upload that set to App Store Connect
+bundle exec fastlane site_screenshots   # capture the site's set, light and dark
+bundle exec fastlane beta               # build and upload to TestFlight
+bundle exec fastlane release            # build and upload to the App Store
 ```
 
-The upload lanes authenticate with an App Store Connect API key resolved out of
-1Password at run time — the `.p8` is never written to disk or committed.
+Every lane that talks to Apple authenticates with an App Store Connect API key
+decrypted out of the private certificates repository under the same
+`MATCH_PASSWORD` that unlocks the signing certificates — the `.p8` is never
+written to this working tree or committed. Locally that passphrase lives in
+`fastlane/.env`; on Actions it is a repository secret.
 
 ## Marketing site
 
