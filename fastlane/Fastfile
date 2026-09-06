@@ -153,6 +153,17 @@ def provisioning_authentication_args
     "-authenticationKeyIssuerID #{key[:issuer_id].shellescape}"
 end
 
+# How long a capture run waits for an erased simulator to come back up before it overrides the
+# status bar.
+#
+# `erase_simulator` shuts the device down, and snapshot's own wait is `ENV[...].to_i || 10` — which
+# is `0` whenever the variable is unset, because `nil.to_i` is `0` and Ruby reads that as true. The
+# override then lands on a device still shutting down and `simctl` refuses it outright: "Unable to
+# lookup in current state: Shutting Down". That override is what puts 9:41 and a full battery on an
+# App Store capture, so a run that loses it cannot be trusted to have produced a shippable set.
+# Naming the variable ourselves is what actually buys the wait.
+ENV["SNAPSHOT_SIMULATOR_WAIT_FOR_BOOT_TIMEOUT"] ||= "30"
+
 platform :ios do
   desc "Generate App Store screenshots (iPhone + iPad)"
   lane :screenshots do
