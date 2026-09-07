@@ -57,7 +57,27 @@ nonisolated final class GenerateScreenshots: XCTestCase {
     snapshot("01-Corrections")
 
     fixes.openWeather().assertReportsStation("KMSO")
-    snapshot("02-Weather")
+    snapshot("03-Weather")
+  }
+
+  /**
+   The approach plate with the corrected altitudes down its trailing edge — the one thing no chart
+   app can show, and what this release is for.
+
+   The plate is fetched rather than served from `-uiTestChartsBundled`: the fixture draws the words
+   "UI TEST PLATE" on a blank page, which is not something to publish on a product page. So this is
+   the one capture that touches the network, and it fails rather than photographing a placeholder.
+   */
+  @MainActor
+  func testCapturesTheApproachPlate() throws {
+    let fixes = launchSeededApp(preparedBy: Self.wireUpSnapshot)
+      .openAirport("KMSO")
+      .openApproach("R12-Y")
+
+    fixes.reportColdTemperature()
+    fixes.assertCorrectsCodedFixes()
+    fixes.openChart().assertIsShowing()
+    snapshot("02-Chart")
   }
 
   /// An airport's approaches, grouped by the runway they serve.
@@ -68,7 +88,7 @@ nonisolated final class GenerateScreenshots: XCTestCase {
     launchSeededApp(preparedBy: Self.wireUpSnapshot)
       .openAirport("KMSO")
       .assertListsApproach("R12-Y")
-    snapshot("03-Approaches")
+    snapshot("04-Approaches")
   }
 
   /**
@@ -90,13 +110,13 @@ nonisolated final class GenerateScreenshots: XCTestCase {
       .dismissKeyboard()
 
     airports.selectTab(.favorites).assertListsAirport("KMSO").assertListsAirport("KSFO")
-    snapshot("04-Airports")
+    snapshot("05-Airports")
   }
 
   /// The correction preferences ENR 1.8 leaves to the operator.
   @MainActor
   func testCapturesSettings() throws {
     launchSeededApp(preparedBy: Self.wireUpSnapshot).openSettings().assertIsShowing()
-    snapshot("05-Settings")
+    snapshot("06-Settings")
   }
 }
