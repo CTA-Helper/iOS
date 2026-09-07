@@ -105,7 +105,11 @@ import SwiftData
         identifier: "R12-Y",
         name: "RNAV (GPS) Y RWY 12",
         runway: "12",
-        chartURL: URL(string: "https://aeronav.faa.gov/d-tpp/2607/00266R12Y.PDF"),
+        // The plate the FAA actually publishes for this procedure, so a capture run fetches a
+        // real chart rather than a 404. d-TPP files move to a new cycle directory every 28 days;
+        // a fetch that fails leaves the chart screen saying so, which the UI tests drive with
+        // `-uiTestChartsBundled` instead of the network.
+        chartURL: URL(string: "https://aeronav.faa.gov/d-tpp/2609/00266RY12.PDF"),
         referenceAltitudes: ReferenceAltitudes(
           initial: .published(ft: 9400, source: .intermediateFix),
           intermediate: .published(ft: 6200, source: .finalApproachFix),
