@@ -177,13 +177,25 @@ GitHub Actions runs on every push and pull request to `main`:
 Pushing a version tag releases:
 
 - **Release** (`release.yml`) delegates to XCUITestKit's reusable release
-  workflow, which resolves the next build number from App Store Connect,
-  archives, signs, and uploads. It re-runs no tests, so tag a commit CI has
-  already passed.
+  workflow. It verifies the version's release notes before anything is built,
+  resolves the next build number from App Store Connect, archives, signs and
+  uploads, then writes the notes onto the version and attaches the build once
+  Apple has processed it. It re-runs no tests, so tag a commit CI has already
+  passed.
 
-The build lands in App Store Connect against a version record created there
-beforehand — that record carries the "What's New" text, so the workflow ships a
-binary and nothing else. Attaching the build and submitting it stay manual.
+Submitting for review is the only step left by hand. Re-tagging a version is
+how its build is replaced: the tag push runs the whole thing again and the
+version ends up pointing at the newer build, while the older one stays in App
+Store Connect, since a build can be expired but never deleted. A tag push is a
+deploy rather than bookkeeping.
+
+Release notes live in [`CHANGELOG.md`](CHANGELOG.md), one `## <version>` section
+per tag, and that file is the source of truth — notes edited in App Store
+Connect are overwritten by the next release. `Scripts/release-notes.sh` prints a
+section, and `--plain` renders it the way the store wants it, since that field
+shows whatever it is given verbatim. A tag whose section is missing, empty or
+over App Store Connect's 4,000-character ceiling fails in seconds, before an
+archive runs and before an upload that cannot be taken back.
 
 ```sh
 bundle exec fastlane screenshots        # capture the App Store screenshot set
@@ -191,6 +203,7 @@ bundle exec fastlane upload_screenshots # upload that set to App Store Connect
 bundle exec fastlane site_screenshots   # capture the site's set, light and dark
 bundle exec fastlane beta               # build and upload to TestFlight
 bundle exec fastlane release            # build and upload to the App Store
+./Scripts/release-notes.sh --plain 1.1   # the notes a release would publish
 ```
 
 Every lane that talks to Apple authenticates with an App Store Connect API key
