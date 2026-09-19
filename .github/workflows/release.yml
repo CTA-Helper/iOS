@@ -26,9 +26,10 @@ concurrency:
 
 jobs:
   release:
-    uses: RISCfuture/XCUITestKit/.github/workflows/ios-release.yml@main
+    uses: RISCfuture/XCUITestKit/.github/workflows/ios-release.yml@1.0.0
     with:
       platforms: '["iOS"]'
+      runner: macos-26
       version: ${{ inputs.version || github.ref_name }}
       certificates-repo: RISCfuture/certificates
       verify-lane: ci_verify_release_notes

@@ -13,6 +13,7 @@
 		CA0000000000000000000006 /* Gzip in Frameworks */ = {isa = PBXBuildFile; productRef = CA0000000000000000000004 /* Gzip */; };
 		CA000000000000000000000A /* MeasurementKit in Frameworks */ = {isa = PBXBuildFile; productRef = CA0000000000000000000008 /* MeasurementKit */; };
 		CA000000000000000000000B /* MeasurementKitUI in Frameworks */ = {isa = PBXBuildFile; productRef = CA0000000000000000000009 /* MeasurementKitUI */; };
+		CA000000000000000000000F /* MeasurementKitUI in Embed Frameworks */ = {isa = PBXBuildFile; productRef = CA0000000000000000000009 /* MeasurementKitUI */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -31,6 +32,20 @@
 			remoteInfo = "CTA Helper";
 		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		CA0000000000000000000010 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				CA000000000000000000000F /* MeasurementKitUI in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		013A15183011372B00025551 /* CTA Helper.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "CTA Helper.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -136,6 +151,7 @@
 				013A15143011372B00025551 /* Sources */,
 				013A15153011372B00025551 /* Frameworks */,
 				013A15163011372B00025551 /* Resources */,
+				CA0000000000000000000010 /* Embed Frameworks */,
 				05F1D8D18B7B4FE9BF4D9BD6 /* Upload Debug Symbols to Sentry */,
 			);
 			buildRules = (
@@ -666,8 +682,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/RISCfuture/XCUITestKit";
 			requirement = {
-				branch = main;
-				kind = branch;
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
 			};
 		};
 		433C45F5269F45B6BC09085B /* XCRemoteSwiftPackageReference "sentry-cocoa" */ = {
@@ -685,7 +701,7 @@
 			repositoryURL = "https://github.com/RISCfuture/SwiftMETAR";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 4.0.0;
+				minimumVersion = 4.1.0;
 			};
 		};
 		CA0000000000000000000002 /* XCRemoteSwiftPackageReference "GzipSwift" */ = {
@@ -701,7 +717,7 @@
 			repositoryURL = "https://github.com/RISCfuture/MeasurementKit";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 1.0.0;
+				minimumVersion = 1.1.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
