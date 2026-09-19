@@ -15,6 +15,9 @@ formatting to make sense will read badly in one of the two places.
 
 CTA Helper now requires iOS 27, and takes on its new appearance throughout.
 
+The navigation bar steps aside as you scroll a plate, leaving more of the
+chart on screen.
+
 ## 1.1
 
 Approach plates. Open an approach's FAA plate and read every named fix beside it

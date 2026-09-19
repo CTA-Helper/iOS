@@ -66,6 +66,7 @@ struct ChartScreen: View {
         }
       }
     }
+    .toolbarMinimizationBehavior(.onScrollDown, for: .navigationBar)
     // No `keepsScreenAwake()` of its own. The fix list this is pushed from has not gone
     // anywhere and is still holding the display on; adding a second hold here would restore
     // the auto-lock on the way back, leaving the screen the pilot returned to asleep.
