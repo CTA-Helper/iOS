@@ -96,21 +96,11 @@ private struct RawObservation: View {
 }
 
 #if DEBUG
-  #Preview("Cold") {
+  #Preview(
+    arguments: [METARObservation.preview, .previewOffScale, .previewWithoutTemperature]
+  ) { observation in
     NavigationStack {
-      WeatherView(observation: .preview)
-    }
-  }
-
-  #Preview("Off the slider's warm end") {
-    NavigationStack {
-      WeatherView(observation: .previewOffScale)
-    }
-  }
-
-  #Preview("No temperature reported") {
-    NavigationStack {
-      WeatherView(observation: .previewWithoutTemperature)
+      WeatherView(observation: observation)
     }
   }
 #endif
