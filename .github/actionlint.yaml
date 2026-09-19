@@ -1,0 +1,8 @@
+# actionlint validates `runs-on:` against a list of labels baked into the binary, and that list
+# predates GitHub naming images after the major Xcode version rather than the OS. `xcode-27` is a
+# real hosted label — there is no `macos-27` and never will be — so it is declared here to stop
+# actionlint reporting it as unknown. The key is actionlint's only mechanism for teaching it a
+# label, despite naming self-hosted runners.
+self-hosted-runner:
+  labels:
+    - xcode-27
