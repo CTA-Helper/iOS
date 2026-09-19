@@ -100,48 +100,19 @@ private struct NearestContent: View {
 }
 
 #if DEBUG
-  #Preview("Location Off") {
-    @Previewable @State var selection: Airport?
-    NavigationStack {
-      NearestView(selection: $selection)
-    }
-    .modelContainer(.preview)
-    .environment(\.locationStreamer, FixedLocationStreamer(availability: .authorizationDenied))
-  }
-
-  #Preview("Location Services Off") {
-    @Previewable @State var selection: Airport?
-    NavigationStack {
-      NearestView(selection: $selection)
-    }
-    .modelContainer(.preview)
-    .environment(
-      \.locationStreamer,
-      FixedLocationStreamer(availability: .authorizationDeniedGlobally)
-    )
-  }
-
-  #Preview("Awaiting Permission") {
-    @Previewable @State var selection: Airport?
-    NavigationStack {
-      NearestView(selection: $selection)
-    }
-    .modelContainer(.preview)
-    .environment(
-      \.locationStreamer,
-      FixedLocationStreamer(availability: .requestingAuthorization)
-    )
-  }
-
-  #Preview("Authorized") {
-    @Previewable @State var selection: Airport?
-    NavigationStack {
-      NearestView(selection: $selection)
-    }
-    .modelContainer(.preview)
-    .environment(
-      \.locationStreamer,
+  #Preview(
+    arguments: [
+      FixedLocationStreamer(availability: .authorizationDenied),
+      FixedLocationStreamer(availability: .authorizationDeniedGlobally),
+      FixedLocationStreamer(availability: .requestingAuthorization),
       FixedLocationStreamer(availability: .available, location: .nearMissoula)
-    )
+    ]
+  ) { streamer in
+    @Previewable @State var selection: Airport?
+    NavigationStack {
+      NearestView(selection: $selection)
+    }
+    .modelContainer(.preview)
+    .environment(\.locationStreamer, streamer)
   }
 #endif

@@ -78,15 +78,7 @@ struct LocationRefusedView: View {
 }
 
 #if DEBUG
-  #Preview("Denied") {
-    LocationRefusedView(reason: .app)
-  }
-
-  #Preview("Services Off") {
-    LocationRefusedView(reason: .deviceWide)
-  }
-
-  #Preview("Restricted") {
-    LocationRefusedView(reason: .restricted)
+  #Preview(arguments: [LocationRefusedView.Reason.app, .deviceWide, .restricted]) { reason in
+    LocationRefusedView(reason: reason)
   }
 #endif
