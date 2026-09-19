@@ -16,8 +16,8 @@ nonisolated final class CTA_HelperUITests: XCTestCase {
       .openAirport("KMSO")
       .openApproach("R12-Y")
 
-    // The seeded temperature (0 °C) is warmer than KMSO's −11 °C restriction, so there is
-    // nothing to correct until the pilot reports a colder temperature.
+    // The reported temperature the fix list auto-fills (−5 °C) is warmer than KMSO's −11 °C
+    // restriction, so there is nothing to correct until the pilot reports a colder one.
     fixes.assertNoCorrectionNecessary()
     attach(fixes.app.screenshot(), named: "NoCorrectionNecessary")
 

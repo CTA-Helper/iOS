@@ -79,11 +79,11 @@ ATTACHABLE_VERSION_STATES = %w[
 # Only the iPhone captures are installed: the page lays its screenshots out as phones, and the two
 # screens the iPad run skips would leave gaps in the set.
 SITE_APPEARANCES = { "light" => false, "dark" => true }.freeze
-SITE_SCREENSHOT_DEVICE = "iPhone 17 Pro Max"
+SITE_SCREENSHOT_DEVICE = "iPhone 18 Pro Max"
 
 # The screens the site shows: one for each step of the walkthrough in `docs/index.html`. The rest of
 # the App Store set is captured just the same, and simply not installed.
-SITE_SCREENS = %w[04-Airports 03-Approaches 01-Corrections].freeze
+SITE_SCREENS = %w[05-Airports 04-Approaches 01-Corrections].freeze
 
 # fastlane runs a lane from `fastlane/`, not from the repository it belongs to, so every path here
 # is anchored rather than relative — a bare `docs/…` would address `fastlane/docs/…`.
@@ -142,7 +142,7 @@ def site_staging_directory(appearance)
 end
 
 # Copies one capture into the site under the name `docs/index.html` asks for. snapshot names a shot
-# for the device that took it — `iPhone 17 Pro Max-01-Corrections.png` — which is neither a name a
+# for the device that took it — `iPhone 18 Pro Max-01-Corrections.png` — which is neither a name a
 # URL wants nor one that survives a device being swapped for next year's.
 def install_site_screenshot(capture, into:)
   suffix = File.basename(capture).delete_prefix("#{SITE_SCREENSHOT_DEVICE}-").downcase
