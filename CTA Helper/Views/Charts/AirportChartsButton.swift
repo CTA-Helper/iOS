@@ -62,16 +62,8 @@ struct AirportChartsButton: View {
         "About \(Int64(AirportChartDownloader.estimatedBytes(forPlates: ids.count)), format: .byteCount(style: .file)). Older charts may be removed to make room."
       )
     }
-    .alert(
-      "Charts Downloaded",
-      isPresented: Binding {
-        completed != nil
-      } set: {
-        if !$0 { completed = nil }
-      },
-      presenting: completed
-    ) { _ in
-      Button("OK") { completed = nil }
+    .alert("Charts Downloaded", item: $completed) { _ in
+      Button("OK") {}
     } message: { summary in
       Text(Self.message(for: summary))
     }
