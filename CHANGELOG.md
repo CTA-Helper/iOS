@@ -18,6 +18,8 @@ CTA Helper now requires iOS 27, and takes on its new appearance throughout.
 The summary that follows a chart download stays up until you dismiss it, and
 an airport whose plates are all on the device stops offering the download.
 
+VoiceOver now reads Favorites, Recents, Nearest and Search as tabs.
+
 ## 1.1
 
 Approach plates. Open an approach's FAA plate and read every named fix beside it
