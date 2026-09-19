@@ -24,10 +24,12 @@ and all altitudes from the official approach plate before you fly them.
 
 ## Getting started
 
-Swift 6.3 under complete strict concurrency, targeting iOS 26.5. Clone the
-repository, open `CTA Helper.xcodeproj` in Xcode 26 or newer, and build — Xcode
-resolves the package dependencies on first open, and nothing else needs
-configuring to run the app in a simulator.
+Swift 6.4 under complete strict concurrency, targeting iOS 27. The project
+builds in Swift 6 language mode, which is `SWIFT_VERSION = 6.0` in the build
+settings — a language mode, not the compiler version. Clone the repository,
+open `CTA Helper.xcodeproj` in Xcode 27 or newer, and build — Xcode resolves the
+package dependencies on first open, and nothing else needs configuring to run
+the app in a simulator.
 
 | Package | Used for |
 | --- | --- |
@@ -173,6 +175,13 @@ GitHub Actions runs on every push and pull request to `main`:
   `swift format lint --strict`.
 - **Periphery** (`periphery.yml`) runs `periphery scan --strict` as a dead-code
   gate.
+
+The jobs that need the iOS SDK run on the `xcode-27` runner image, which is a
+public preview rather than a GA one. There is no `macos-27` to use instead:
+GitHub now names an image after the major Xcode version it carries rather than
+after the OS, and `macos-26` stops at Xcode 26.6. `macos-latest` resolves to
+`macos-26`, so it does not carry the toolchain this app needs; the lint jobs run
+on it because they need neither the SDK nor a simulator.
 
 Pushing a version tag releases:
 

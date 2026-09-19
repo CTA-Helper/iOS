@@ -52,9 +52,12 @@ arguments as app settings. `Support/AppLaunch.swift` names them.
   `CTA_HelperApp` injects a `METARLoader(serving:)` with one fixed observation
   and a `NetworkMonitor(reporting: true)`, and discards the persisted settings so
   one test's rounding or favorites cannot decide another's outcome.
-- Don't seed a temperature into that observation — it reports none so
-  `FixListView`'s auto-fill no-ops and the seeded 0 °C default holds, which is
-  what `testCorrectsAnApproachFromTheAirportList` asserts against.
+- That observation reports −5 °C, which `FixListView` auto-fills as the reported
+  temperature. It sits above KMSO's −11 °C restriction, so nothing is corrected
+  until a test reports something colder — which is what
+  `testCorrectsAnApproachFromTheAirportList` asserts against, and what draws the
+  airport list's badge in the state the marketing screenshots show. Move it
+  below the restriction and both stop holding.
 - Wait for a row before swiping toward it. A row the list has not drawn yet is
   not a row below the fold, and a scroll aimed at one goes straight past it —
   `FixListScreen.scroll(to:_:describedAs:)` probes first for that reason, then

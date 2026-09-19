@@ -11,17 +11,17 @@ struct CTA_HelperApp: App {
     /**
      The weather a UI test is served, keyed by station ID.
 
-     The observation reports no temperature on purpose: the fix list auto-fills the reported
-     temperature from the METAR, and a seeded reading would displace the 0 °C the seeded data is
-     corrected at. Reporting none leaves that default standing while still giving the fix list a
-     station to link its weather screen to.
+     The reading sits above KMSO's −11 °C restriction, so the airport list draws the badge in the
+     state that says a station is reporting and no correction is called for — the state the
+     marketing screenshots show. The fix list auto-fills its reported temperature from this, so
+     it is what the seeded approach is corrected at.
      */
     private static let uiTestObservations = [
       "KMSO": METARObservation(
         stationID: "KMSO",
-        temperature: nil,
+        temperature: .celsius(-5),
         date: Date(timeIntervalSince1970: 1_700_000_000),
-        rawText: "METAR KMSO 141953Z 28008KT 10SM FEW070 SCT090 A2996 RMK AO2"
+        rawText: "METAR KMSO 141953Z 28008KT 10SM FEW070 SCT090 M05/M12 A2996 RMK AO2"
       )
     ]
   #endif
