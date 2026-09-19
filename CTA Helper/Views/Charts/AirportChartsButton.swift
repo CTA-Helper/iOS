@@ -10,6 +10,9 @@ import SwiftUI
  many bytes before anything is fetched, and nothing is fetched without them asking.
  */
 struct AirportChartsButton: View {
+  /// How long the controls this alert follows take to settle, past which it presents cleanly.
+  private static let presentationSettle: TimeInterval = 0.6
+
   /// The airport whose approaches' plates are fetched.
   let airport: Airport
 
@@ -78,8 +81,8 @@ struct AirportChartsButton: View {
     .errorSheet($downloader.error)
     .onChange(of: downloader.summary) { _, summary in
       guard let summary, !summary.wasCancelled, summary.downloaded > 0 else { return }
-      completed = summary
       chartAirports = chartAirports.adding(airport.siteNumber)
+      report(summary)
     }
   }
 
@@ -89,14 +92,30 @@ struct AirportChartsButton: View {
   }
 
   /**
+   The plates this airport publishes that are not on the device yet.
+
+   Read off the store rather than off ``chartAirports``, which records the airports the pilot
+   asked for and outlives the plates themselves: the cycle purge discards a superseded plate
+   without touching the list, so a list that still names the airport says nothing about whether
+   there is anything left to fetch.
+   */
+  private var missing: [ChartID] {
+    guard let chartStore else { return ids }
+    return ids.filter { !chartStore.hasPlate(for: $0) }
+  }
+
+  /**
    Whether there is any point offering the download.
 
-   Both refusals are read off what the app already knows rather than discovered by a run that
-   fails: with no network nothing can be fetched, and on a superseded cycle every plate's URL is
-   already dead.
+   Every refusal is read off what the app already knows rather than discovered by a run that
+   fails: with no network nothing can be fetched, on a superseded cycle every plate's URL is
+   already dead, and with every plate on the device there is nothing to ask for — a run there
+   would fetch nothing and finish with nothing to report, which reads as the button doing
+   nothing at all.
    */
   private var canDownload: Bool {
-    chartStore != nil && networkMonitor?.isConnected == true && !(cycles.first?.hasExpired ?? true)
+    chartStore != nil && networkMonitor?.isConnected == true
+      && !(cycles.first?.hasExpired ?? true) && !missing.isEmpty
   }
 
   /// What a finished run came to, in the terms the pilot asked for it in.
@@ -121,6 +140,22 @@ struct AirportChartsButton: View {
   private func start() {
     guard let chartStore else { return }
     downloader.start(ids, using: chartStore)
+  }
+
+  /**
+   Put the summary up, once the controls it follows have settled.
+
+   The run ending clears the progress view, which swaps the toolbar item back to the button, and
+   a run quick enough is still watching the confirmation dialog leave besides. An alert raised
+   into either is destroyed with the view that hosted it rather than queued behind it — SwiftUI
+   writes the `nil` back through the binding, so the summary flashes and never returns. Letting
+   the frame settle first costs a moment the pilot is not waiting on.
+   */
+  private func report(_ summary: AirportChartDownloader.Summary) {
+    Task { @MainActor in
+      try? await Task.sleep(for: .seconds(Self.presentationSettle))
+      completed = summary
+    }
   }
 }
 

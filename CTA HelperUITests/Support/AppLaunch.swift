@@ -23,6 +23,9 @@ enum LaunchArgument {
   static let deniedLocation = "-uiTestLocationDenied"
   /// Serve a synthesized one-page plate when a chart is fetched, so no test touches the network.
   static let bundledCharts = "-uiTestChartsBundled"
+
+  /// Paces the fixture's plates so a bulk download outlasts the controls it finishes over.
+  static let pacedCharts = "-uiTestChartsPaced"
   /// Report the device as offline, so the states that depend on having no network can be driven.
   static let offline = "-uiTestOffline"
 }
