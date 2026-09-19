@@ -131,7 +131,12 @@ import SwiftData
         identifier: identifier,
         name: name,
         runway: runway,
-        chartURL: nil,
+        // A plate apiece, so the seeded airport offers a bulk download of more than one — which
+        // is what takes long enough to catch a summary raised while the dialog is still leaving.
+        chartURL: URL(
+          string:
+            "https://aeronav.faa.gov/d-tpp/2609/00266\(identifier.uppercased().filter(\.isLetter))\(runway ?? "0").PDF"
+        ),
         referenceAltitudes: ReferenceAltitudes(
           initial: .unavailable,
           intermediate: .unavailable,

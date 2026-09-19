@@ -88,6 +88,18 @@ actor ChartStore {
     data.starts(with: pdfMagic)
   }
 
+  /**
+   Whether the plate is already on disk.
+
+   Unlike ``cachedPlate(for:)`` this leaves the plate's recency alone, so a view may ask it as
+   often as it redraws without promoting the plate past others the pilot actually opened. It
+   reaches no mutable state of the store's — only the root it was built with — so it answers
+   without hopping off the caller's actor, which is what lets a view body ask at all.
+   */
+  nonisolated func hasPlate(for id: ChartID) -> Bool {
+    FileManager.default.fileExists(atPath: url(for: id).path(percentEncoded: false))
+  }
+
   /// Where the plate is filed if it is already on disk, without touching the network.
   func cachedPlate(for id: ChartID) -> URL? {
     let plate = url(for: id)
@@ -149,11 +161,12 @@ actor ChartStore {
   }
 
   /// Where a plate is filed, whether or not it is there.
-  private func url(for id: ChartID) -> URL {
+  nonisolated private func url(for id: ChartID) -> URL {
     root.appending(path: id.cachePath, directoryHint: .notDirectory)
   }
 
   private func fetchAndStore(_ id: ChartID) async throws -> URL {
+    if let pacing = UITestConfiguration.chartPacing { try? await Task.sleep(for: pacing) }
     let data = try await download(id)
     return try store(data, for: id)
   }

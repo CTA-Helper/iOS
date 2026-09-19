@@ -15,6 +15,9 @@ formatting to make sense will read badly in one of the two places.
 
 CTA Helper now requires iOS 27, and takes on its new appearance throughout.
 
+The summary that follows a chart download stays up until you dismiss it, and
+an airport whose plates are all on the device stops offering the download.
+
 ## 1.1
 
 Approach plates. Open an approach's FAA plate and read every named fix beside it
