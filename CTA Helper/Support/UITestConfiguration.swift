@@ -47,6 +47,17 @@ import UIKit
      */
     static var isOffline: Bool { arguments.contains("\(argumentPrefix)Offline") }
 
+    /**
+     How long each fixture plate takes to arrive, or `nil` to serve them as fast as the disk can.
+
+     A bulk download that finishes at once never overlaps the controls it finishes over — the
+     progress view leaving the toolbar, and the confirmation dialog on a quick enough run — so a
+     test of what the pilot is told afterwards has to be able to ask for a slower one.
+     */
+    static var chartPacing: Duration? {
+      arguments.contains("\(argumentPrefix)ChartsPaced") ? .seconds(1.5) : nil
+    }
+
     /// What ``ChartStore`` fetches, in place of the published plates.
     static var charts: ChartFixture? {
       arguments.contains("\(argumentPrefix)ChartsBundled") ? .bundled : nil
@@ -275,6 +286,9 @@ import UIKit
 
     /// Always `nil`: a release build fetches published plates and nothing else.
     static var charts: ChartFixture? { nil }
+
+    /// Always `nil`: a release build's plates arrive as fast as the network brings them.
+    static var chartPacing: Duration? { nil }
 
     /// Always `nil`: a release build files plates where the pilot's own app reads them.
     static var chartStoreRoot: URL? { nil }
