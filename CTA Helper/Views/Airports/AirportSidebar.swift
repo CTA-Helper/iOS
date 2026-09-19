@@ -20,7 +20,7 @@ struct AirportSidebar: View {
             .accessibilityIdentifier("airportTab-\(tab.rawValue)")
         }
       }
-      .pickerStyle(.segmented)
+      .pickerStyle(.tabs)
       .padding([.horizontal, .bottom])
       .accessibilityIdentifier("airportTabPicker")
 
