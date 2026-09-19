@@ -15,7 +15,7 @@ struct AirportChartsButton: View {
 
   @State private var downloader = AirportChartDownloader()
   @State private var isConfirming = false
-  @State private var completed: AirportChartDownloader.Summary?
+  @Binding var completed: AirportChartDownloader.Summary?
 
   /**
    The airports whose charts the pilot has downloaded.
@@ -62,24 +62,11 @@ struct AirportChartsButton: View {
         "About \(Int64(AirportChartDownloader.estimatedBytes(forPlates: ids.count)), format: .byteCount(style: .file)). Older charts may be removed to make room."
       )
     }
-    .alert(
-      "Charts Downloaded",
-      isPresented: Binding {
-        completed != nil
-      } set: {
-        if !$0 { completed = nil }
-      },
-      presenting: completed
-    ) { _ in
-      Button("OK") { completed = nil }
-    } message: { summary in
-      Text(Self.message(for: summary))
-    }
     .errorSheet($downloader.error)
     .onChange(of: downloader.summary) { _, summary in
       guard let summary, !summary.wasCancelled, summary.downloaded > 0 else { return }
-      completed = summary
       chartAirports = chartAirports.adding(airport.siteNumber)
+      completed = summary
     }
   }
 
@@ -89,18 +76,34 @@ struct AirportChartsButton: View {
   }
 
   /**
+   The plates this airport publishes that are not on the device yet.
+
+   Read off the store rather than off ``chartAirports``, which records the airports the pilot
+   asked for and outlives the plates themselves: the cycle purge discards a superseded plate
+   without touching the list, so a list that still names the airport says nothing about whether
+   there is anything left to fetch.
+   */
+  private var missing: [ChartID] {
+    guard let chartStore else { return ids }
+    return ids.filter { !chartStore.hasPlate(for: $0) }
+  }
+
+  /**
    Whether there is any point offering the download.
 
-   Both refusals are read off what the app already knows rather than discovered by a run that
-   fails: with no network nothing can be fetched, and on a superseded cycle every plate's URL is
-   already dead.
+   Every refusal is read off what the app already knows rather than discovered by a run that
+   fails: with no network nothing can be fetched, on a superseded cycle every plate's URL is
+   already dead, and with every plate on the device there is nothing to ask for — a run there
+   would fetch nothing and finish with nothing to report, which reads as the button doing
+   nothing at all.
    */
   private var canDownload: Bool {
-    chartStore != nil && networkMonitor?.isConnected == true && !(cycles.first?.hasExpired ?? true)
+    chartStore != nil && networkMonitor?.isConnected == true
+      && !(cycles.first?.hasExpired ?? true) && !missing.isEmpty
   }
 
   /// What a finished run came to, in the terms the pilot asked for it in.
-  private static func message(for summary: AirportChartDownloader.Summary) -> String {
+  static func message(for summary: AirportChartDownloader.Summary) -> String {
     var parts = [
       String(
         localized:

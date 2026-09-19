@@ -32,6 +32,53 @@ struct ApproachListScreen {
     return self
   }
 
+  /// Ask for every plate the airport publishes, and say yes to the confirmation.
+  @discardableResult
+  func downloadCharts() -> Self {
+    app.descendant(id: "downloadChartsButton")
+      .assertExists("The approach list offers no way to download the charts")
+      .forceTap()
+    app.descendant(id: "confirmDownloadCharts")
+      .assertExists("The download was never offered for confirmation")
+      .forceTap()
+    return self
+  }
+
+  /**
+   The finished run says what it fetched, and the summary stays to be read.
+
+   Both halves matter. The summary is raised as the confirmation dialog is leaving, and a
+   presentation arriving while another goes is dropped rather than queued — so a run quick
+   enough to beat the animation flashes the summary and loses it, which asserting only that it
+   appeared would not catch.
+   */
+  @discardableResult
+  func assertReportsWhatItFetched() -> Self {
+    let summary = app.alerts.firstMatch
+    summary.assertExists(
+      "The download finished without saying what it fetched",
+      timeout: ScaledTimeouts.slowElement
+    )
+    XCTAssertFalse(
+      summary.waitForNonExistence(timeout: ScaledTimeouts.short),
+      "The summary left on its own before it could be read"
+    )
+    summary.buttons["OK"].tap()
+    return self
+  }
+
+  /// The download is not on offer, there being nothing left to fetch.
+  @discardableResult
+  func assertChartsNeedNoDownload() -> Self {
+    let button = app.descendant(id: "downloadChartsButton")
+      .assertExists("The approach list dropped the download control altogether")
+    XCTAssertFalse(
+      button.isEnabled,
+      "The download is still offered with every plate already on the device"
+    )
+    return self
+  }
+
   @discardableResult
   func goBack() -> AirportListScreen {
     app.popNavigationStack(in: .leading)

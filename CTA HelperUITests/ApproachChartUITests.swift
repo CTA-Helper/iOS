@@ -90,6 +90,35 @@ nonisolated final class ApproachChartUITests: XCTestCase {
   }
 
   /**
+   A bulk download reports what it fetched, and the report survives long enough to read.
+
+   It is the pilot's only account of a run they were told the size of before starting. The
+   summary is raised as the progress view leaves the toolbar, which is the moment a presentation
+   can be dropped rather than queued, so this covers the summary staying as well as arriving.
+   The plates are paced because a run that finishes at once never reaches that overlap.
+   */
+  @MainActor
+  func testReportsWhatADownloadFetched() {
+    launchSeededApp(LaunchArgument.bundledCharts, LaunchArgument.pacedCharts)
+      .openAirport("KMSO")
+      .downloadCharts()
+      .assertReportsWhatItFetched()
+  }
+
+  /**
+   With every plate already on the device, the download stops being offered.
+
+   A run with nothing to fetch finishes with nothing to report, so the control would take the
+   pilot through a confirmation and then appear to do nothing at all.
+   */
+  @MainActor
+  func testStopsOfferingTheDownloadOnceThePlatesAreThere() {
+    let approaches = launchSeededApp(LaunchArgument.bundledCharts).openAirport("KMSO")
+    approaches.downloadCharts().assertReportsWhatItFetched()
+    approaches.assertChartsNeedNoDownload()
+  }
+
+  /**
    With no network and nothing cached, the button says so before it is pressed and the screen
    explains once it is.
 
