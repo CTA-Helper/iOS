@@ -78,19 +78,14 @@ private struct LoadingConsentView: View {
 }
 
 #if DEBUG
-  #Preview("Idle") {
-    LoadingView(viewModel: NavDataLoaderViewModel(container: .preview))
-  }
-
-  #Preview("Out of Date") {
-    LoadingView(viewModel: .previewing(state: .idle, hasData: true))
-  }
-
-  #Preview("Downloading") {
-    LoadingView(viewModel: .previewing(state: .downloading(progress: 0.6)))
-  }
-
-  #Preview("Error") {
-    LoadingView(viewModel: .previewing(state: .idle, error: URLError(.notConnectedToInternet)))
+  #Preview(
+    arguments: [
+      NavDataLoaderViewModel(container: .preview),
+      .previewing(state: .idle, hasData: true),
+      .previewing(state: .downloading(progress: 0.6)),
+      .previewing(state: .idle, error: URLError(.notConnectedToInternet))
+    ]
+  ) { viewModel in
+    LoadingView(viewModel: viewModel)
   }
 #endif
