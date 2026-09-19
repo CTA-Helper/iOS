@@ -11,6 +11,10 @@ Write entries to survive both renderings. Here they are Markdown; on the store
 they are shown verbatim as plain text, so anything that depends on its
 formatting to make sense will read badly in one of the two places.
 
+## 1.2
+
+CTA Helper now requires iOS 27, and takes on its new appearance throughout.
+
 ## 1.1
 
 Approach plates. Open an approach's FAA plate and read every named fix beside it
