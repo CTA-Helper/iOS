@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   ci:
-    uses: RISCfuture/XCUITestKit/.github/workflows/ios-ci.yml@main
+    uses: RISCfuture/XCUITestKit/.github/workflows/ios-ci.yml@1.0.0
     with:
       scheme: "CTA Helper"
       unit-test-plan: "Unit Tests"
@@ -55,7 +55,7 @@ jobs:
       - uses: actions/checkout@v6
       - name: Set up iOS simulator
         id: sim
-        uses: RISCfuture/XCUITestKit/ci-templates/setup-ios-simulator@main
+        uses: RISCfuture/XCUITestKit/ci-templates/setup-ios-simulator@1.0.0
         with:
           device: "iPhone 17 Pro"
           device-type: com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro
