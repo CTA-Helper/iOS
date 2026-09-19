@@ -4,7 +4,7 @@
 # Drives the `GenerateScreenshots` UI test to capture the App Store screenshot set.
 
 devices([
-    "iPhone 17 Pro Max", # 6.9" — the required large-iPhone display size
+    "iPhone 18 Pro Max", # 6.9" — the required large-iPhone display size
     "iPad Pro 13-inch (M5)" # 13" — the required large-iPad display size
 ])
 
