@@ -36,7 +36,7 @@ configuring to run the app in a simulator.
 | [sentry-cocoa](https://github.com/getsentry/sentry-cocoa) | Crash and error reporting |
 | [XCUITestKit](https://github.com/RISCfuture/XCUITestKit) | UI test scaffolding |
 
-The release tooling is the only part with a toolchain of its own — Ruby 4.0.6
+The release tooling is the only part with a toolchain of its own — Ruby 4.0.7
 and the `cta` gemset, per `.ruby-version` and `.ruby-gemset`:
 
 ```sh
