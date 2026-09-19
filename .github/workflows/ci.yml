@@ -21,9 +21,9 @@ jobs:
         {"include":[
           {
             "ios-label": "latest",
-            "runner": "macos-26",
-            "device": "iPhone 17 Pro",
-            "device-type": "com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro",
+            "runner": "xcode-27",
+            "device": "iPhone 18 Pro",
+            "device-type": "com.apple.CoreSimulator.SimDeviceType.iPhone-18-Pro",
             "os-version": "",
             "xcode-version": "latest-stable"
           }
@@ -32,15 +32,15 @@ jobs:
         {"include":[
           {
             "ios-label": "latest",
-            "runner": "macos-26",
-            "device": "iPhone 17 Pro",
-            "device-type": "com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro",
+            "runner": "xcode-27",
+            "device": "iPhone 18 Pro",
+            "device-type": "com.apple.CoreSimulator.SimDeviceType.iPhone-18-Pro",
             "os-version": "",
             "xcode-version": "latest-stable"
           },
           {
             "ios-label": "latest",
-            "runner": "macos-26",
+            "runner": "xcode-27",
             "device": "iPad Pro 13-inch (M5)",
             "device-type": "com.apple.CoreSimulator.SimDeviceType.iPad-Pro-13-inch-M5-12GB",
             "os-version": "",
@@ -50,15 +50,15 @@ jobs:
 
   docs:
     name: Build Documentation
-    runs-on: macos-26
+    runs-on: xcode-27
     steps:
       - uses: actions/checkout@v6
       - name: Set up iOS simulator
         id: sim
         uses: RISCfuture/XCUITestKit/ci-templates/setup-ios-simulator@1.0.0
         with:
-          device: "iPhone 17 Pro"
-          device-type: com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro
+          device: "iPhone 18 Pro"
+          device-type: com.apple.CoreSimulator.SimDeviceType.iPhone-18-Pro
           xcode-version: latest-stable
       - name: Enable macros
         run: defaults write com.apple.dt.Xcode IDESkipMacroFingerprintValidation -bool YES
@@ -76,7 +76,7 @@ jobs:
         uses: actions/cache@v6
         with:
           path: ${{ runner.temp }}/DocumentationDerivedData
-          key: derived-docs-macos-26-${{ steps.toolchain.outputs.xcode }}-${{ hashFiles('**/Package.resolved') }}
+          key: derived-docs-xcode-27-${{ steps.toolchain.outputs.xcode }}-${{ hashFiles('**/Package.resolved') }}
       # The app target sets OTHER_DOCC_FLAGS to --warnings-as-errors, so any DocC warning in the
       # app's own doc comments fails this job. The flag belongs to the target rather than to this
       # command because a command-line override reaches the package dependencies too, and their
