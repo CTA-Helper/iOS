@@ -86,18 +86,14 @@ struct ChartUnavailableView: View {
 }
 
 #if DEBUG
-  #Preview("Unpublished") {
-    ChartUnavailableView(reason: .unpublished, retry: nil)
+  #Preview(
+    arguments: [ChartUnavailableView.Reason.unpublished, .offline, .supersededCycle]
+  ) { reason in
+    ChartUnavailableView(reason: reason, retry: nil)
   }
 
-  #Preview("Offline") {
-    ChartUnavailableView(reason: .offline, retry: nil)
-  }
-
-  #Preview("Superseded cycle") {
-    ChartUnavailableView(reason: .supersededCycle, retry: nil)
-  }
-
+  // Kept on its own: it is the one reason trying again could help, so it is the only one that
+  // carries a retry, and it varies from the others along that axis as well as by reason.
   #Preview("Failed") {
     ChartUnavailableView(reason: .failed(ChartError.httpError(statusCode: 503)), retry: {})
   }
