@@ -34,7 +34,7 @@ struct ApproachListScreen {
 
   @discardableResult
   func goBack() -> AirportListScreen {
-    app.popNavigationStack()
+    app.popNavigationStack(in: .leading)
     return AirportListScreen(app: app)
   }
 

@@ -6,6 +6,9 @@ struct SettingsScreen {
   /// How many swipes it may take to reach the foot of the settings form on the smallest screen.
   private static let maximumScrolls: UInt = 6
 
+  /// How many pulls the sheet may need: a fling short of the threshold leaves it where it was.
+  private static let maximumCloseAttempts = 3
+
   let app: XCUIApplication
 
   /// The element whose presence means the sheet is up, and whose absence means it is gone.
@@ -13,6 +16,11 @@ struct SettingsScreen {
 
   /// The bar belonging to the sheet, not to the split view pane still visible behind it on iPad.
   private var sheetNavigationBar: XCUIElement { app.navigationBar(above: landing) }
+
+  /// Whether the sheet has gone, giving the dismissal it may still be animating time to finish.
+  private var hasLeft: Bool {
+    landing.waitForNonExistence(timeout: ScaledTimeouts.short)
+  }
 
   @discardableResult
   func assertIsShowing() -> Self {
@@ -89,33 +97,49 @@ struct SettingsScreen {
   /**
    Dismiss the sheet by dragging its navigation bar down, which is the only way off it: a
    settings sheet the pilot pulls down has no button of its own to close it.
+
+   A pull that falls short of the dismissal threshold slides the sheet back to where it was
+   rather than carrying it off, so the drag is repeated, and where the sheet floats as a card
+   the app behind it is tapped between tries. Which layout is showing is read before the first
+   drag: a sheet caught part-way down is inset from the top on either device, so a frame taken
+   after a pull that failed would call an iPhone's full-screen sheet a card and tap a point
+   that is still inside it.
    */
   @discardableResult
   func close() -> AirportListScreen {
-    landing.assertExists("Settings is not showing to be closed")
-    sheetNavigationBar
-      .assertExists("Settings has no navigation bar to drag")
-      .swipeDown(velocity: .fast)
-    if landing.exists { tapBehindTheSheet() }
+    let sheet = landing.assertExists("Settings is not showing to be closed").frame
+    let behindTheSheet = pointBehind(sheet)
+
+    for _ in 1...Self.maximumCloseAttempts {
+      pullDown()
+      if hasLeft { break }
+      behindTheSheet?.tap()
+      if hasLeft { break }
+    }
 
     landing.assertHidden("Settings stayed up after being pulled down")
     return AirportListScreen(app: app)
   }
 
+  /// Drag the sheet's own navigation bar downwards, which is how the pilot puts it away.
+  private func pullDown() {
+    sheetNavigationBar
+      .assertExists("Settings has no navigation bar to drag")
+      .swipeDown(velocity: .fast)
+  }
+
   /**
-   Dismiss an iPad form sheet by tapping the dimmed app behind it.
+   Where to tap to dismiss a sheet that floats as a card, or `nil` for one that fills the screen.
 
-   On iPad the sheet is a card floating over the split view, and a drag on its bar does not
-   always carry it off; tapping outside always does. On iPhone the sheet covers the screen, so
-   there is no outside to tap and the drag above has already done the job — hence the guard.
+   On iPad the sheet is a card over the split view, and tapping the dimmed app behind it carries
+   it off when a drag on its bar does not. On iPhone it covers the screen, so there is no
+   outside to tap and the drag is the whole story.
    */
-  private func tapBehindTheSheet() {
-    let sheet = landing.frame
-    guard sheet.minY > app.frame.minY + 1 else { return }
+  private func pointBehind(_ sheet: CGRect) -> XCUICoordinate? {
+    guard sheet.minY > app.frame.minY + 1 else { return nil }
 
-    app.coordinate(withNormalizedOffset: .zero)
+    return app.coordinate(withNormalizedOffset: .zero)
       .withOffset(CGVector(dx: sheet.midX, dy: sheet.minY / 2))
-      .tap()
   }
 
   /// One of the rounding conventions ENR 1.8 5.e permits, by the app's name for it.
@@ -142,11 +166,11 @@ struct AboutScreen {
   /**
    Pop back to Settings with the interactive back-swipe.
 
-   Hunting for a back button does not survive both layouts: several navigation bars coexist
-   behind the sheet, and tapping the wrong one's first button silently does something else —
-   which is exactly what the shared `popNavigationStack()` did here, unnoticed until `close()`
-   began asserting Settings was still there to close. Dragging from the screen's own leading
-   edge pops whichever stack the screen belongs to, wherever that stack is drawn.
+   Hunting for a back button does not survive both layouts: the panes' bars coexist behind the
+   sheet, and `popNavigationStack(in:)` tells those two apart by width, which says nothing
+   about a third bar floating over them. Dragging from the screen's own leading edge pops the
+   stack the screen belongs to, and a sheet is inset from the screen's edge on either layout,
+   so the drag starts inside the sheet rather than on the pane behind it.
    */
   @discardableResult
   func goBack() -> SettingsScreen {

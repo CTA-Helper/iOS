@@ -80,7 +80,7 @@ struct FixListScreen {
     // On iPad the fix list is the trailing pane and the approaches are already beside it in the
     // leading one, so there is nothing to pop. Popping anyway unwinds the *leading* pane to the
     // airport picker and takes the approach list with it.
-    if !approaches.isShowing { app.popNavigationStack() }
+    if !approaches.isShowing { app.popNavigationStack(in: .leading) }
     return approaches
   }
 
