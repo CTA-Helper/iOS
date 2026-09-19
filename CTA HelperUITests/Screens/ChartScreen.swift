@@ -27,7 +27,7 @@ struct ChartScreen {
    iPad — so there is always something to pop, on both layouts.
    */
   func goBack() -> FixListScreen {
-    app.popNavigationStack()
+    app.popNavigationStack(in: .trailing)
     return FixListScreen(app: app)
   }
 

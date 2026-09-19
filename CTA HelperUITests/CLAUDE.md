@@ -2,7 +2,7 @@
 
 ## XCUITestKit
 
-The target links [XCUITestKit][kit] (pinned to `main`). Reach for it before
+The target links [XCUITestKit][kit] (pinned to `1.0.0`). Reach for it before
 hand-rolling a wait, a tap or a scroll:
 
 [kit]: https://github.com/RISCfuture/XCUITestKit
@@ -73,16 +73,29 @@ things that all exist at once.
   is the sidebar's, which is how `popNavigationStack()` came to tap the airport
   list's button from inside the settings sheet. Use
   `app.navigationBar(above:)`, which picks the bar geometrically.
+- **Say which pane a pop belongs to.** Both panes can hold a pushed screen at
+  once, so both carry a back button, and the sidebar's comes first in the
+  hierarchy. `popNavigationStack(in:)` takes `.leading` or `.trailing` and tells
+  them apart by width — the trailing bar spans the window, the leading one is the
+  sidebar. On iPhone a single stack fills the screen and either answer names the
+  only bar. Popping without naming the pane unwound the leading pane instead and
+  left the detail pane on its "Select an Approach" placeholder.
 - **Don't pop what is already beside you.** On iPad the fix list is the trailing
   pane and the approaches are in the leading one, so `FixListScreen.goBack()`
   must do nothing: popping unwinds the *leading* pane and takes the approach
   list with it. It checks `ApproachListScreen.isShowing` first.
-- **Pop a pushed screen with the back-swipe, not a back button.** A drag from the
-  screen's own leading edge pops whichever stack it belongs to, wherever that
-  stack is drawn. `AboutScreen.goBack()` does this.
+- **Pop a screen pushed inside a sheet with the back-swipe.** A drag from the
+  screen's own leading edge pops the stack it belongs to, which is what
+  `AboutScreen.goBack()` does. This does not carry over to the detail pane: a
+  pushed detail screen reports the whole window as its frame, so its leading edge
+  is the sidebar's and the drag would pop that instead. Name the pane there.
 - **A sheet is a form sheet on iPad.** It floats over the split view, and a drag
   on its bar does not always carry it off; tapping outside it does.
-  `SettingsScreen.close()` tries both, in that order.
+  `SettingsScreen.close()` tries both, and tries again — a pull short of the
+  dismissal threshold slides the sheet back rather than carrying it off. It reads
+  which layout is showing *before* the first pull: a sheet caught part-way down
+  is inset from the top on either device, so a frame measured afterwards calls an
+  iPhone's full-screen sheet a card and taps a point still inside it.
 - **`XCUIElement.frame` raises when the element is not in the hierarchy** rather
   than returning zero, so check `exists` before measuring one.
 

@@ -104,22 +104,38 @@ extension XCUIApplication {
   private static let backButtonIDs = ["back-nav-button", "BackButton"]
 
   /**
-   Tap the back button of whichever pane is frontmost, popping one screen.
+   Tap the back button of `pane`'s navigation stack, popping one screen.
 
-   The back button is picked out by identifier rather than taken to be the first button in a
-   navigation bar. A bar carries its screen's own toolbar items beside the back button, so
-   "the first button" is the back button only until a screen puts something else in its bar —
-   after which a pop silently becomes a tap on whatever that is. On iPad, where the fix list
-   is the detail pane and its bar holds the chart button but no back button of its own, that
-   turned every pop into a push and left the chart screen standing where the test expected the
-   airport list.
+   Two things have to be right for a pop to land where the caller meant it to. The button is
+   picked out by identifier rather than taken to be the first in a bar, because a bar carries
+   its screen's own toolbar items beside the back button. And the bar is picked out by pane,
+   because on iPad both panes can hold a pushed screen at once and so both carry a back button
+   — the sidebar's comes first in the hierarchy, which is how popping the weather screen came
+   to unwind the leading pane instead and leave the detail pane on its placeholder.
+
+   The panes are told apart by width: the trailing one spans the window and the leading one is
+   the sidebar. Geometry relative to the screen being left cannot tell them apart, since a
+   pushed detail screen reports the whole window as its frame, sitting behind the very bar that
+   titles it.
    */
-  func popNavigationStack() {
-    navigationBars.buttons
+  func popNavigationStack(in pane: Pane) {
+    backButton(in: pane)
+      .assertExists("No back button to pop the \(pane) pane")
+      .forceTap()
+  }
+
+  /// The back button in `pane`'s bar, or the first one found if the panes can't be told apart.
+  private func backButton(in pane: Pane) -> XCUIElement {
+    let bars = navigationBars.allElementsBoundByIndex.filter(\.exists)
+    let bar =
+      switch pane {
+        case .leading: bars.min { $0.frame.width < $1.frame.width }
+        case .trailing: bars.max { $0.frame.width < $1.frame.width }
+      }
+
+    return (bar ?? navigationBars.firstMatch).buttons
       .matching(NSPredicate(format: "identifier IN %@", Self.backButtonIDs))
       .firstMatch
-      .assertExists("No back button to pop the screen")
-      .forceTap()
   }
 
   /**
@@ -141,5 +157,10 @@ extension XCUIApplication {
         && $0.frame.minY <= bounds.minY
     }
     return bar ?? navigationBars.firstMatch
+  }
+
+  /// Which of the split view's two stacks a pop belongs to; on iPhone both name the only one.
+  enum Pane {
+    case leading, trailing
   }
 }
