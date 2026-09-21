@@ -11,8 +11,10 @@ hand-rolling a wait, a tap or a scroll:
   `XCTAssertTrue(x.waitForExistence(timeout:))`. They name the element and the
   timeout themselves, so the message argument only adds what they can't know.
 - `descendant(id:)` instead of `descendants(matching: .any).matching(identifier:)`.
-- `forceTap()` instead of `tap()`: an iOS 26 Liquid Glass bar reports a control
-  as not hittable and swallows a plain tap.
+- `tap()` is enough for a control in a bar. `forceTap()` exists for a Liquid
+  Glass bar that reports a control as not hittable and swallows a plain tap,
+  which iOS 27 does not do — measured on the chart's toolbar toggle, on both an
+  iPhone and an iPad. Reach for it if that returns, not by default.
 - `tap(untilExists:using: XCUIElement.TapStrategy.escalating)` for a tap that
   opens something — a menu, a sheet, a pushed screen. It confirms and escalates
   rather than tapping once and hoping. (`.escalating` is a static on
