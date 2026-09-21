@@ -144,7 +144,7 @@ struct FixListScreen {
     ).firstMatch
 
     picker.tap(untilExists: option, using: XCUIElement.TapStrategy.escalating)
-    option.assertExists("Transition \(name) is not offered").forceTap()
+    option.assertExists("Transition \(name) is not offered").tap()
 
     XCTAssertTrue(
       picker.waitFor(shows),
@@ -165,7 +165,7 @@ struct FixListScreen {
 
     let option = app.descendant(id: "correctionMethodOption-\(method.rawValue)")
     picker.tap(untilExists: option, using: XCUIElement.TapStrategy.escalating)
-    option.assertExists("\(method.rawValue) is not offered").forceTap()
+    option.assertExists("\(method.rawValue) is not offered").tap()
     return self
   }
 
@@ -273,7 +273,7 @@ struct FixListScreen {
     )
 
     let field = minimumsField
-    field.forceTap()
+    field.tap()
     field.typeText(altitudeFt)
     app.dismissKeyboardStable(doneButtonIdentifier: Self.dismissKeyboardID)
     XCTAssertEqual(

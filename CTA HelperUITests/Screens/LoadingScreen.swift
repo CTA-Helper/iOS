@@ -47,7 +47,7 @@ struct LoadingScreen {
 
   @discardableResult
   func startDownload() -> Self {
-    downloadButton.forceTap()
+    downloadButton.tap()
     return self
   }
 
@@ -74,7 +74,7 @@ struct LoadingScreen {
   func dismissFailure() -> Self {
     app.descendant(id: "errorDismissButton")
       .assertExists("No way to dismiss the error")
-      .forceTap()
+      .tap()
     return self
   }
 }
