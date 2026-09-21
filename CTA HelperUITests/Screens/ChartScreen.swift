@@ -63,10 +63,10 @@ struct ChartScreen {
     let toggle = app.descendant(id: "correctedAltitudesToggle")
       .assertExists("The chart offers no way to get the altitudes off the plate")
 
-    toggle.forceTap()
+    toggle.tap()
     overlay.assertHidden("The altitudes are still covering the plate after being hidden")
 
-    toggle.forceTap()
+    toggle.tap()
     overlay.assertExists("The altitudes did not come back")
     return self
   }

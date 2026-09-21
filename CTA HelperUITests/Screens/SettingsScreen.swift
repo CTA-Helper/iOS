@@ -34,7 +34,7 @@ struct SettingsScreen {
     app.descendant(id: "roundingPicker")
       .assertExists("No rounding picker in Settings")
       .tap(untilExists: option, using: XCUIElement.TapStrategy.escalating)
-    option.assertExists("\(rounding.rawValue) is not offered").forceTap()
+    option.assertExists("\(rounding.rawValue) is not offered").tap()
     return self
   }
 
