@@ -124,7 +124,7 @@ extension XCUIApplication {
   func popNavigationStack(in pane: Pane) {
     backButton(in: pane)
       .assertExists("No back button to pop the \(pane) pane")
-      .forceTap()
+      .tap()
   }
 
   /// The back button in `pane`'s bar, or the first one found if the panes can't be told apart.

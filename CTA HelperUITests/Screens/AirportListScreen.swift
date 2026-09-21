@@ -18,7 +18,7 @@ struct AirportListScreen {
   func selectTab(_ tab: Tab) -> Self {
     app.descendant(id: "airportTab-\(tab.rawValue)")
       .assertExists("No \(tab.rawValue) tab in the picker")
-      .forceTap()
+      .tap()
     return self
   }
 
@@ -27,7 +27,7 @@ struct AirportListScreen {
   func search(for query: String) -> Self {
     let field = app.searchFields.firstMatch
       .assertExists("No search field on the Search tab")
-    field.forceTap()
+    field.tap()
     field.typeText(query)
     return self
   }
@@ -43,7 +43,7 @@ struct AirportListScreen {
   func openAirport(_ identifier: String) -> ApproachListScreen {
     airportRow(identifier)
       .assertExists("Airport \(identifier) not found")
-      .forceTap()
+      .tap()
     return ApproachListScreen(app: app)
   }
 
@@ -60,7 +60,7 @@ struct AirportListScreen {
   func toggleFavorite(_ identifier: String) -> Self {
     app.descendant(id: "favoriteButton-\(identifier)")
       .assertExists("No favorite star on \(identifier)'s row")
-      .forceTap()
+      .tap()
     return self
   }
 

@@ -22,7 +22,7 @@ struct ApproachListScreen {
   func openApproach(_ identifier: String) -> FixListScreen {
     approachRow(identifier)
       .assertExists("Approach \(identifier) not found")
-      .forceTap()
+      .tap()
     return FixListScreen(app: app)
   }
 
@@ -37,10 +37,10 @@ struct ApproachListScreen {
   func downloadCharts() -> Self {
     app.descendant(id: "downloadChartsButton")
       .assertExists("The approach list offers no way to download the charts")
-      .forceTap()
+      .tap()
     app.descendant(id: "confirmDownloadCharts")
       .assertExists("The download was never offered for confirmation")
-      .forceTap()
+      .tap()
     return self
   }
 
