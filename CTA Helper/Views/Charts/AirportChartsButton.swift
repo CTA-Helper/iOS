@@ -10,15 +10,12 @@ import SwiftUI
  many bytes before anything is fetched, and nothing is fetched without them asking.
  */
 struct AirportChartsButton: View {
-  /// How long the controls this alert follows take to settle, past which it presents cleanly.
-  private static let presentationSettle: TimeInterval = 0.6
-
   /// The airport whose approaches' plates are fetched.
   let airport: Airport
 
   @State private var downloader = AirportChartDownloader()
   @State private var isConfirming = false
-  @State private var completed: AirportChartDownloader.Summary?
+  @Binding var completed: AirportChartDownloader.Summary?
 
   /**
    The airports whose charts the pilot has downloaded.
@@ -65,24 +62,11 @@ struct AirportChartsButton: View {
         "About \(Int64(AirportChartDownloader.estimatedBytes(forPlates: ids.count)), format: .byteCount(style: .file)). Older charts may be removed to make room."
       )
     }
-    .alert(
-      "Charts Downloaded",
-      isPresented: Binding {
-        completed != nil
-      } set: {
-        if !$0 { completed = nil }
-      },
-      presenting: completed
-    ) { _ in
-      Button("OK") { completed = nil }
-    } message: { summary in
-      Text(Self.message(for: summary))
-    }
     .errorSheet($downloader.error)
     .onChange(of: downloader.summary) { _, summary in
       guard let summary, !summary.wasCancelled, summary.downloaded > 0 else { return }
       chartAirports = chartAirports.adding(airport.siteNumber)
-      report(summary)
+      completed = summary
     }
   }
 
@@ -119,7 +103,7 @@ struct AirportChartsButton: View {
   }
 
   /// What a finished run came to, in the terms the pilot asked for it in.
-  private static func message(for summary: AirportChartDownloader.Summary) -> String {
+  static func message(for summary: AirportChartDownloader.Summary) -> String {
     var parts = [
       String(
         localized:
@@ -140,22 +124,6 @@ struct AirportChartsButton: View {
   private func start() {
     guard let chartStore else { return }
     downloader.start(ids, using: chartStore)
-  }
-
-  /**
-   Put the summary up, once the controls it follows have settled.
-
-   The run ending clears the progress view, which swaps the toolbar item back to the button, and
-   a run quick enough is still watching the confirmation dialog leave besides. An alert raised
-   into either is destroyed with the view that hosted it rather than queued behind it — SwiftUI
-   writes the `nil` back through the binding, so the summary flashes and never returns. Letting
-   the frame settle first costs a moment the pilot is not waiting on.
-   */
-  private func report(_ summary: AirportChartDownloader.Summary) {
-    Task { @MainActor in
-      try? await Task.sleep(for: .seconds(Self.presentationSettle))
-      completed = summary
-    }
   }
 }
 
