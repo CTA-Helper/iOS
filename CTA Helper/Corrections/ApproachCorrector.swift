@@ -11,7 +11,7 @@ import NavDataSchema
  ## Reference altitudes
 
  Each segment's correction is the ICAO formula evaluated at its reference altitude's height
- above the airport (``ReferenceAltitudes/reference(for:method:)``). The final segment's
+ above the airport (``NavDataSchema/ReferenceAltitudes/reference(for:method:)``). The final segment's
  reference is the pilot-entered DA/MDA; every other reference comes from the coded procedure.
 
  ## What is corrected
@@ -19,7 +19,7 @@ import NavDataSchema
  A fix is left uncorrected — carrying the ``UncorrectableReason`` why — when it is not
  correctable, its segment's reference is unavailable, the Individual Segments Method
  excludes its segment, the final segment has no DA/MDA yet, or it codes no altitude. Which of
- a fix's altitudes the correction moves is ``PublishedAltitude``'s to decide: a block is
+ a fix's altitudes the correction moves is `PublishedAltitude`'s to decide: a block is
  corrected on its floor, raising the obstacle-clearance floor and leaving its ceiling
  published.
  */

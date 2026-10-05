@@ -2,7 +2,7 @@ import Foundation
 import NavDataSchema
 
 /**
- What a ``ColdTemperatureRestriction`` means at the temperature a station is reporting now.
+ What a `ColdTemperatureRestriction` means at the temperature a station is reporting now.
 
  The restriction alone says only that an airport is a Cold Temperature Airport and at what
  threshold; pairing it with the reported temperature says whether that threshold is in force

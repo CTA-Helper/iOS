@@ -6,7 +6,7 @@ import NavDataSchema
 /**
  An airport, as Shortcuts, Spotlight and Siri hold it.
 
- Keyed by ``Airport/siteNumber`` and never by an identifier: a Shortcut the pilot saves outlives
+ Keyed by `Airport.siteNumber` and never by an identifier: a Shortcut the pilot saves outlives
  the cycle in which Palm Beach became `KDJT`, which is why ``AirportIDList`` is keyed the same
  way.
  */
