@@ -255,7 +255,7 @@
 				01597BD93016A663008AE3B6 /* XCRemoteSwiftPackageReference "XCUITestKit" */,
 				433C45F5269F45B6BC09085B /* XCRemoteSwiftPackageReference "sentry-cocoa" */,
 				CA0000000000000000000007 /* XCRemoteSwiftPackageReference "MeasurementKit" */,
-				CA000000000000000000000C /* XCLocalSwiftPackageReference "../NavDataDistribution" */,
+				CA000000000000000000000C /* XCRemoteSwiftPackageReference "NavDataDistribution" */,
 			);
 			preferredProjectObjectVersion = 110;
 			productRefGroup = 013A15193011372B00025551 /* Products */;
@@ -681,13 +681,6 @@
 		};
 /* End XCConfigurationList section */
 
-/* Begin XCLocalSwiftPackageReference section */
-		CA000000000000000000000C /* XCLocalSwiftPackageReference "../NavDataDistribution" */ = {
-			isa = XCLocalSwiftPackageReference;
-			relativePath = ../NavDataDistribution;
-		};
-/* End XCLocalSwiftPackageReference section */
-
 /* Begin XCRemoteSwiftPackageReference section */
 		01597BD93016A663008AE3B6 /* XCRemoteSwiftPackageReference "XCUITestKit" */ = {
 			isa = XCRemoteSwiftPackageReference;
@@ -729,6 +722,14 @@
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 1.1.0;
+			};
+		};
+		CA000000000000000000000C /* XCRemoteSwiftPackageReference "NavDataDistribution" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/CTA-Helper/NavDataDistribution";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
