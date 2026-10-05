@@ -55,9 +55,7 @@ struct NavDataStoreInstaller {
    */
   func install(generation: Int) throws {
     try validate(generation: generation)
-    defaults.navDataSchemaVersion = NavDataSchema.version
-    defaults.activeNavDataGeneration = generation
-    Self.logger.notice("Switched to nav data generation \(generation, privacy: .public)")
+    activate(generation: generation)
   }
 
   /**
@@ -68,8 +66,11 @@ struct NavDataStoreInstaller {
    generation that must already be on disk: bootstrapping an empty one in place of a candidate
    that has gone would refuse the install for the wrong reason, and leave a file behind that
    nothing wrote.
+
+   - Parameter generation: The generation an update has just written.
+   - Throws: The errors ``install(generation:)`` does.
    */
-  private func validate(generation: Int) throws {
+  func validate(generation: Int) throws {
     let container = try NavDataStore.makeContainerForExistingGeneration(
       layout: layout,
       generation: generation
@@ -77,6 +78,16 @@ struct NavDataStoreInstaller {
     guard try ModelContext(container).fetchCount(FetchDescriptor<Airport>()) > 0 else {
       throw Errors.storeIsEmpty
     }
+  }
+
+  /**
+   Switches to `generation` without checking it, for a caller that has just done so with
+   ``validate(generation:)``.
+   */
+  func activate(generation: Int) {
+    defaults.navDataSchemaVersion = NavDataSchema.version
+    defaults.activeNavDataGeneration = generation
+    Self.logger.notice("Switched to nav data generation \(generation, privacy: .public)")
   }
 
   /// Reasons a candidate store was refused.
