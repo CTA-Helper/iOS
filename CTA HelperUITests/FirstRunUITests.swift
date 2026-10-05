@@ -10,7 +10,7 @@ nonisolated final class FirstRunUITests: XCTestCase {
     continueAfterFailure = false
   }
 
-  /// The download the app cannot start without, and the approach plate it makes reachable.
+  /// The download the app cannot start without, and the approaches it makes reachable.
   @MainActor
   func testDownloadsAndImportsNavigationDataOnFirstRun() throws {
     let airports = launchFirstRunApp(navData: LaunchArgument.bundledNavData)
@@ -63,5 +63,21 @@ nonisolated final class FirstRunUITests: XCTestCase {
       .deferUpdate()
       .openSettings()
       .assertReportsAnExpiredCycle()
+  }
+
+  /**
+   Updating an expired cycle swaps the downloaded one in for the data the app was reading, and
+   leaves the pilot's favorites where they were.
+   */
+  @MainActor
+  func testReplacesAnExpiredCycleWithTheDownloadedOne() throws {
+    launchExpiredCycleApp(LaunchArgument.bundledNavData)
+      .assertOffersToUpdate()
+      .startDownload()
+      .awaitAirportList()
+      .selectTab(.favorites)
+      .assertListsAirport("KMSO")
+      .openSettings()
+      .assertReportsCycle("2607")
   }
 }

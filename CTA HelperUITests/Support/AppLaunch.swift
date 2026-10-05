@@ -13,7 +13,7 @@ enum LaunchArgument {
   static let seedStore = "-uiTestSeed"
   /// Expire the cycle standing over the seeded airports, so the app opens offering the update.
   static let expiredCycle = "-uiTestSeedExpiredCycle"
-  /// Serve the bundled sample cycle when the nav data is fetched.
+  /// Serve the bundled sample cycle when the nav data is fetched, as a prebuilt store.
   static let bundledNavData = "-uiTestNavDataBundled"
   /// Serve nothing, so the fetch fails and the loading screen has an error to report.
   static let unreachableNavData = "-uiTestNavDataUnreachable"
@@ -63,9 +63,12 @@ func launchSeededApp(
 /**
  Launches the app against the seeded store with an expired cycle over it, and returns the loading
  screen it opens on offering the update.
+
+ - Parameter arguments: anything the test wants settled beyond the expired store — where the
+   update is served from, say.
  */
-func launchExpiredCycleApp() -> LoadingScreen {
-  let app = launchApp([LaunchArgument.seedStore, LaunchArgument.expiredCycle]) {
+func launchExpiredCycleApp(_ arguments: String...) -> LoadingScreen {
+  let app = launchApp([LaunchArgument.seedStore, LaunchArgument.expiredCycle] + arguments) {
     $0.descendant(id: LoadingScreen.landingID)
   }
   return LoadingScreen(app: app)
