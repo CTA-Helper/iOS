@@ -1,4 +1,5 @@
 import Foundation
+import NavDataSchema
 
 /**
  How ``AltitudeView``'s rendering of a ``CorrectedAltitude`` reads aloud.

@@ -1,4 +1,5 @@
 import Foundation
+import NavDataSchema
 
 /**
  The correction-relevant properties of a fix, so the correction engine can work on either a
@@ -16,3 +17,5 @@ protocol CorrectableFix {
    */
   var isCorrectable: Bool { get }
 }
+
+extension Fix: CorrectableFix {}

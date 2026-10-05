@@ -1,4 +1,5 @@
 import Foundation
+import NavDataSchema
 
 /**
  The instruction a leg stands for, set above the fix name wherever the leg is flown to

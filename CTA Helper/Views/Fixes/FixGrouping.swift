@@ -1,4 +1,5 @@
 import Foundation
+import NavDataSchema
 
 /**
  Groups an approach's fixes into the sections the fix list renders: one per segment, in the

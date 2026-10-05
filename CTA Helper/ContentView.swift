@@ -1,4 +1,5 @@
 import AppIntents
+import NavDataSchema
 import SwiftData
 import SwiftUI
 

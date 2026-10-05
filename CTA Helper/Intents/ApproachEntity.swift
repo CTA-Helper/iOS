@@ -1,5 +1,6 @@
 import AppIntents
 import Foundation
+import NavDataSchema
 
 /**
  An approach's identity across cycles: the airport that publishes it, and its ARINC 424 code.

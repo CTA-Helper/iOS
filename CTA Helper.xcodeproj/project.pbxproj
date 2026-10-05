@@ -13,6 +13,7 @@
 		CA0000000000000000000006 /* Gzip in Frameworks */ = {isa = PBXBuildFile; productRef = CA0000000000000000000004 /* Gzip */; };
 		CA000000000000000000000A /* MeasurementKit in Frameworks */ = {isa = PBXBuildFile; productRef = CA0000000000000000000008 /* MeasurementKit */; };
 		CA000000000000000000000B /* MeasurementKitUI in Frameworks */ = {isa = PBXBuildFile; productRef = CA0000000000000000000009 /* MeasurementKitUI */; };
+		CA000000000000000000000E /* NavDataSchema in Frameworks */ = {isa = PBXBuildFile; productRef = CA000000000000000000000D /* NavDataSchema */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -43,8 +44,6 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				CLAUDE.md,
-				Models/CLAUDE.md,
-				NavData/CLAUDE.md,
 			);
 			target = 013A15173011372B00025551 /* CTA Helper */;
 		};
@@ -90,6 +89,7 @@
 				43BAC51A24D44E908F705515 /* Sentry in Frameworks */,
 				CA000000000000000000000A /* MeasurementKit in Frameworks */,
 				CA000000000000000000000B /* MeasurementKitUI in Frameworks */,
+				CA000000000000000000000E /* NavDataSchema in Frameworks */,
 			);
 		};
 		013A15243011372B00025551 /* Frameworks */ = {
@@ -150,6 +150,7 @@
 				311119389286435C82B937B5 /* Sentry */,
 				CA0000000000000000000008 /* MeasurementKit */,
 				CA0000000000000000000009 /* MeasurementKitUI */,
+				CA000000000000000000000D /* NavDataSchema */,
 			);
 			productName = "CTA Helper";
 			productReference = 013A15183011372B00025551 /* CTA Helper.app */;
@@ -238,6 +239,7 @@
 				01597BD93016A663008AE3B6 /* XCRemoteSwiftPackageReference "XCUITestKit" */,
 				433C45F5269F45B6BC09085B /* XCRemoteSwiftPackageReference "sentry-cocoa" */,
 				CA0000000000000000000007 /* XCRemoteSwiftPackageReference "MeasurementKit" */,
+				CA000000000000000000000C /* XCLocalSwiftPackageReference "../NavDataDistribution" */,
 			);
 			preferredProjectObjectVersion = 110;
 			productRefGroup = 013A15193011372B00025551 /* Products */;
@@ -661,6 +663,13 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCLocalSwiftPackageReference section */
+		CA000000000000000000000C /* XCLocalSwiftPackageReference "../NavDataDistribution" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../NavDataDistribution;
+		};
+/* End XCLocalSwiftPackageReference section */
+
 /* Begin XCRemoteSwiftPackageReference section */
 		01597BD93016A663008AE3B6 /* XCRemoteSwiftPackageReference "XCUITestKit" */ = {
 			isa = XCRemoteSwiftPackageReference;
@@ -736,6 +745,10 @@
 			isa = XCSwiftPackageProductDependency;
 			package = CA0000000000000000000007 /* XCRemoteSwiftPackageReference "MeasurementKit" */;
 			productName = MeasurementKitUI;
+		};
+		CA000000000000000000000D /* NavDataSchema */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = NavDataSchema;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

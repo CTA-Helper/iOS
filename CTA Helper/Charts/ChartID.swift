@@ -1,4 +1,5 @@
 import Foundation
+import NavDataSchema
 
 /**
  Everything the chart subsystem needs to fetch and file one approach plate, read off the URL

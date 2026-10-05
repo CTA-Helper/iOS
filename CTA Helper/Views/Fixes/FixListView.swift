@@ -1,5 +1,6 @@
 import MeasurementKit
 import MeasurementKitUI
+import NavDataSchema
 import SwiftData
 import SwiftUI
 

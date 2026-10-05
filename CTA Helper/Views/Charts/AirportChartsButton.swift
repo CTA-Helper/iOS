@@ -1,3 +1,4 @@
+import NavDataSchema
 import SwiftData
 import SwiftUI
 

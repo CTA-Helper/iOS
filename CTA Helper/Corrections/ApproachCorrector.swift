@@ -1,4 +1,5 @@
 import Foundation
+import NavDataSchema
 
 /**
  Applies AIP ENR 1.8 cold temperature corrections to an approach's fixes.

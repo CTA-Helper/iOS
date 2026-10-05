@@ -1,4 +1,5 @@
 import Foundation
+import NavDataSchema
 
 /**
  What a ``ColdTemperatureRestriction`` means at the temperature a station is reporting now.

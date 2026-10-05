@@ -1,4 +1,5 @@
 import Foundation
+import NavDataSchema
 import SwiftData
 import Testing
 
