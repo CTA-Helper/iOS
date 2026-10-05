@@ -42,9 +42,13 @@ arguments as app settings. `Support/AppLaunch.swift` names them.
 - `-uiTestSeed` — installs a generation holding KMSO (favorited) and KSFO
   into the test's own store directory, so nothing is downloaded.
 - `-uiTestNavDataBundled` / `-uiTestNavDataUnreachable` — point
-  `NavDataReleaseManifest.url` / `.dataURL` at `UITestFixtures/` or at nothing, to
-  drive the first-run download and its failure. The fixture is committed as
-  plain JSON and gzipped at launch, since the loader gunzips what it downloads.
+  `NavDataReleaseManifest.url` / `.dataURL` and the prebuilt store's base URL
+  at `UITestFixtures/` or at nothing, to drive the first-run download, an
+  update over an expired cycle, and their failure. The fixture is committed as
+  plain JSON; it is gzipped for the JSON release and, when the update first
+  asks, built into an lzma-compressed store with its manifest
+  (`FixtureStorePublisher`, writing through `NavDataStoreWriter`), so an
+  update installs the prebuilt store the way it would a published one.
 - `-uiTestLocationAuthorized` / `-uiTestLocationDenied` — inject a
   `FixedLocationStreamer`. It is the only way to reach the Nearest tab: a test
   cannot answer the system permission alert.
