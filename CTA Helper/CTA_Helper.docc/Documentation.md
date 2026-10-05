@@ -25,8 +25,13 @@ It is for situational awareness and planning only, not for primary navigation.
 
 ### Nav data
 
-- ``NavDataLoader``
+- ``NavDataUpdater``
 - ``NavDataStore``
+- ``NavDataStoreInstaller``
+- ``PrebuiltNavDataStore``
+- ``NavDataLoader``
+- ``NavDataDownloadTask``
+- ``BackgroundRefreshScheduler``
 
 ### Weather
 

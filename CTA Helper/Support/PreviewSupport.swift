@@ -338,11 +338,7 @@ import SwiftData
     @MainActor
     static func makeInMemory() -> ModelContainer {
       do {
-        return try ModelContainer(
-          for: Airport.self,
-          NavDataCycle.self,
-          configurations: ModelConfiguration(isStoredInMemoryOnly: true)
-        )
+        return try NavDataContainer.makeInMemoryContainer()
       } catch {
         fatalError("Could not create in-memory ModelContainer: \(error)")
       }
