@@ -40,13 +40,16 @@ final class NavDataLoaderViewModel {
 
    A load the pilot has just asked for reads as downloading from the tap, before the system has
    let the work begin; an update the system started in the background reads as whatever it is
-   doing, so a pilot who opens the app partway through one watches it finish.
+   doing, so a pilot who opens the app partway through one watches it finish. An update that
+   finished with the screen still up left the data out of date, so outside a load of the
+   pilot's own it reads as idle, and the screen offers the choice again.
    */
   var state: NavDataLoader.State {
-    if loadTask != nil, case .idle = NavDataUpdater.shared.state {
-      return .downloading(progress: nil)
+    switch (loadTask, NavDataUpdater.shared.state) {
+      case (.some, .idle): .downloading(progress: nil)
+      case (nil, .finished): .idle
+      case (_, let state): state
     }
-    return NavDataUpdater.shared.state
   }
 
   /// Whether the loading screen should be shown.
