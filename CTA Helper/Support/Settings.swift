@@ -29,3 +29,29 @@ enum SettingsKey {
   /// The last-used correction method (``CorrectionMethod``); default `.allSegments`.
   static let correctionMethod = "correctionMethod"
 }
+
+extension SettingsKey {
+  /**
+   Which generation of the nav data store the app reads (`Int`); default
+   ``NavDataStore/emptyGeneration``.
+
+   Written only by ``NavDataStoreInstaller``, once a new generation has been found to hold a
+   dataset, so this one number is what makes switching datasets atomic.
+   */
+  static let activeNavDataGeneration = "activeNavDataGeneration"
+  /**
+   The ``NavDataSchema/version`` the active generation was installed under (`Int`); default the
+   current version.
+
+   A build that raises the version finds an older number here and asks for the data again,
+   because the rows already on disk mean something different under the new one.
+   */
+  static let navDataSchemaVersion = "navDataSchemaVersion"
+  /**
+   Whether a background update may use a network iOS treats as metered (`Bool`); default `false`.
+
+   An update the pilot starts themselves uses any network; one the system starts while the device
+   charges waits for an unmetered one unless this allows otherwise.
+   */
+  static let allowsBackgroundMeteredDownloads = "allowsBackgroundMeteredDownloads"
+}

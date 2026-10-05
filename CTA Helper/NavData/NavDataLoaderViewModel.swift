@@ -1,260 +1,247 @@
+import BackgroundTasks
 import Foundation
-import NavDataSchema
 import Observation
 import Sentry
 import SwiftData
-import os
 
 /**
- Coordinates nav data loading and the loading UI's state.
+ Decides when the loading screen stands between the pilot and their data, and starts or follows
+ an update through ``NavDataUpdater``.
 
- On launch it reads what the store holds. With no airports, or with a cycle that has expired over
- them, the app shows the loading screen, whose ``load(force:)`` downloads and imports the
- published cycle. A pilot who already has usable data can defer that update with ``loadLater()``
- and fly the stored cycle for the rest of the launch. Nothing else touches the network.
+ The screen shows while the store is empty, or while what it holds is out of date — a cycle not
+ in force, or a schema this build has moved past — and the pilot has not deferred the update. A
+ pilot who already has usable data can defer with ``loadLater()`` and fly the stored cycle for
+ the rest of the launch.
  */
 @Observable
 @MainActor
 final class NavDataLoaderViewModel {
-  /// How often the loader's state is read while a load is running, to drive the loading UI.
-  private static let statePollInterval = Duration.milliseconds(200)
+  /// The scale the update's 0…1 progress is reported to the system on.
+  private static let progressUnits: Int64 = 100
 
-  private static let logger = Logger(
-    subsystem: "codes.tim.CTA-Helper",
-    category: "NavDataLoaderViewModel"
-  )
+  /// How often the store is read again while the loading screen is up.
+  private static let refreshInterval = Duration.milliseconds(500)
 
-  private(set) var state: NavDataLoader.State = .idle
-  private(set) var hasData = false
-  private(set) var cycleHasExpired = false
   var error: (any Error)?
 
-  private let container: ModelContainer
-  private let importContainer: ModelContainer
-  private let chartStore: ChartStore?
-  private var isLoading = false
-  /**
-   Whether the expired cycle's update has been settled for this launch — the pilot deferred it,
-   or the download it was offering has already been made.
-   */
-  private var updateSettled = false
+  private(set) var noData = false
+  private(set) var needsLoad = true
+  private(set) var canSkip = false
+  private(set) var deferred = false
+
+  /// The store the app reads, replaced when an update installs a new generation.
+  var container: ModelContainer
+
+  /// The load the pilot started, from the tap until it settles.
+  private var loadTask: Task<Void, Never>?
 
   /**
-   Whether the blocking loading screen should be shown: the store is empty, or the cycle standing
-   over it has expired and the pilot has not deferred the update.
-   */
-  var showLoader: Bool { (!hasData || cycleHasExpired) && !updateSettled }
+   The progress of the update, as the loading screen shows it.
 
-  /// Whether the pilot may defer an update, which they may only when a usable cycle is imported.
-  var canSkip: Bool { hasData }
-
-  /**
-   - Parameters:
-     - container: the store the app reads.
-     - chartStore: the plate cache to clear of superseded cycles after an import, or `nil` in a
-       preview, where nothing has been cached to clear.
+   A load the pilot has just asked for reads as downloading from the tap, before the system has
+   let the work begin; an update the system started in the background reads as whatever it is
+   doing, so a pilot who opens the app partway through one watches it finish.
    */
-  init(container: ModelContainer, chartStore: ChartStore? = nil) {
-    self.container = container
-    self.chartStore = chartStore
-    importContainer = Self.makeImportContainer(matching: container)
+  var state: NavDataLoader.State {
+    if loadTask != nil, case .idle = NavDataUpdater.shared.state {
+      return .downloading(progress: nil)
+    }
+    return NavDataUpdater.shared.state
   }
 
+  /// Whether the loading screen should be shown.
+  var showLoader: Bool { (noData || needsLoad) && !deferred }
+
   /**
-   A standalone container over the same store, for the importer to write through.
-
-   The import's bulk transactions then queue on their own persistent store coordinator, so
-   main-context work — `@Query` fetches, model faults — never waits behind them. Under WAL
-   journaling a reader on another coordinator is not blocked by an in-flight write.
+   Whether a load may start: not while one is already under way, from this screen or from the
+   background.
    */
-  private static func makeImportContainer(matching container: ModelContainer) -> ModelContainer {
-    // An in-memory store, which is what UI tests and previews open, cannot be shared between
-    // containers: a second one over the same configuration would be a second, empty store.
-    guard !container.configurations.contains(where: \.isStoredInMemoryOnly) else {
-      return container
+  private var canStartLoad: Bool {
+    guard loadTask == nil else { return false }
+    switch state {
+      case .idle, .finished: return true
+      default: return false
     }
+  }
 
-    do {
-      return try ModelContainer(
-        for: container.schema,
-        configurations: Array(container.configurations)
-      )
-    } catch {
-      // Importing through the live container is slower under load, not wrong; a failure to open
-      // a second one is no reason to refuse to update the nav data at all.
-      logger.warning("Falling back to the live container for imports: \(error)")
-      return container
-    }
+  /// - Parameter container: The store the app reads.
+  init(container: ModelContainer) {
+    self.container = container
+  }
+
+  /// What a store holds, read on a context of its own so the main actor does no fetching.
+  @concurrent
+  nonisolated private static func storedState(of container: ModelContainer) async throws
+    -> NavDataState
+  {
+    try NavDataState.fetch(context: ModelContext(container))
   }
 
   #if DEBUG
     /**
-     Builds an instance pinned to a given `state`, `error` and store contents, for SwiftUI
-     previews that need a stage other than the initial `.idle` first-run prompt.
+     Builds an instance pinned to a given `error` and store state, for SwiftUI previews of the
+     consent prompt.
      */
     static func previewing(
-      state: NavDataLoader.State,
       error: (any Error)? = nil,
-      hasData: Bool = false
+      noData: Bool = true,
+      canSkip: Bool = false
     ) -> NavDataLoaderViewModel {
       let viewModel = NavDataLoaderViewModel(container: .preview)
-      viewModel.state = state
       viewModel.error = error
-      viewModel.hasData = hasData
+      viewModel.noData = noData
+      viewModel.canSkip = canSkip
       return viewModel
     }
   #endif
 
   /**
-   Resolve what the store holds. When it is empty, or the cycle over it has expired, the loading
-   screen shows the consent prompt and the pilot starts the download with ``load(force:)``.
+   Reads what the store holds, then keeps reading it for as long as the loading screen is up.
+
+   Once the data is present and current the screen is dismissed and the reads stop, so they never
+   contend with the views' own store access for the life of the app.
    */
   func start() async {
-    await refreshState()
+    while !Task.isCancelled {
+      await refreshState()
+      guard showLoader else { return }
+      try? await Task.sleep(for: Self.refreshInterval)
+    }
   }
 
   /**
-   Dismiss the update prompt for the rest of this launch, leaving the imported cycle in place.
+   Dismiss the update prompt for the rest of this launch, leaving the stored cycle in place.
 
    Deferring is deliberately not persisted: a pilot who puts off an expired cycle is asked again
    the next time they open the app, rather than never.
    */
   func loadLater() {
-    if canSkip { updateSettled = true }
+    if canSkip { deferred = true }
+  }
+
+  /// Download and install the newest published cycle.
+  func load() {
+    guard canStartLoad else { return }
+    loadTask = Task { [weak self] in
+      await self?.runLoad()
+      self?.loadTask = nil
+    }
   }
 
   /**
-   Download and import the newest cycle, replacing what is stored.
+   Download and install the newest published cycle, reporting how it went rather than presenting
+   it — for Settings, which says so in place.
 
-   - Parameter force: re-import even when the stored cycle already matches the manifest.
+   - Returns: Whether a new cycle was installed, or the one installed was already the newest.
+   - Throws: Whatever stopped the update, `CancellationError` included.
    */
-  func load(force: Bool = false) {
-    guard !isLoading else { return }
-    isLoading = true
+  func checkForUpdate() async throws -> NavDataUpdater.Outcome {
+    try await updateInBackgroundTask()
+  }
+
+  private func runLoad() async {
     error = nil
-
-    let loader = NavDataLoader(modelContainer: importContainer)
-    Task {
-      let outcome = await importCycle(with: loader, force: force)
-      await publish(outcome)
-      isLoading = false
-    }
-  }
-
-  /**
-   Run the load, mirroring the loader's stages onto ``state`` while it runs, and report how it
-   ended.
-
-   The mirroring task is cancelled *and joined* before this returns, so the stage it is midway
-   through reading can never land after the outcome does — which would leave the loading screen
-   showing a stage of a load that has already failed.
-   */
-  private func importCycle(with loader: NavDataLoader, force: Bool) async -> LoadOutcome {
-    await withTaskGroup(of: Void.self, returning: LoadOutcome.self) { group in
-      group.addTask { await self.pollState(of: loader) }
-      let outcome = await outcome(of: loader, force: force)
-      group.cancelAll()
-      await group.waitForAll()
-      return outcome
-    }
-  }
-
-  /// How one download and import ended, having published nothing.
-  private func outcome(of loader: NavDataLoader, force: Bool) async -> LoadOutcome {
     do {
-      try await loader.load(force: force, purgingChartsFrom: chartStore)
-      return .finished(await loader.state)
+      try await updateInBackgroundTask()
+      // A cycle still out of date once the update has finished is the newest one published, so
+      // there is nothing further to offer: prompting again would ask the pilot to repeat the
+      // download they have just made.
+      deferred = true
     } catch is CancellationError {
-      return .cancelled
+      // A load the system stopped finished nothing, and there is nothing to tell the pilot: the
+      // dataset in use is the one they already had.
     } catch {
-      return .failed(error)
+      self.error = error
     }
-  }
-
-  /// Show how the load ended. A cancelled load shows nothing: another load has taken over.
-  private func publish(_ outcome: LoadOutcome) async {
-    switch outcome {
-      case .finished(let loaderState):
-        state = loaderState
-        await refreshState()
-        // A cycle still out of date once imported is the newest one published, so there is
-        // nothing further to offer: prompting again would ask the pilot to repeat the download
-        // they have just finished.
-        if cycleHasExpired { updateSettled = true }
-      case .failed(let error):
-        // Log the whole error, including any wrapped `underlying`, which the pilot-facing
-        // message deliberately leaves out.
-        Self.logger.error("Nav data load failed: \(error)")
-        report(error)
-        self.error = error
-        state = .idle
-        // An import that failed partway through has emptied the store, so read it again: the
-        // prompt the pilot lands back on has to be the one their store actually calls for.
-        await refreshState()
-      case .cancelled:
-        break
-    }
+    await refreshState()
   }
 
   /**
-   Send a load failure to crash reporting, under one fingerprint so every nav data failure
-   groups into a single issue rather than one per underlying cause.
+   Runs an update the pilot asked for, under a continued-processing task where the system grants
+   one so it survives the pilot leaving the app.
 
-   A failure the pilot's own environment caused — a full disk, most obviously — is not a defect
-   and is filtered out here, so it does not bury the failures that are.
+   Safe because an update writes a generation nothing reads: a task the system cancels costs a
+   file, not a database.
    */
-  private func report(_ error: any Error) {
-    guard (error as? NavDataError)?.isReportable ?? true else { return }
-
-    SentrySDK.capture(error: error) { scope in
-      scope.setFingerprint(["navData", "load"])
-    }
-  }
-
-  /**
-   Mirror the loader's state onto the view model for as long as the load runs, so the loading
-   screen follows the stages the loader passes through.
-   */
-  private func pollState(of loader: NavDataLoader) async {
-    while !Task.isCancelled {
-      state = await loader.state
-      try? await Task.sleep(for: Self.statePollInterval)
-    }
-  }
-
-  private func refreshState() async {
-    let stored = await storedState()
-    hasData = stored.hasData
-    cycleHasExpired = stored.cycleHasExpired
-  }
-
-  /// What the store holds, read on a context of its own so launch does no main-actor fetching.
-  @concurrent
-  private func storedState() async -> StoredState {
-    let context = ModelContext(container)
-    var cycleDescriptor = FetchDescriptor<NavDataCycle>()
-    cycleDescriptor.fetchLimit = 1
-    let cycle = (try? context.fetch(cycleDescriptor))?.first
-    let airportCount = (try? context.fetchCount(FetchDescriptor<Airport>())) ?? 0
-
-    return StoredState(
-      hasData: airportCount > 0,
-      // Airports with no cycle standing over them are a half-written import, which is exactly
-      // when the published cycle should be fetched again.
-      cycleHasExpired: cycle?.hasExpired ?? true
+  @discardableResult
+  private func updateInBackgroundTask() async throws -> NavDataUpdater.Outcome {
+    let backgroundTask = await NavDataDownloadTask.shared.begin(
+      title: String(localized: "Updating Navigation Data"),
+      subtitle: String(localized: "Downloading")
     )
+    backgroundTask?.expirationHandler = {
+      MainActor.assumeIsolated { NavDataUpdater.shared.cancel() }
+    }
+    let reporting = backgroundTask.map(reportProgress(to:))
+    defer { reporting?.cancel() }
+
+    do {
+      let outcome = try await NavDataUpdater.shared.update(networkAccess: .any)
+      report(.finished, to: backgroundTask)
+      backgroundTask?.setTaskCompleted(success: true)
+      return outcome
+    } catch {
+      backgroundTask?.setTaskCompleted(success: false)
+      throw error
+    }
   }
 
-  /// What the store holds, resolved away from the main actor and applied on it.
-  private struct StoredState {
-    let hasData: Bool
-    let cycleHasExpired: Bool
+  /**
+   Follows the update's phase and progress onto the system's own display of the work, for as long
+   as it runs.
+   */
+  private func reportProgress(to backgroundTask: BGContinuedProcessingTask) -> Task<Void, Never> {
+    backgroundTask.progress.totalUnitCount = Self.progressUnits
+    return Task { [weak self] in
+      for await state in Observations({ NavDataUpdater.shared.state }) {
+        if Task.isCancelled { break }
+        self?.report(state, to: backgroundTask)
+      }
+    }
   }
 
-  /// How a load ended, held until the stage mirroring has stopped and it can be published.
-  private enum LoadOutcome {
-    case finished(NavDataLoader.State)
-    case failed(any Error)
-    case cancelled
+  /**
+   Mirrors the update's phase and progress onto the system's own display of the work.
+
+   A continued-processing task must report progress: one the system reads as stalled is expired
+   to reclaim its resources.
+   */
+  private func report(_ state: NavDataLoader.State, to backgroundTask: BGContinuedProcessingTask?) {
+    guard let backgroundTask else { return }
+
+    let (subtitle, fraction): (String, Float?) =
+      switch state {
+        case .idle: (String(localized: "Starting"), 0)
+        case .downloading(let progress): (String(localized: "Downloading"), progress)
+        case .decompressing(let progress): (String(localized: "Decompressing"), progress)
+        case .processing(let progress): (String(localized: "Processing"), progress)
+        case .finished: (String(localized: "Finished"), 1)
+      }
+
+    backgroundTask.updateTitle(String(localized: "Updating Navigation Data"), subtitle: subtitle)
+    guard let fraction else { return }
+    backgroundTask.progress.completedUnitCount = Int64(fraction * Float(Self.progressUnits))
+  }
+
+  /// Reads what the store holds, and applies it.
+  private func refreshState() async {
+    do {
+      apply(try await Self.storedState(of: container))
+    } catch {
+      SentrySDK.capture(error: error) { scope in
+        scope.setFingerprint(["navData", "state"])
+      }
+      self.error = error
+    }
+  }
+
+  private func apply(_ state: NavDataState) {
+    if noData != state.noData { noData = state.noData }
+    if needsLoad != state.needsLoad { needsLoad = state.needsLoad }
+    if canSkip != state.canSkip { canSkip = state.canSkip }
+  }
+
+  isolated deinit {
+    loadTask?.cancel()
   }
 }

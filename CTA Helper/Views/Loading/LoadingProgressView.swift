@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// The progress indicator shown while the nav data is being checked, downloaded, or imported.
+/// The progress indicator shown while the nav data is being downloaded, decompressed, or written.
 struct LoadingProgressView: View {
   let state: NavDataLoader.State
 
@@ -22,26 +22,27 @@ struct LoadingProgressView: View {
   private var label: String {
     switch state {
       case .idle, .finished: ""
-      case .checking: String(localized: "Checking for the latest data…")
       case .downloading: String(localized: "Downloading navigation data…")
-      case .importing: String(localized: "Importing airports…")
+      case .decompressing: String(localized: "Decompressing navigation data…")
+      case .processing: String(localized: "Importing airports…")
     }
   }
 
-  private var fraction: Double? {
+  private var fraction: Float? {
     switch state {
-      case .downloading(let progress), .importing(let progress): progress
+      case .downloading(let progress), .decompressing(let progress), .processing(let progress):
+        progress
       default: nil
     }
   }
 }
 
 #if DEBUG
-  #Preview("Importing") {
-    LoadingProgressView(state: .importing(progress: 0.4))
+  #Preview("Downloading") {
+    LoadingProgressView(state: .downloading(progress: nil))
   }
 
-  #Preview("Checking") {
-    LoadingProgressView(state: .checking)
+  #Preview("Importing") {
+    LoadingProgressView(state: .processing(progress: 0.4))
   }
 #endif
