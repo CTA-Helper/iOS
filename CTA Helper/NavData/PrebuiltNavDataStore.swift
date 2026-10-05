@@ -20,7 +20,9 @@ actor PrebuiltNavDataStore {
    Where published stores are served from: the R2 bucket's public URL, under the `navdata` key
    prefix the builder uploads to.
    */
-  static let publishedBaseURL = URL(string: "https://r2-public-url.invalid/navdata/")!
+  static let publishedBaseURL = URL(
+    string: "https://pub-a1d58c12118e49babf77f77fb192ca82.r2.dev/navdata/"
+  )!
 
   /**
    How many cycles back to look before giving up and importing instead.
