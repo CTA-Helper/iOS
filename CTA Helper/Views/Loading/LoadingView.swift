@@ -80,10 +80,9 @@ private struct LoadingConsentView: View {
 #if DEBUG
   #Preview(
     arguments: [
-      NavDataLoaderViewModel(container: .preview),
-      .previewing(state: .idle, hasData: true),
-      .previewing(state: .downloading(progress: 0.6)),
-      .previewing(state: .idle, error: URLError(.notConnectedToInternet))
+      NavDataLoaderViewModel.previewing(),
+      .previewing(noData: false, canSkip: true),
+      .previewing(error: URLError(.notConnectedToInternet))
     ]
   ) { viewModel in
     LoadingView(viewModel: viewModel)

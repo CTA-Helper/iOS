@@ -5,89 +5,79 @@ import SwiftData
 import os
 
 /**
- Downloads and imports the nav data published at `github.com/CTA-Helper/Navdata`.
+ Downloads the JSON release published at `github.com/CTA-Helper/Navdata` and writes it into a
+ store, for when no prebuilt store can be installed.
 
- The loader polls the manifest, and when its SHA-256 differs from the imported
- ``NavDataCycle`` it downloads the ~1.3 MB gzipped document, verifies it against the digest
- and byte counts the manifest publishes, decodes it, and replaces the store's airports in
- batches. ``state`` is polled by the view model to drive the loading UI.
+ It writes into an empty store of its own — the next *generation* of the dataset — and never
+ touches the one in use. Nothing switches to what it wrote until the write finishes and the
+ result is found to hold airports, so an import that fails, or is killed when the pilot swipes
+ the app away, costs the pilot nothing. That is why there is no step here that clears anything
+ first.
+
+ ## Executor Constraints
+
+ The writer is a `@ModelActor`, whose executor blocks whoever enqueues onto it for as long as it
+ is busy. Progress therefore leaves through ``stateUpdates()`` rather than through state a caller
+ would have to await, and the CPU-bound gunzip and decode run in `@concurrent` functions.
  */
-@ModelActor
 actor NavDataLoader {
-  /**
-   How many rows are written between saves, to keep any one transaction bounded.
-
-   Each save holds the store's write lock for its full commit, stalling other readers of the
-   same store, so transactions are kept small and frequent. An airport carries nested approach
-   and fix inserts, so the batch is bounded by total rows rather than airport count.
-   */
-  private static let saveBatchRowLimit = 2000
-
-  /// Pause between batch saves, so other store users can interleave.
-  private static let interBatchPause = Duration.milliseconds(50)
+  /// The seconds a request may go without receiving data before it is abandoned.
+  private static let requestTimeoutSeconds: TimeInterval = 60
 
   /**
-   The session the cycle is fetched over.
+   The seconds a whole transfer may take.
 
-   `URLSession.shared` carries the default seven-day resource timeout, which for a download
-   this app blocks its first launch on is no timeout at all.
+   The system default is seven days, which for a download a pilot is watching is no timeout at
+   all.
    */
-  private static let session: URLSession = {
-    let configuration = URLSessionConfiguration.ephemeral
-    configuration.timeoutIntervalForRequest = 60
-    configuration.timeoutIntervalForResource = 600
-    return URLSession(configuration: configuration)
-  }()
-
-  private static let logger = Logger(
-    subsystem: "codes.tim.CTA-Helper",
-    category: "NavDataLoader"
-  )
-
-  private(set) var state: State = .idle
+  private static let resourceTimeoutSeconds: TimeInterval = 600
 
   /**
-   Update the store to the newest published cycle, or do nothing if it is already imported.
+   Smallest change in download progress worth pushing to consumers.
 
-   - Parameters:
-     - force: when `true`, re-import even if the manifest's SHA-256 matches the imported cycle.
-     - chartStore: the plate cache to clear of superseded cycles once the import commits, or
-       `nil` to leave it alone.
+   The session reports progress once per received chunk, which is far finer than a progress
+   indicator can show; coarsening it keeps consumers from waking hundreds of times a second for
+   changes they cannot render.
    */
-  func load(force: Bool = false, purgingChartsFrom chartStore: ChartStore? = nil) async throws {
-    state = .checking
-    let manifest = try await fetchManifest()
+  private static let progressReportingStep: Float = 0.005
 
-    if !force, try isAlreadyImported(manifest) {
-      state = .finished
-      return
-    }
+  private static let logger = Logger(subsystem: "codes.tim.CTA-Helper", category: "NavDataLoader")
 
-    state = .downloading(progress: nil)
-    let compressed = try await download(NavDataReleaseManifest.dataURL)
-    try NavDataIntegrity.verify(compressed, against: manifest.data)
-
-    state = .importing(progress: nil)
-    let document = try decode(gunzip(compressed, expecting: manifest.data.uncompressedBytes))
-
-    // Drop the cycle record before the store is rewritten. From here until `recordCycle`
-    // succeeds the airports are in flux, and a cycle standing over a half-written store would
-    // let the next launch run against a partial procedure set instead of downloading it again.
-    try clearCycle()
-    try await replaceAirports(with: document)
-    try recordCycle(manifest)
-
-    // Only once the new cycle is committed. A load that failed partway leaves the old plates
-    // standing, which the next successful import clears — the safe direction to fail in, and
-    // the reason the purge reads what to discard off the cache rather than off a record of what
-    // it discarded last time.
-    await chartStore?.removeCharts(outside: manifest.airacCycle)
-
-    state = .finished
+  private(set) var state: State = .idle {
+    didSet { stateContinuation?.yield(state) }
   }
 
-  private func fetchManifest() async throws -> NavDataReleaseManifest {
-    let data = try await download(NavDataReleaseManifest.url)
+  private let writer: NavDataStoreWriter
+  private let networkAccess: NavDataNetworkAccess
+  private var stateContinuation: AsyncStream<State>.Continuation?
+
+  /**
+   - Parameters:
+     - modelContainer: A container whose store accepts writes, holding the generation this
+       import is producing.
+     - networkAccess: The networks the downloads may use.
+   */
+  init(modelContainer: ModelContainer, networkAccess: NavDataNetworkAccess) {
+    writer = .init(modelContainer: modelContainer)
+    self.networkAccess = networkAccess
+  }
+
+  /**
+   The manifest of the newest published release.
+
+   - Parameter networkAccess: The networks the request may use.
+   */
+  nonisolated static func fetchManifest(
+    networkAccess: NavDataNetworkAccess
+  ) async throws -> NavDataReleaseManifest {
+    let session = URLSession(configuration: sessionConfiguration(for: networkAccess))
+    defer { session.finishTasksAndInvalidate() }
+
+    let data = try await withRetry(logger: logger, label: "download manifest") {
+      let (data, response) = try await session.data(from: NavDataReleaseManifest.url)
+      try checkStatus(of: response)
+      return data
+    }
     do {
       return try NavDataReleaseManifest.decoder().decode(NavDataReleaseManifest.self, from: data)
     } catch {
@@ -95,38 +85,30 @@ actor NavDataLoader {
     }
   }
 
-  private func isAlreadyImported(_ manifest: NavDataReleaseManifest) throws -> Bool {
-    do {
-      let cycles = try modelContext.fetch(FetchDescriptor<NavDataCycle>())
-      return cycles.first?.sha256 == manifest.data.sha256
-    } catch {
-      throw NavDataError.importFailed(underlying: error)
-    }
+  /// The session configuration every request here runs on.
+  nonisolated private static func sessionConfiguration(
+    for networkAccess: NavDataNetworkAccess
+  ) -> URLSessionConfiguration {
+    let configuration = networkAccess.sessionConfiguration
+    configuration.timeoutIntervalForRequest = requestTimeoutSeconds
+    configuration.timeoutIntervalForResource = resourceTimeoutSeconds
+    return configuration
   }
 
-  private func download(_ url: URL) async throws -> Data {
-    try await withRetry(logger: Self.logger, label: "download \(url.lastPathComponent)") {
-      let (data, response) = try await Self.session.data(from: url)
-      if let http = response as? HTTPURLResponse, !http.isSuccessful {
-        throw NavDataError.httpError(statusCode: http.statusCode)
-      }
-      return data
-    }
-  }
-
-  private func gunzip(_ compressed: Data, expecting uncompressedBytes: UInt) throws -> Data {
+  /// Gunzips, checks and decodes the downloaded release, off this actor's executor.
+  @concurrent
+  nonisolated private static func decode(
+    _ compressed: Data,
+    expecting uncompressedBytes: UInt
+  ) async throws -> NavDataDocument {
     let data: Data
     do {
       data = try compressed.gunzipped()
     } catch {
       throw NavDataError.decompressionFailed(underlying: error)
     }
-
     try NavDataIntegrity.verifySize(of: data, expecting: uncompressedBytes)
-    return data
-  }
 
-  private func decode(_ data: Data) throws -> NavDataDocument {
     do {
       return try JSONDecoder().decode(NavDataDocument.self, from: data)
     } catch {
@@ -134,27 +116,128 @@ actor NavDataLoader {
     }
   }
 
-  private func replaceAirports(with document: NavDataDocument) async throws {
+  /// Reads the downloaded release and checks it against its manifest, off this actor's executor.
+  @concurrent
+  nonisolated private static func verifiedPayload(
+    at url: URL,
+    against file: NavDataReleaseManifest.DataFile
+  ) async throws -> Data {
+    let payload = try Data(contentsOf: url)
+    try NavDataIntegrity.verify(payload, against: file)
+    return payload
+  }
+
+  /// Throws the error a non-success HTTP status reports, for a response that has one.
+  nonisolated private static func checkStatus(of response: URLResponse) throws {
+    if let http = response as? HTTPURLResponse, !http.isSuccessful {
+      throw NavDataError.httpError(statusCode: http.statusCode)
+    }
+  }
+
+  nonisolated private static func fetch(
+    from url: URL,
+    configuration: URLSessionConfiguration,
+    reportingTo continuation: AsyncStream<Float>.Continuation
+  ) async throws -> URL {
+    defer { continuation.finish() }
+    let (fileURL, response) = try await downloadWithRetry(
+      from: url,
+      configuration: configuration,
+      logger: logger,
+      label: "download \(url.lastPathComponent)",
+      reportingTo: continuation
+    )
     do {
-      try await deleteAll(Airport.self)
+      try checkStatus(of: response)
+    } catch {
+      try? FileManager.default.removeItem(at: fileURL)
+      throw error
+    }
+    return fileURL
+  }
 
-      let total = document.airports.count
-      var rowsSinceLastSave = 0
+  /**
+   A stream of ``State`` values, starting with the loader's current state and finishing when
+   ``load(_:)`` returns or throws.
 
-      for (index, dto) in document.airports.enumerated() {
-        guard let airport = dto.makeAirport() else { continue }
-        modelContext.insert(airport)
-        rowsSinceLastSave += rowCount(of: airport)
+   Only one stream is live at a time; a second call finishes the previous one.
+   */
+  func stateUpdates() -> AsyncStream<State> {
+    stateContinuation?.finish()
+    let (stream, continuation) = AsyncStream.makeStream(
+      of: State.self,
+      bufferingPolicy: .bufferingNewest(1)
+    )
+    continuation.yield(state)
+    stateContinuation = continuation
+    return stream
+  }
 
-        if rowsSinceLastSave >= Self.saveBatchRowLimit {
-          try modelContext.save()
-          rowsSinceLastSave = 0
-          state = .importing(progress: Double(index + 1) / Double(total))
-          try await Task.sleep(for: Self.interBatchPause)
-        }
-      }
+  /**
+   Downloads the release `manifest` describes and writes it into this loader's store.
 
-      if modelContext.hasChanges { try modelContext.save() }
+   - Parameter manifest: The release to import, from ``fetchManifest(networkAccess:)``.
+   */
+  func load(_ manifest: NavDataReleaseManifest) async throws {
+    defer { stateContinuation?.finish() }
+
+    state = .downloading(progress: 0)
+    let payload = try await download(NavDataReleaseManifest.dataURL)
+    defer { try? FileManager.default.removeItem(at: payload) }
+    let compressed = try await Self.verifiedPayload(at: payload, against: manifest.data)
+
+    state = .decompressing(progress: nil)
+    let document = try await Self.decode(compressed, expecting: manifest.data.uncompressedBytes)
+
+    state = .processing(progress: 0)
+    try await write(document, release: manifest)
+
+    state = .finished
+  }
+
+  /**
+   Downloads the release to a temporary file, mirroring the transfer's progress onto ``state``.
+
+   The transfer runs as a child task so this actor stays free to drain its progress; the stream
+   closes when the transfer settles, ending the loop.
+   */
+  private func download(_ url: URL) async throws -> URL {
+    let (progressUpdates, continuation) = AsyncStream<Float>.makeStream(
+      of: Float.self,
+      bufferingPolicy: .bufferingNewest(1)
+    )
+    async let downloaded = Self.fetch(
+      from: url,
+      configuration: Self.sessionConfiguration(for: networkAccess),
+      reportingTo: continuation
+    )
+    for await completed in progressUpdates { reportDownloadProgress(completed) }
+
+    return try await downloaded
+  }
+
+  private func reportDownloadProgress(_ progress: Float) {
+    guard case .downloading(let reported) = state else { return }
+    if let reported, abs(progress - reported) < Self.progressReportingStep { return }
+    state = .downloading(progress: progress)
+  }
+
+  /**
+   Writes the decoded dataset, mirroring the writer's progress onto ``state``.
+
+   The write runs as a child task so this actor stays free to drain its progress; the stream
+   closes when the write settles, ending the loop.
+   */
+  private func write(_ document: NavDataDocument, release: NavDataReleaseManifest) async throws {
+    let (progressUpdates, continuation) = AsyncStream<Float>.makeStream(
+      of: Float.self,
+      bufferingPolicy: .bufferingNewest(1)
+    )
+    async let written = writer.write(document, release: release, reportingTo: continuation)
+    for await completed in progressUpdates { state = .processing(progress: completed) }
+
+    do {
+      _ = try await written
     } catch is CancellationError {
       throw CancellationError()
     } catch {
@@ -162,65 +245,17 @@ actor NavDataLoader {
     }
   }
 
-  /**
-   Delete every row of `model` in bounded transactions.
-
-   SwiftData's bulk `delete(model:)` removes every row in a single transaction that holds the
-   store's write lock for its full duration, stalling concurrent main-context reads long enough
-   to trip an app-hang report. Deleting in bounded transactions with a pause between them keeps
-   each lock hold short, mirroring the insert path.
-   */
-  private func deleteAll<Model: PersistentModel>(_: Model.Type) async throws {
-    var descriptor = FetchDescriptor<Model>()
-    descriptor.fetchLimit = Self.saveBatchRowLimit
-
-    while case let batch = try modelContext.fetch(descriptor), !batch.isEmpty {
-      for object in batch { modelContext.delete(object) }
-      try modelContext.save()
-      try await Task.sleep(for: Self.interBatchPause)
-    }
-  }
-
-  /// How many rows inserting one airport writes: the airport, its approaches, and their fixes.
-  private func rowCount(of airport: Airport) -> Int {
-    airport.approaches.reduce(1 + airport.approaches.count) { $0 + $1.fixes.count }
-  }
-
-  /**
-   Forget which cycle is imported, so a load that fails partway leaves nothing claiming the
-   half-written store is current.
-   */
-  private func clearCycle() throws {
-    do {
-      try modelContext.delete(model: NavDataCycle.self)
-      try modelContext.save()
-    } catch {
-      throw NavDataError.importFailed(underlying: error)
-    }
-  }
-
-  private func recordCycle(_ manifest: NavDataReleaseManifest) throws {
-    do {
-      modelContext.insert(
-        NavDataCycle(
-          airacCycle: manifest.airacCycle,
-          effectiveDate: manifest.cycleEffective,
-          expirationDate: manifest.cycleExpires,
-          sha256: manifest.data.sha256,
-          importedAt: .now
-        )
-      )
-      try modelContext.save()
-    } catch {
-      throw NavDataError.importFailed(underlying: error)
-    }
-  }
-
+  /// How far an update has got, as the loading screen and the system's progress display show it.
   enum State: Equatable, Sendable {
+    /// Nothing has started.
     case idle
-    case checking
-    case downloading(progress: Double?)
-    case importing(progress: Double?)
+    /// The dataset is being transferred, with the fraction received where it is known.
+    case downloading(progress: Float?)
+    /// The transfer is being expanded, with the fraction consumed where it is known.
+    case decompressing(progress: Float?)
+    /// The dataset is being written into the store, with the fraction written where it is known.
+    case processing(progress: Float?)
+    /// The update is installed, or there was nothing newer to install.
     case finished
   }
 }

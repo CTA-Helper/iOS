@@ -1,6 +1,7 @@
 import CoreLocation
 import Foundation
 import Gzip
+import NavDataSchema
 import UIKit
 
 #if DEBUG
@@ -76,6 +77,42 @@ import UIKit
         component: "uiTestCharts-\(ProcessInfo.processInfo.processIdentifier)",
         directoryHint: .isDirectory
       )
+    }
+
+    /**
+     Where a UI test keeps its nav data stores, or `nil` to leave the pilot's own in place.
+
+     A test runs the same generations on disk the app does — reserved, written, installed and
+     reopened — so it needs a directory of its own that goes with the run, as the plates do.
+     */
+    static var storeLayout: StoreLayout? {
+      guard isRunning else { return nil }
+      return StoreLayout(
+        baseDirectory: URL.temporaryDirectory.appending(
+          component: "uiTestNavData-\(ProcessInfo.processInfo.processIdentifier)",
+          directoryHint: .isDirectory
+        )
+      )
+    }
+
+    /**
+     Where ``PrebuiltNavDataStore`` looks for published stores, in place of the bucket.
+
+     `-navDataBaseURL <url>` names a server of the developer's own — a local one serving a store
+     the builder just wrote — and works with or without a UI test driving the app. It is the one
+     argument here that carries a value, because a URL cannot be a bare flag; that it also lands
+     in the argument domain of `UserDefaults` is harmless, since no setting shares its name.
+     Without it, a UI test serving a fixture cycle serves no prebuilt store, so the update falls
+     back to importing the fixture.
+     */
+    static var navDataBaseURL: URL? {
+      let arguments = ProcessInfo.processInfo.arguments
+      if let flag = arguments.firstIndex(of: "-navDataBaseURL"),
+        arguments.indices.contains(flag + 1)
+      {
+        return URL(string: arguments[flag + 1])
+      }
+      return navData?.storeBaseURL
     }
 
     /// What ``NavDataLoader`` fetches, in place of the published release.
@@ -210,6 +247,12 @@ import UIKit
         }
       }
 
+      /**
+       Where the fixture's prebuilt stores are published: nowhere, so the update falls back to
+       importing ``dataURL``.
+       */
+      var storeBaseURL: URL { Self.unreachable("prebuilt") }
+
       /// A cycle window standing over today, as the plain dates a manifest publishes.
       private static func currentCycleDates() -> (effective: String, expires: String) {
         let day: TimeInterval = 24 * 3600
@@ -292,6 +335,12 @@ import UIKit
 
     /// Always `nil`: a release build files plates where the pilot's own app reads them.
     static var chartStoreRoot: URL? { nil }
+
+    /// Always `nil`: a release build keeps its stores where the pilot's own app reads them.
+    static var storeLayout: StoreLayout? { nil }
+
+    /// Always `nil`: a release build fetches published stores from the bucket and nowhere else.
+    static var navDataBaseURL: URL? { nil }
 
     /// Always `nil`: a release build fetches the published cycle and nothing else.
     static var navData: NavDataFixture? { nil }
