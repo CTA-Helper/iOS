@@ -39,7 +39,8 @@ another process and cannot reach into it. Each is a bare flag: `UserDefaults`
 claims `-key value` pairs off the command line and would register a test's own
 arguments as app settings. `Support/AppLaunch.swift` names them.
 
-- `-uiTestSeed` — in-memory store holding KMSO (favorited) and KSFO.
+- `-uiTestSeed` — installs a generation holding KMSO (favorited) and KSFO
+  into the test's own store directory, so nothing is downloaded.
 - `-uiTestNavDataBundled` / `-uiTestNavDataUnreachable` — point
   `NavDataReleaseManifest` URLs and the prebuilt store's base URL
   at `UITestFixtures/` or at nothing, to drive the first-run download, an

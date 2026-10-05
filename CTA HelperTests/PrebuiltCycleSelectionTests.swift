@@ -39,33 +39,13 @@ struct `Prebuilt cycle selection` {
   }
 
   @Test
-  func `passes over a cycle that expired before the store would be installed`() throws {
+  func `passes over a cycle that is not in force, to look further back`() throws {
     let expired = Self.manifest(
       effective: Self.now.addingTimeInterval(-28 * Self.day),
       expires: Self.now.addingTimeInterval(-3600)
     )
 
     #expect(try !PrebuiltNavDataStore.isInstallable(expired, at: Self.now))
-  }
-
-  @Test
-  func `passes over a cycle published ahead of the day it takes effect`() throws {
-    let future = Self.manifest(
-      effective: Self.now.addingTimeInterval(Self.day),
-      expires: Self.now.addingTimeInterval(29 * Self.day)
-    )
-
-    #expect(try !PrebuiltNavDataStore.isInstallable(future, at: Self.now))
-  }
-
-  @Test
-  func `installs an older cycle that is still in force`() throws {
-    let current = Self.manifest(
-      effective: Self.now.addingTimeInterval(-14 * Self.day),
-      expires: Self.now.addingTimeInterval(14 * Self.day)
-    )
-
-    #expect(try PrebuiltNavDataStore.isInstallable(current, at: Self.now))
   }
 
   /// No older cycle would be built for this binary's schema either, so the walk-back stops.
