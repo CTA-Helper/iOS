@@ -9,7 +9,7 @@ import XCUITestKit
  to be decided before the first screen draws.
  */
 enum LaunchArgument {
-  /// Open an in-memory store holding KMSO — favorited — and KSFO, so nothing is downloaded.
+  /// Install a generation holding KMSO — favorited — and KSFO in the test's own store directory.
   static let seedStore = "-uiTestSeed"
   /// Expire the cycle standing over the seeded airports, so the app opens offering the update.
   static let expiredCycle = "-uiTestSeedExpiredCycle"

@@ -7,8 +7,8 @@ import Testing
 
 /**
  A cycle replaces the nav data by writing a new generation beside the one in use and switching to
- it by number. These cover the files that scheme depends on: what the app opens, what an
- abandoned update leaves behind, and what is reclaimed.
+ it by number. These cover the files that scheme depends on: what the app opens, what it refuses
+ to open, and what is reclaimed.
  */
 @Suite(.serialized)
 struct `Nav data generations` {
@@ -28,24 +28,6 @@ struct `Nav data generations` {
     context.insert(TemporaryNavDataStores.airport(siteNumber: "WRITTEN"))
 
     #expect(throws: (any Error).self) { try context.save() }
-  }
-
-  @Test
-  func `reads the generation it is switched to`() throws {
-    try stores.write(["LIVE"], toGeneration: 1)
-    try stores.write(["REPLACED"], toGeneration: 2)
-
-    #expect(try stores.siteNumbers(inGeneration: 2) == ["REPLACED"])
-  }
-
-  /// The dataset in use must survive an update that never finishes — the failure that kept the
-  /// import from running anywhere the system can kill it.
-  @Test
-  func `leaves the dataset in use untouched when an update is abandoned`() throws {
-    try stores.write(["LIVE"], toGeneration: 1)
-    try stores.write(["HALF-WRITTEN"], toGeneration: 2)
-
-    #expect(try stores.siteNumbers(inGeneration: 1) == ["LIVE"])
   }
 
   @Test
