@@ -202,7 +202,10 @@ final class NavDataUpdater {
     defer { mirror.cancel() }
 
     do {
-      let store = PrebuiltNavDataStore(networkAccess: networkAccess)
+      let store = PrebuiltNavDataStore(
+        baseURL: await PrebuiltNavDataStore.baseURL,
+        networkAccess: networkAccess
+      )
       let cycle = try await store.newestInstallableCycle()
       if cycle.manifest.cycle == installed?.cycle {
         continuation.finish()

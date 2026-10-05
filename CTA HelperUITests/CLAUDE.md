@@ -44,8 +44,9 @@ arguments as app settings. `Support/AppLaunch.swift` names them.
   `NavDataReleaseManifest.url` / `.dataURL` and the prebuilt store's base URL
   at `UITestFixtures/` or at nothing, to drive the first-run download, an
   update over an expired cycle, and their failure. The fixture is committed as
-  plain JSON; at launch it is gzipped for the JSON release and built into an
-  lzma-compressed store with its manifest (`FixtureStorePublisher`), so an
+  plain JSON; it is gzipped for the JSON release and, when the update first
+  asks, built into an lzma-compressed store with its manifest
+  (`FixtureStorePublisher`, writing through `NavDataStoreWriter`), so an
   update installs the prebuilt store the way it would a published one.
 - `-uiTestLocationAuthorized` / `-uiTestLocationDenied` — inject a
   `FixedLocationStreamer`. It is the only way to reach the Nearest tab: a test
