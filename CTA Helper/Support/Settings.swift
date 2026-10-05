@@ -40,7 +40,7 @@ extension SettingsKey {
    */
   static let activeNavDataGeneration = "activeNavDataGeneration"
   /**
-   The ``NavDataSchema/version`` the active generation was installed under (`Int`); default the
+   The `NavDataSchema.version` the active generation was installed under (`Int`); default the
    current version.
 
    A build that raises the version finds an older number here and asks for the data again,

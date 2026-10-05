@@ -149,7 +149,7 @@ enum ChartAltitudes {
      A block is its own case rather than a single altitude with a restriction, because it is the
      one shape carrying two true bounds — a ceiling the aircraft stays under and a floor the
      correction raises. Collapsed to its floor, as the panel would have it from
-     ``PublishedAltitude/correctable``, the ceiling would vanish from the only place the pilot
+     ``NavDataSchema/PublishedAltitude/correctable``, the ceiling would vanish from the only place the pilot
      is reading.
      */
     enum Constraint: Equatable {

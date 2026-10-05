@@ -15,7 +15,7 @@ enum FixGrouping {
   /**
    Orders the sections for a set of fixes.
 
-   Sections follow ``Segment``'s own order — initial, intermediate, final, missed. A segment no
+   Sections follow `Segment`'s own order — initial, intermediate, final, missed. A segment no
    element falls in is omitted.
 
    - Parameters:

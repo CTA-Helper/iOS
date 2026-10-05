@@ -10,7 +10,7 @@ import SwiftUI
  block stacks its ceiling over its floor and corrects only the floor. An uncorrected
  altitude shows plain. A fix with no published altitude shows a dash.
 
- Taking ``PublishedAltitude`` apart is the last place whole feet are in hand — the store codes
+ Taking `PublishedAltitude` apart is the last place whole feet are in hand — the store codes
  them that way — so every view below holds a measurement that carries its own unit, and none of
  them can format one as a bare number.
 
