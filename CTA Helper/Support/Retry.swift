@@ -1,4 +1,5 @@
 import Foundation
+import Synchronization
 import os
 
 /**
@@ -30,7 +31,8 @@ func isTransientNetworkError(_ error: some Error) -> Bool {
 
  `CancellationError` and `URLError.cancelled` always rethrow immediately. Other errors are
  tested with `shouldRetry`; transient errors are retried up to `maximumRetryCount` additional
- times with exponential backoff starting at `initialDelaySeconds`.
+ times with exponential backoff starting at `initialDelaySeconds`, and each one is handed to
+ `onRetryableFailure` before the next attempt.
  */
 func withRetry<T>(
   maximumRetryCount: Int = 3,
@@ -38,6 +40,7 @@ func withRetry<T>(
   logger: Logger,
   label: String,
   shouldRetry: (any Error) -> Bool = { isTransientNetworkError($0) },
+  onRetryableFailure: (any Error) -> Void = { _ in },
   isolation: isolated (any Actor)? = #isolation,  // swiftlint:disable:this unused_parameter
   operation: () async throws -> T
 ) async throws -> T {
@@ -55,9 +58,160 @@ func withRetry<T>(
     } catch {
       if error.isCancellation { throw error }
       if !shouldRetry(error) { throw error }
+      onRetryableFailure(error)
       if attempt == maximumRetryCount { throw error }
     }
   }
 
   fatalError("Retry loop exited without returning or throwing")
+}
+
+// periphery:ignore:parameters isolation
+/**
+ Downloads a file to disk, reporting the transfer's progress, retrying transient failures, and
+ resuming where a failed attempt left off.
+
+ A download reports its byte counts to the delegate of the session running it and never to one
+ attached to the task, so following a transfer means owning the session for its duration rather
+ than observing a borrowed one. That is why this takes a configuration instead of a session: it
+ builds the session, and invalidates it once the download settles.
+
+ A download the session refused because of the network it is on — one the configuration does not
+ allow, such as cellular — is not retried: waiting a few seconds does not change the network.
+
+ The caller owns the returned file and is responsible for moving or deleting it.
+ */
+func downloadWithRetry(
+  from url: URL,
+  configuration: URLSessionConfiguration,
+  maximumRetryCount: Int = 3,
+  initialDelaySeconds: Int = 2,
+  logger: Logger,
+  label: String,
+  reportingTo progress: AsyncStream<Float>.Continuation? = nil,
+  isolation: isolated (any Actor)? = #isolation  // swiftlint:disable:this unused_parameter
+) async throws -> (URL, URLResponse) {
+  let driver = DownloadDriver(reportingTo: progress)
+  let session = URLSession(configuration: configuration, delegate: driver, delegateQueue: nil)
+  defer { session.finishTasksAndInvalidate() }
+
+  var resumeData: Data?
+
+  return try await withRetry(
+    maximumRetryCount: maximumRetryCount,
+    initialDelaySeconds: initialDelaySeconds,
+    logger: logger,
+    label: label,
+    shouldRetry: { isTransientNetworkError($0) && !NavDataNetworkAccess.isRefusal($0) },
+    onRetryableFailure: { error in
+      resumeData = (error as? URLError)?.userInfo[NSURLSessionDownloadTaskResumeData] as? Data
+    },
+    operation: { try await driver.download(url, in: session, resumingFrom: resumeData) }
+  )
+}
+
+/**
+ Drives one download task at a time, bridging a session's delegate callbacks to async.
+
+ The alternative way to follow a download from async code is to iterate `URLSession/bytes(from:)`,
+ whose `AsyncSequence` element is a single byte — following a payload of megabytes that way costs
+ one async resumption per byte, and leaves the caller assembling the payload itself. A delegate
+ reports the same progress while the session writes straight to disk.
+ */
+private final class DownloadDriver: NSObject, URLSessionDownloadDelegate {
+  private let attempt = Mutex(Attempt())
+  private let progress: AsyncStream<Float>.Continuation?
+
+  init(reportingTo progress: AsyncStream<Float>.Continuation?) {
+    self.progress = progress
+    super.init()
+  }
+
+  func download(
+    _ url: URL,
+    in session: URLSession,
+    resumingFrom resumeData: Data?
+  ) async throws -> (URL, URLResponse) {
+    let task =
+      resumeData.map(session.downloadTask(withResumeData:))
+      ?? session.downloadTask(with: url)
+
+    return try await withTaskCancellationHandler {
+      try await withCheckedThrowingContinuation { resumption in
+        attempt.withLock { $0 = Attempt(resumption: resumption) }
+        task.resume()
+      }
+    } onCancel: {
+      task.cancel()
+    }
+  }
+
+  // MARK: - URLSessionDownloadDelegate
+
+  func urlSession(
+    _: URLSession,
+    downloadTask _: URLSessionDownloadTask,
+    didWriteData _: Int64,
+    totalBytesWritten: Int64,
+    totalBytesExpectedToWrite: Int64
+  ) {
+    guard totalBytesExpectedToWrite > 0 else { return }
+    progress?.yield(Float(totalBytesWritten) / Float(totalBytesExpectedToWrite))
+  }
+
+  /**
+   The session deletes the file it hands over the moment this method returns, so the payload has
+   to be claimed before that — which rules out doing the move anywhere asynchronous.
+   */
+  func urlSession(
+    _: URLSession,
+    downloadTask _: URLSessionDownloadTask,
+    didFinishDownloadingTo location: URL
+  ) {
+    let destination = URL.temporaryDirectory.appending(component: UUID().uuidString)
+    let claimed = Result { try FileManager.default.moveItem(at: location, to: destination) }
+      .map { destination }
+    attempt.withLock { $0.payload = claimed }
+  }
+
+  func urlSession(_: URLSession, task: URLSessionTask, didCompleteWithError error: (any Error)?) {
+    let settled = attempt.withLock { attempt in
+      defer { attempt = Attempt() }
+      return attempt
+    }
+    guard let resumption = settled.resumption else { return }
+
+    if let error {
+      settled.discardPayload()
+      resumption.resume(throwing: error)
+      return
+    }
+
+    switch (settled.payload, task.response) {
+      case let (.success(fileURL), response?):
+        resumption.resume(returning: (fileURL, response))
+      case (.failure(let failure), _):
+        resumption.resume(throwing: failure)
+      default:
+        settled.discardPayload()
+        resumption.resume(throwing: URLError(.badServerResponse))
+    }
+  }
+
+  // MARK: - Nested Types
+
+  /// One download's in-flight state: who is waiting, and what arrived.
+  private struct Attempt {
+    var resumption: CheckedContinuation<(URL, URLResponse), any Error>?
+    var payload: Result<URL, any Error>?
+
+    /**
+     Removes a payload claimed by a transfer that went on to fail, which would otherwise sit in the
+     temporary directory with nobody left holding its URL.
+     */
+    func discardPayload() {
+      guard case .success(let fileURL) = payload else { return }
+      try? FileManager.default.removeItem(at: fileURL)
+    }
+  }
 }
