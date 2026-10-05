@@ -41,7 +41,7 @@ arguments as app settings. `Support/AppLaunch.swift` names them.
 
 - `-uiTestSeed` — in-memory store holding KMSO (favorited) and KSFO.
 - `-uiTestNavDataBundled` / `-uiTestNavDataUnreachable` — point
-  `NavDataReleaseManifest.url` / `.dataURL` and the prebuilt store's base URL
+  `NavDataReleaseManifest` URLs and the prebuilt store's base URL
   at `UITestFixtures/` or at nothing, to drive the first-run download, an
   update over an expired cycle, and their failure. The fixture is committed as
   plain JSON; it is gzipped for the JSON release and, when the update first
