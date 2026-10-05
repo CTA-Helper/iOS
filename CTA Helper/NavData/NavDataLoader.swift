@@ -41,6 +41,9 @@ actor NavDataLoader {
    */
   private static let progressReportingStep: Float = 0.005
 
+  /// The status a release that was never published answers with.
+  private static let notFoundStatusCode = 404
+
   private static let logger = Logger(subsystem: "codes.tim.CTA-Helper", category: "NavDataLoader")
 
   private(set) var state: State = .idle {
@@ -63,18 +66,34 @@ actor NavDataLoader {
   }
 
   /**
-   The manifest of the newest published release.
+   The manifest of the release for the cycle in force, or of the newest release when that cycle
+   has none.
 
-   - Parameter networkAccess: The networks the request may use.
+   - Parameters:
+     - networkAccess: The networks the request may use.
+     - date: The moment the release should be in force at.
    */
   nonisolated static func fetchManifest(
-    networkAccess: NavDataNetworkAccess
+    networkAccess: NavDataNetworkAccess,
+    at date: Date = .now
   ) async throws -> NavDataReleaseManifest {
     let session = URLSession(configuration: sessionConfiguration(for: networkAccess))
     defer { session.finishTasksAndInvalidate() }
 
+    do {
+      return try await fetchManifest(from: NavDataReleaseManifest.url(inForceAt: date), on: session)
+    } catch NavDataError.httpError(let statusCode) where statusCode == notFoundStatusCode {
+      logger.notice("No release for the cycle in force; importing the newest release instead")
+      return try await fetchManifest(from: NavDataReleaseManifest.latestURL, on: session)
+    }
+  }
+
+  nonisolated private static func fetchManifest(
+    from url: URL,
+    on session: URLSession
+  ) async throws -> NavDataReleaseManifest {
     let data = try await withRetry(logger: logger, label: "download manifest") {
-      let (data, response) = try await session.data(from: NavDataReleaseManifest.url)
+      let (data, response) = try await session.data(from: url)
       try checkStatus(of: response)
       return data
     }
@@ -176,13 +195,13 @@ actor NavDataLoader {
   /**
    Downloads the release `manifest` describes and writes it into this loader's store.
 
-   - Parameter manifest: The release to import, from ``fetchManifest(networkAccess:)``.
+   - Parameter manifest: The release to import, from ``fetchManifest(networkAccess:at:)``.
    */
   func load(_ manifest: NavDataReleaseManifest) async throws {
     defer { stateContinuation?.finish() }
 
     state = .downloading(progress: 0)
-    let payload = try await download(NavDataReleaseManifest.dataURL)
+    let payload = try await download(manifest.dataURL)
     defer { try? FileManager.default.removeItem(at: payload) }
     let compressed = try await Self.verifiedPayload(at: payload, against: manifest.data)
 
