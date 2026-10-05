@@ -1,4 +1,5 @@
 import Foundation
+import NavDataSchema
 import Testing
 
 @testable import CTA_Helper
@@ -98,7 +99,7 @@ struct `Nav data integrity` {
   private func manifestFile(
     sha256: String? = nil,
     bytes: UInt? = nil
-  ) -> NavDataManifest.DataFile {
+  ) -> NavDataReleaseManifest.DataFile {
     .init(
       filename: "cta-navdata.json.gz",
       bytes: bytes ?? UInt(payload.count),

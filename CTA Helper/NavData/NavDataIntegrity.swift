@@ -1,5 +1,6 @@
 import CryptoKit
 import Foundation
+import NavDataSchema
 
 /**
  Checks a downloaded cycle against the digest and byte counts its manifest publishes.
@@ -10,7 +11,7 @@ import Foundation
  */
 enum NavDataIntegrity {
   /// Check a compressed download against both the size and the digest the manifest published.
-  static func verify(_ compressed: Data, against file: NavDataManifest.DataFile) throws {
+  static func verify(_ compressed: Data, against file: NavDataReleaseManifest.DataFile) throws {
     try verifySize(of: compressed, expecting: file.bytes)
 
     let digest = sha256(of: compressed)

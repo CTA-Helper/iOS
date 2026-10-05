@@ -1,5 +1,6 @@
 import Foundation
 import MeasurementKit
+import NavDataSchema
 
 /**
  How a computed correction is rounded before it is added to a published altitude

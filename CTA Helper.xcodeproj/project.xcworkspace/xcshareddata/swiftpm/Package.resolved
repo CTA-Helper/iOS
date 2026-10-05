@@ -1,5 +1,5 @@
 {
-  "originHash" : "ceb7a815f72b538051c78cab35e8ab3cce9616f9a402445655c4ca7b0db91c8d",
+  "originHash" : "07db69704703b8ca72d304126d4ce5c7c79366d0f08b1178538888e8f64e86b9",
   "pins" : [
     {
       "identity" : "buildablemacro",
@@ -47,12 +47,48 @@
       }
     },
     {
+      "identity" : "streaminglzma",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/RISCfuture/StreamingLZMA",
+      "state" : {
+        "branch" : "main",
+        "revision" : "748c91c912b4e5f7727ee299e49827d124d0a231"
+      }
+    },
+    {
       "identity" : "swift-argument-parser",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-argument-parser.git",
       "state" : {
         "revision" : "6a52f3251125d74daf04fcbd5e6f08a75d074382",
         "version" : "1.8.2"
+      }
+    },
+    {
+      "identity" : "swift-asn1",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-asn1.git",
+      "state" : {
+        "revision" : "3b6410f7dee09eb33cdd26260c5fd47fda19b0e2",
+        "version" : "1.7.3"
+      }
+    },
+    {
+      "identity" : "swift-crypto",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-crypto.git",
+      "state" : {
+        "revision" : "da9d28d69ebe3894b18376c8f2395c2f37b8448f",
+        "version" : "4.5.2"
+      }
+    },
+    {
+      "identity" : "swift-log",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-log",
+      "state" : {
+        "revision" : "9c6fb14227f55d8f711ce3847dc2f419fb0ecacb",
+        "version" : "1.15.1"
       }
     },
     {
@@ -89,6 +125,15 @@
       "state" : {
         "revision" : "f12bb475c21ce60e1b6ef752d67b17ab781e52ec",
         "version" : "4.1.0"
+      }
+    },
+    {
+      "identity" : "swiftr2",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/riscfuture/swiftr2",
+      "state" : {
+        "branch" : "main",
+        "revision" : "6595082e5aca345c029ef8cfcc1e8edb100a884b"
       }
     },
     {

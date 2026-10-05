@@ -1,4 +1,5 @@
 import CoreLocation
+import NavDataSchema
 import Observation
 import SwiftData
 import os

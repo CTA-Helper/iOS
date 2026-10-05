@@ -1,4 +1,5 @@
 import Foundation
+import NavDataSchema
 import Testing
 
 @testable import CTA_Helper

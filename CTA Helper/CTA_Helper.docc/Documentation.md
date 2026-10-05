@@ -26,10 +26,7 @@ It is for situational awareness and planning only, not for primary navigation.
 ### Nav data
 
 - ``NavDataLoader``
-- ``NavDataDocument``
-- ``NavDataCycle``
-- ``Airport``
-- ``Approach``
+- ``NavDataStore``
 
 ### Weather
 
