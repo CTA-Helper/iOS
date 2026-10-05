@@ -4,7 +4,7 @@ import NavDataSchema
 /**
  The over and under bars the fix list draws for each restriction.
 
- ``NavDataSchema/AltitudeRestriction/atOrAboveSecond`` is drawn like the other single-altitude
+ `AltitudeRestriction.atOrAboveSecond` is drawn like the other single-altitude
  descriptions: bars off the primary altitude, with the second altitude shown beneath as a
  glidepath value. That is very likely wrong — under code `C` the second altitude is the operative
  bound, not an uncorrected glidepath — but which altitude the generator puts where is

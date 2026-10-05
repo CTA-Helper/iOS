@@ -3,7 +3,7 @@ import SwiftUI
 
 extension View {
   /**
-   Draws the over and under bars an ``AltitudeRestriction`` places around the altitude it
+   Draws the over and under bars an `AltitudeRestriction` places around the altitude it
    bounds.
 
    The bars are the chart's own notation, and they carry the constraint itself rather than

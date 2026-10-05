@@ -5,7 +5,7 @@ import NavDataSchema
  Everything the chart subsystem needs to fetch and file one approach plate, read off the URL
  the nav data publishes.
 
- ``Approach`` is a SwiftData model and so cannot cross into ``ChartStore``; this is the value
+ `Approach` is a SwiftData model and so cannot cross into ``ChartStore``; this is the value
  that does. It is also the guard on the two strings that go on to name a directory and a file
  this app creates, which is why ``init(chartURL:)`` validates the whole shape of the URL rather
  than reaching into it by index.

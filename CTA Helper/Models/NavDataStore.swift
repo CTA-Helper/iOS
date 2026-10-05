@@ -218,7 +218,7 @@ extension UserDefaults {
     set { set(newValue, forKey: SettingsKey.activeNavDataGeneration) }
   }
 
-  /// The ``NavDataSchema/version`` the active generation was installed under.
+  /// The `NavDataSchema.version` the active generation was installed under.
   var navDataSchemaVersion: Int {
     get { object(forKey: SettingsKey.navDataSchemaVersion) as? Int ?? NavDataSchema.version }
     set { set(newValue, forKey: SettingsKey.navDataSchemaVersion) }

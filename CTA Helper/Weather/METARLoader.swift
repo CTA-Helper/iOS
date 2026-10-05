@@ -71,7 +71,7 @@ actor METARLoader {
    The latest observation for the given station, loading the cache first if it is stale.
 
    - Parameter stationID: the station's four-character ID (for example, an airport's
-     ``Airport/metarStationID``). A station absent from the cache returns `nil`.
+     ``NavDataSchema/Airport/metarStationID``). A station absent from the cache returns `nil`.
    - Returns: the station's most recent ``METARObservation``, or `nil` if it is not in the cache.
    */
   func observation(for stationID: String) async -> METARObservation? {
