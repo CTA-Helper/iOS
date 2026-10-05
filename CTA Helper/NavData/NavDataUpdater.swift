@@ -24,7 +24,10 @@ final class NavDataUpdater {
   /// The one updater, shared by every path that starts an update.
   static let shared = NavDataUpdater()
 
-  private static let logger = Logger(subsystem: "codes.tim.CTA-Helper", category: "NavDataUpdater")
+  nonisolated private static let logger = Logger(
+    subsystem: "codes.tim.CTA-Helper",
+    category: "NavDataUpdater"
+  )
 
   /// The progress of the update in flight, or where the last one left off.
   private(set) var state: NavDataLoader.State = .idle
@@ -95,7 +98,7 @@ final class NavDataUpdater {
    `localizedDescription` renders only a `LocalizedError`'s category, which is the same sentence
    for every case in it; the specifics are its reason.
    */
-  private static func wholeOf(_ error: any Error) -> String {
+  nonisolated private static func wholeOf(_ error: any Error) -> String {
     [error.localizedDescription, (error as? any LocalizedError)?.failureReason]
       .compactMap(\.self)
       .joined(separator: " ")
@@ -323,6 +326,33 @@ extension NavDataUpdater {
   ]
 
   /**
+   Reads what installing a generation depends on: which of the pilot's listed airports it no
+   longer carries, and which AIRAC cycle it holds.
+
+   Internal so a test can read a generation on disk without downloading one.
+
+   - Parameters:
+     - generation: The generation being installed.
+     - layout: Where the stores live.
+     - siteNumbers: The site numbers the pilot's lists name.
+   - Returns: What the generation holds, with `nil` for anything that could not be read.
+   */
+  nonisolated static func incomingGeneration(
+    _ generation: Int,
+    layout: StoreLayout,
+    listing siteNumbers: Set<String>
+  ) -> IncomingGeneration {
+    guard let context = context(forGeneration: generation, layout: layout) else {
+      return IncomingGeneration(droppedSiteNumbers: nil, airacCycle: nil)
+    }
+    return IncomingGeneration(
+      droppedSiteNumbers: carriedSiteNumbers(of: siteNumbers, in: context)
+        .map(siteNumbers.subtracting),
+      airacCycle: (try? context.fetch(FetchDescriptor<NavDataCycle>()))?.first?.airacCycle
+    )
+  }
+
+  /**
    Forgets the airports in the pilot's lists that the incoming dataset no longer carries.
 
    The FAA retires airports between cycles, and occasionally corrects the site number that
@@ -330,26 +360,16 @@ extension NavDataUpdater {
    hold. Left in place it resolves to nothing — a favorite that never appears, a Shortcuts
    suggestion that opens nothing.
 
-   Internal so a test can run the check against a generation on disk without downloading one.
-
    - Parameters:
-     - generation: The generation being installed.
-     - layout: Where the stores live.
+     - dropped: The listed site numbers the incoming dataset no longer carries, from
+       ``incomingGeneration(_:layout:listing:)``.
      - defaults: Where the lists are kept.
    */
-  static func pruneAirportLists(
-    missingFromGeneration generation: Int,
-    layout: StoreLayout,
-    defaults: UserDefaults = .standard
-  ) {
-    guard let context = context(forGeneration: generation, layout: layout) else { return }
+  static func pruneAirportLists(dropping dropped: Set<String>, defaults: UserDefaults = .standard) {
+    guard !dropped.isEmpty else { return }
     for key in airportListKeys {
       let list = defaults.airportIDList(forKey: key)
-      guard !list.ids.isEmpty, let carried = carriedSiteNumbers(of: list, in: context) else {
-        continue
-      }
-
-      let kept = list.ids.filter(carried.contains)
+      let kept = list.ids.filter { !dropped.contains($0) }
       guard kept != list.ids else { continue }
       defaults.set(AirportIDList(kept), forKey: key)
       logger.notice(
@@ -359,22 +379,35 @@ extension NavDataUpdater {
   }
 
   /**
-   Which of a list's site numbers the dataset carries. A failed fetch reads as `nil`, so nothing
-   is dropped on the strength of an error.
+   Confirms a generation holds a dataset, then reads what installing it depends on, away from the
+   main thread: each opens the store on its own coordinator, which touches the filesystem.
    */
-  private static func carriedSiteNumbers(
-    of list: AirportIDList,
-    in context: ModelContext
-  ) -> Set<String>? {
-    let ids = list.ids
-    let descriptor = FetchDescriptor<Airport>(predicate: #Predicate { ids.contains($0.siteNumber) })
-    return (try? context.fetch(descriptor)).map { Set($0.map(\.siteNumber)) }
+  @concurrent
+  nonisolated private static func validate(
+    generation: Int,
+    layout: StoreLayout,
+    listing siteNumbers: Set<String>
+  ) async throws -> IncomingGeneration {
+    try NavDataStoreInstaller(layout: layout).validate(generation: generation)
+    return incomingGeneration(generation, layout: layout, listing: siteNumbers)
   }
 
-  /// The AIRAC cycle a generation holds, or `nil` when it cannot be read.
-  private static func airacCycle(ofGeneration generation: Int, layout: StoreLayout) -> String? {
-    guard let context = context(forGeneration: generation, layout: layout) else { return nil }
-    return (try? context.fetch(FetchDescriptor<NavDataCycle>()))?.first?.airacCycle
+  /// The site numbers named by any of the pilot's lists.
+  private static func listedSiteNumbers(in defaults: UserDefaults = .standard) -> Set<String> {
+    Set(airportListKeys.flatMap { defaults.airportIDList(forKey: $0).ids })
+  }
+
+  /**
+   Which of `siteNumbers` the dataset carries. A failed fetch reads as `nil`, so nothing is
+   dropped on the strength of an error.
+   */
+  nonisolated private static func carriedSiteNumbers(
+    of siteNumbers: Set<String>,
+    in context: ModelContext
+  ) -> Set<String>? {
+    let ids = Array(siteNumbers)
+    let descriptor = FetchDescriptor<Airport>(predicate: #Predicate { ids.contains($0.siteNumber) })
+    return (try? context.fetch(descriptor)).map { Set($0.map(\.siteNumber)) }
   }
 
   /**
@@ -384,7 +417,10 @@ extension NavDataUpdater {
    one itself — and opens it as a generation that must already be on disk, since one bootstrapped
    empty in its place would answer that it carries no airports and cost the pilot every list.
    */
-  private static func context(forGeneration generation: Int, layout: StoreLayout) -> ModelContext? {
+  nonisolated private static func context(
+    forGeneration generation: Int,
+    layout: StoreLayout
+  ) -> ModelContext? {
     do {
       return ModelContext(
         try NavDataStore.makeContainerForExistingGeneration(layout: layout, generation: generation)
@@ -410,13 +446,29 @@ extension NavDataUpdater {
    generation and reopens its own store; doing it here as well would race that.
    */
   private func install(generation: Int) async throws {
-    try installer.install(generation: generation)
-    Self.pruneAirportLists(missingFromGeneration: generation, layout: layout)
+    let incoming = try await Self.validate(
+      generation: generation,
+      layout: layout,
+      listing: Self.listedSiteNumbers()
+    )
+    installer.activate(generation: generation)
+    if let dropped = incoming.droppedSiteNumbers { Self.pruneAirportLists(dropping: dropped) }
 
     // Only once the new cycle is installed. An update that failed partway leaves the old plates
     // standing, which the next successful one clears — the safe direction to fail in.
-    if let cycle = Self.airacCycle(ofGeneration: generation, layout: layout) {
+    if let cycle = incoming.airacCycle {
       await chartStore?.removeCharts(outside: cycle)
     }
+  }
+
+  /// What a generation being installed holds, as far as installing it depends on.
+  struct IncomingGeneration: Sendable {
+    /**
+     The pilot's listed site numbers the generation no longer carries, or `nil` if it could not
+     be read.
+     */
+    let droppedSiteNumbers: Set<String>?
+    /// The AIRAC cycle the generation holds, or `nil` if it could not be read.
+    let airacCycle: String?
   }
 }

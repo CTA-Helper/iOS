@@ -125,13 +125,12 @@ enum NavDataStore {
    Rebuilds ``shared`` against whichever generation is now active.
 
    The container holds an open SQLite handle, so a generation is only ever switched to by opening
-   the new file — never by replacing the old one underneath a reader.
+   the new file — never by replacing the old one underneath a reader. The new one is opened before
+   the swap, so a reader of ``shared`` keeps the old one rather than waiting on the open.
    */
   static func reopen() {
-    opened.withLock { opened in
-      opened = nil
-      opened = openActiveGeneration()
-    }
+    let reopened = openActiveGeneration()
+    opened.withLock { $0 = reopened }
   }
 
   /**
