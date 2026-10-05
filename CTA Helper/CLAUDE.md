@@ -50,6 +50,14 @@
   nothing reads `ProcessInfo.arguments`, and no launch argument can redirect
   where the nav data comes from. `EXCLUDED_SOURCE_FILE_NAMES[config=Release]`
   keeps `UITestFixtures/` out of the bundle to match.
+- `-navDataBaseURL <url>` is the one argument that carries a value. It is
+  DEBUG-only, read in `UITestConfiguration` too, and points
+  `PrebuiltNavDataStore` at a local server (`python3 -m http.server` over the
+  builder's `out/`). It doesn't start with `-uiTest`, so it leaves
+  `isRunning` false and the app on its real stores.
+- A UI test runs the same generations on disk a pilot's app does, in a
+  per-process `UITestConfiguration.storeLayout`; `-uiTestSeed` installs its
+  airports as a generation before the store is opened read-only.
 - `Support/PreviewSupport.swift` is `#if DEBUG` for the same reason, so every
   `#Preview` block is wrapped in `#if DEBUG` too — the macro expands and
   type-checks its body in any configuration, whatever `ENABLE_PREVIEWS` says,
