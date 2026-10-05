@@ -49,7 +49,9 @@ actor PrebuiltNavDataStore {
   )
 
   /// Where this build looks for published stores: the bucket, or wherever a debug launch says.
-  static var baseURL: URL { UITestConfiguration.navDataBaseURL ?? publishedBaseURL }
+  static var baseURL: URL {
+    get async { await UITestConfiguration.navDataBaseURL ?? publishedBaseURL }
+  }
 
   /// Where the manifests and stores are published.
   private let baseURL: URL
@@ -70,7 +72,7 @@ actor PrebuiltNavDataStore {
      - baseURL: Where the manifests and stores are published.
      - networkAccess: The networks every request may use.
    */
-  init(baseURL: URL = PrebuiltNavDataStore.baseURL, networkAccess: NavDataNetworkAccess) {
+  init(baseURL: URL, networkAccess: NavDataNetworkAccess) {
     self.baseURL = baseURL
     self.networkAccess = networkAccess
   }

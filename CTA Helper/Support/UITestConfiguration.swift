@@ -105,13 +105,15 @@ import UIKit
      Without it, a UI test serving a fixture cycle serves that cycle as a prebuilt store too.
      */
     static var navDataBaseURL: URL? {
-      let arguments = ProcessInfo.processInfo.arguments
-      if let flag = arguments.firstIndex(of: "-navDataBaseURL"),
-        arguments.indices.contains(flag + 1)
-      {
-        return URL(string: arguments[flag + 1])
+      get async {
+        let arguments = ProcessInfo.processInfo.arguments
+        if let flag = arguments.firstIndex(of: "-navDataBaseURL"),
+          arguments.indices.contains(flag + 1)
+        {
+          return URL(string: arguments[flag + 1])
+        }
+        return await navData?.storeBaseURL
       }
-      return navData?.storeBaseURL
     }
 
     /// What ``NavDataLoader`` fetches, in place of the published release.
@@ -220,14 +222,17 @@ import UIKit
       /**
        The bundled cycle built into a store and published the way the builder publishes one, so
        the update installs it rather than falling back to the import.
+
+       Published once, the first time the update asks for it: writing the store goes through the
+       same `@ModelActor` writer the builder uses, which cannot be waited on synchronously.
        */
-      private static let publishedStore: URL = {
+      private static let publishedStore = Task {
         do {
           let release = try NavDataReleaseManifest.decoder()
             .decode(NavDataReleaseManifest.self, from: Data(contentsOf: packedManifest))
           let document = try JSONDecoder()
             .decode(NavDataDocument.self, from: Data(contentsOf: bundled("uiTestNavData")))
-          return try FixtureStorePublisher.publish(
+          return try await FixtureStorePublisher.publish(
             document,
             release: release,
             effective: currentCycle.effective,
@@ -240,7 +245,7 @@ import UIKit
         } catch {
           preconditionFailure("Could not publish the nav data fixture as a store: \(error)")
         }
-      }()
+      }
 
       /**
        The AIRAC cycle in force today, which the fixture is published as: the cycle the app asks
@@ -283,9 +288,11 @@ import UIKit
 
       /// Where the fixture's prebuilt stores are published.
       var storeBaseURL: URL {
-        switch self {
-          case .bundled: Self.publishedStore
-          case .unreachable: Self.unreachable("prebuilt")
+        get async {
+          switch self {
+            case .bundled: await Self.publishedStore.value
+            case .unreachable: Self.unreachable("prebuilt")
+          }
         }
       }
 
@@ -364,8 +371,13 @@ import UIKit
     /// Always `nil`: a release build keeps its stores where the pilot's own app reads them.
     static var storeLayout: StoreLayout? { nil }
 
-    /// Always `nil`: a release build fetches published stores from the bucket and nowhere else.
-    static var navDataBaseURL: URL? { nil }
+    /**
+     Always `nil`: a release build fetches published stores from the bucket and nowhere else.
+     Asynchronous only to match the debug build's, which may first publish a fixture.
+     */
+    static var navDataBaseURL: URL? {
+      get async { nil }  // swiftlint:disable:this async_without_await
+    }
 
     /// Always `nil`: a release build fetches the published cycle and nothing else.
     static var navData: NavDataFixture? { nil }

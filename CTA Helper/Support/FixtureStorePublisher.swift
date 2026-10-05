@@ -15,8 +15,8 @@
    */
   enum FixtureStorePublisher {
     /**
-     Publishes `document` as the cycle `release` describes, under the name of the AIRAC cycle in
-     force at `date`.
+     Publishes `document` as the cycle `release` describes, under the name of its effective date,
+     `effective`.
 
      - Parameters:
        - document: The dataset to publish.
@@ -32,14 +32,14 @@
       effective: Date,
       expires: Date,
       in directory: URL
-    ) throws -> URL {
+    ) async throws -> URL {
       try? FileManager.default.removeItem(at: directory)
       try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
 
       let cycle = NavDataStoreManifest.cycleName(effective: effective),
         workingStore = directory.appending(component: "working.store"),
         compactStore = directory.appending(component: "\(cycle).store")
-      let counts = try write(document, release: release, to: workingStore)
+      let counts = try await write(document, release: release, to: workingStore)
       try compact(workingStore, into: compactStore)
       StoreLayout.removeStore(at: workingStore)
 
@@ -66,33 +66,25 @@
       return directory
     }
 
-    /// Writes the dataset and its cycle into a new store, returning what it holds.
+    /**
+     Writes the dataset and its cycle into a new store through ``NavDataStoreWriter``, as the
+     builder does, returning what it holds.
+     */
     private static func write(
       _ document: NavDataDocument,
       release: NavDataReleaseManifest,
       to store: URL
-    ) throws -> NavDataStoreManifest.Counts {
-      let context = ModelContext(
-        try NavDataContainer.makeContainer(storeAt: store, allowsSave: true)
-      )
-      let airports = document.airports.compactMap { $0.makeAirport() }
-      airports.forEach(context.insert)
-      context.insert(
-        NavDataCycle(
-          airacCycle: release.airacCycle,
-          effectiveDate: release.cycleEffective,
-          expirationDate: release.cycleExpires,
-          sha256: release.data.sha256,
-          importedAt: .now
-        )
-      )
-      try context.save()
+    ) async throws -> NavDataStoreManifest.Counts {
+      let container = try NavDataContainer.makeContainer(storeAt: store, allowsSave: true)
+      let (_, progress) = AsyncStream.makeStream(of: Float.self)
+      try await NavDataStoreWriter(modelContainer: container)
+        .write(document, release: release, reportingTo: progress)
 
-      let approaches = airports.flatMap(\.approaches)
+      let context = ModelContext(container)
       return .init(
-        airports: UInt(airports.count),
-        approaches: UInt(approaches.count),
-        fixes: UInt(approaches.reduce(0) { $0 + $1.fixes.count })
+        airports: UInt(try context.fetchCount(FetchDescriptor<Airport>())),
+        approaches: UInt(try context.fetchCount(FetchDescriptor<Approach>())),
+        fixes: UInt(try context.fetchCount(FetchDescriptor<Fix>()))
       )
     }
 
