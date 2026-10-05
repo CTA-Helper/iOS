@@ -1,4 +1,5 @@
 import Foundation
+import NavDataSchema
 
 /// Why a fix's published altitude was not corrected.
 enum UncorrectableReason: Equatable, Sendable {
@@ -22,7 +23,7 @@ enum UncorrectableReason: Equatable, Sendable {
  corrects, or why it adds nothing.
  */
 enum Correction: Equatable, Sendable {
-  /// Add this much to the altitude the fix's ``PublishedAltitude`` marks as correctable.
+  /// Add this much to the altitude the fix's `PublishedAltitude` marks as correctable.
   case add(Measurement<UnitLength>)
   /// Add nothing, for this reason.
   case unavailable(UncorrectableReason)

@@ -1,4 +1,5 @@
 import Foundation
+import NavDataSchema
 import SwiftData
 
 /// Relevance-ranked airport search over identifier, name and city.

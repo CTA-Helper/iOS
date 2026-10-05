@@ -1,5 +1,6 @@
 import CoreLocation
 import Foundation
+import NavDataSchema
 import SwiftData
 
 #if DEBUG

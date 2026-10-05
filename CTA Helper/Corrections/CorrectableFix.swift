@@ -1,8 +1,9 @@
 import Foundation
+import NavDataSchema
 
 /**
  The correction-relevant properties of a fix, so the correction engine can work on either a
- persisted ``Fix`` or a lightweight test value without depending on SwiftData.
+ persisted `Fix` or a lightweight test value without depending on SwiftData.
  */
 protocol CorrectableFix {
   /// The segment the fix falls in, which selects the correction applied to it.
@@ -16,3 +17,5 @@ protocol CorrectableFix {
    */
   var isCorrectable: Bool { get }
 }
+
+extension Fix: CorrectableFix {}

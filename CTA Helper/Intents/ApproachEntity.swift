@@ -1,11 +1,12 @@
 import AppIntents
 import Foundation
+import NavDataSchema
 
 /**
  An approach's identity across cycles: the airport that publishes it, and its ARINC 424 code.
 
  The two are kept apart rather than joined into one opaque string, so the site number is still
- matched whole — ``Airport/siteNumber`` is never parsed into parts — and so the one place that
+ matched whole — `Airport.siteNumber` is never parsed into parts — and so the one place that
  splits the stored form is ``entityIdentifier(for:)``. A split that fails there silently drops a
  Shortcut the pilot saved, which is reason enough for there to be only one of them.
  */

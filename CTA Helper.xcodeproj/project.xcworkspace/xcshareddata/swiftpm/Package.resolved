@@ -1,5 +1,5 @@
 {
-  "originHash" : "ceb7a815f72b538051c78cab35e8ab3cce9616f9a402445655c4ca7b0db91c8d",
+  "originHash" : "d4fcdbd9df432699016ed1a744eb7a422ff4af7b5c22ce419f493818bb0620b7",
   "pins" : [
     {
       "identity" : "buildablemacro",
@@ -38,6 +38,15 @@
       }
     },
     {
+      "identity" : "navdatadistribution",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/CTA-Helper/NavDataDistribution",
+      "state" : {
+        "revision" : "fa862dcc2785e4ed22bc52fd05422b16ee55cf78",
+        "version" : "1.0.0"
+      }
+    },
+    {
       "identity" : "sentry-cocoa",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/getsentry/sentry-cocoa/",
@@ -47,12 +56,48 @@
       }
     },
     {
+      "identity" : "streaminglzma",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/RISCfuture/StreamingLZMA",
+      "state" : {
+        "revision" : "60db3a2b44f349b459ffd578c5715059facc9a2f",
+        "version" : "2.0.1"
+      }
+    },
+    {
       "identity" : "swift-argument-parser",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-argument-parser.git",
       "state" : {
         "revision" : "6a52f3251125d74daf04fcbd5e6f08a75d074382",
         "version" : "1.8.2"
+      }
+    },
+    {
+      "identity" : "swift-asn1",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-asn1.git",
+      "state" : {
+        "revision" : "3b6410f7dee09eb33cdd26260c5fd47fda19b0e2",
+        "version" : "1.7.3"
+      }
+    },
+    {
+      "identity" : "swift-crypto",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-crypto.git",
+      "state" : {
+        "revision" : "da9d28d69ebe3894b18376c8f2395c2f37b8448f",
+        "version" : "4.5.2"
+      }
+    },
+    {
+      "identity" : "swift-log",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-log",
+      "state" : {
+        "revision" : "9c6fb14227f55d8f711ce3847dc2f419fb0ecacb",
+        "version" : "1.15.1"
       }
     },
     {
@@ -89,6 +134,15 @@
       "state" : {
         "revision" : "f12bb475c21ce60e1b6ef752d67b17ab781e52ec",
         "version" : "4.1.0"
+      }
+    },
+    {
+      "identity" : "swiftr2",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/riscfuture/swiftr2",
+      "state" : {
+        "revision" : "4ff29069563fe58021e15f87e1bdb72a1cdeb3db",
+        "version" : "1.2.1"
       }
     },
     {

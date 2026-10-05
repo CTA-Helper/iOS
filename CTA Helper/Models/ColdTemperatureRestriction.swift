@@ -1,14 +1,7 @@
 import Foundation
+import NavDataSchema
 
-/**
- An airport's Cold Temperature Airport restriction, from the FAA Cold Temperature Airports
- list: below ``restrictionTemperatureC`` a correction is mandatory on the
- ``affectedSegments`` (AIP ENR 1.8 4, 5.a).
- */
-struct ColdTemperatureRestriction: Codable, Hashable, Sendable {
-  var restrictionTemperatureC: Int
-  var affectedSegments: Set<Segment>
-
+extension ColdTemperatureRestriction {
   /// The temperature at or below which a correction is mandatory.
   var restrictionTemperature: Measurement<UnitTemperature> {
     .celsius(Double(restrictionTemperatureC))

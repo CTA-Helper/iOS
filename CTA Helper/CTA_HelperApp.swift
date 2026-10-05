@@ -1,3 +1,4 @@
+import NavDataSchema
 import Sentry
 import SwiftData
 import SwiftUI
