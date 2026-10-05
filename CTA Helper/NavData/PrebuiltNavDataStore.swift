@@ -16,8 +16,11 @@ import os
  dependency.
  */
 actor PrebuiltNavDataStore {
-  /// Where published stores are served from: the R2 bucket's public URL, under the builder's prefix.
-  static let publishedBaseURL = URL(string: "https://r2-public-url.invalid/cta-helper/navdata/")!
+  /**
+   Where published stores are served from: the R2 bucket's public URL, under the `navdata` key
+   prefix the builder uploads to.
+   */
+  static let publishedBaseURL = URL(string: "https://r2-public-url.invalid/navdata/")!
 
   /**
    How many cycles back to look before giving up and importing instead.
