@@ -74,7 +74,11 @@ struct CTA_HelperApp: App {
           StoreUnavailableView()
         }
       }
-      .onChange(of: activeNavDataGeneration) { adoptActiveNavDataGeneration() }
+      // Read on appearing as well: an update the system ran before the window connected has
+      // already installed a generation the window never saw arrive.
+      .onChange(of: activeNavDataGeneration, initial: true) {
+        if activeNavDataGeneration != navDataGeneration { adoptActiveNavDataGeneration() }
+      }
     }
     .backgroundTask(.processingTask(BackgroundRefreshScheduler.navDataRefreshIdentifier)) {
       await BackgroundRefreshScheduler.shared.handleNavDataRefresh()
