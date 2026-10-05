@@ -33,26 +33,31 @@ struct `Airport list pruning on install` {
   }
 
   @Test(arguments: listKeys)
-  func `forgets an airport the incoming dataset dropped`(key: String) {
-    NavDataUpdater.pruneAirportLists(
-      missingFromGeneration: 1,
+  func `forgets an airport the incoming dataset dropped`(key: String) throws {
+    let incoming = NavDataUpdater.incomingGeneration(
+      1,
       layout: stores.layout,
+      listing: [Self.retired, Self.carried]
+    )
+
+    NavDataUpdater.pruneAirportLists(
+      dropping: try #require(incoming.droppedSiteNumbers),
       defaults: defaults
     )
 
     #expect(defaults.airportIDList(forKey: key).ids == [Self.carried])
   }
 
-  @Test(arguments: listKeys)
-  func `keeps every airport when the incoming generation is gone from disk`(key: String) {
+  @Test
+  func `drops nothing when the incoming generation is gone from disk`() {
     StoreLayout.removeStore(at: stores.layout.navStoreURL(generation: 1))
 
-    NavDataUpdater.pruneAirportLists(
-      missingFromGeneration: 1,
+    let incoming = NavDataUpdater.incomingGeneration(
+      1,
       layout: stores.layout,
-      defaults: defaults
+      listing: [Self.retired, Self.carried]
     )
 
-    #expect(defaults.airportIDList(forKey: key).ids == [Self.retired, Self.carried])
+    #expect(incoming.droppedSiteNumbers == nil)
   }
 }
