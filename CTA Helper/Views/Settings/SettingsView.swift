@@ -79,7 +79,8 @@ private struct CorrectionsSection: View {
 
 /**
  The imported AIRAC cycle with the dates it takes effect and expires, or "No data" until a
- cycle has been imported.
+ cycle has been imported; the way to ask for a newer one; and whether one may arrive over
+ cellular unasked.
  */
 private struct NavigationDataSection: View {
   /**
@@ -93,8 +94,11 @@ private struct NavigationDataSection: View {
 
   @Query private var cycles: [NavDataCycle]
 
+  @AppStorage(SettingsKey.allowsBackgroundMeteredDownloads)
+  private var allowsBackgroundMeteredDownloads = false
+
   var body: some View {
-    Section("Navigation Data") {
+    Section {
       if let cycle = cycles.first {
         // Read out as one element so the cycle carries as the row's accessibility value.
         LabeledContent("AIRAC Cycle", value: cycle.airacCycle)
@@ -118,7 +122,74 @@ private struct NavigationDataSection: View {
           .foregroundStyle(.secondary)
           .accessibilityIdentifier("noNavigationData")
       }
+
+      UpdateCheckRow()
+    } header: {
+      Text("Navigation Data")
     }
+
+    Section {
+      Toggle("Download background updates over cellular", isOn: $allowsBackgroundMeteredDownloads)
+        .accessibilityIdentifier("backgroundCellularToggle")
+    } footer: {
+      Text(
+        "When the navigation data expires, it is replaced in the background while your device is charging. Without this, that waits for Wi-Fi, or for 5G set to Allow More Data, and skips Low Data Mode."
+      )
+    }
+  }
+}
+
+/**
+ The button that asks for the newest published cycle, and what came of asking.
+
+ The update is the same one the loading screen runs, so it keeps going if the pilot leaves the
+ app; a new cycle replaces the store this screen is reading, and the window redraws on it.
+ */
+private struct UpdateCheckRow: View {
+  @Environment(NavDataLoaderViewModel.self)
+  private var loaderViewModel
+
+  @State private var check = UpdateCheck.idle
+  @State private var error: (any Error)?
+
+  var body: some View {
+    Button(action: checkForUpdate) {
+      LabeledContent("Check for Update") {
+        switch check {
+          case .idle: EmptyView()
+          case .checking: ProgressView()
+          case .upToDate: Text("Up to date")
+        }
+      }
+    }
+    .disabled(check == .checking)
+    .accessibilityIdentifier("checkForNavDataUpdateButton")
+    .errorSheet($error)
+  }
+
+  private func checkForUpdate() {
+    check = .checking
+    Task {
+      do {
+        let outcome = try await loaderViewModel.checkForUpdate()
+        check = outcome == .alreadyCurrent ? .upToDate : .idle
+      } catch is CancellationError {
+        check = .idle
+      } catch {
+        self.error = error
+        check = .idle
+      }
+    }
+  }
+
+  /// Where a check for a newer cycle has got.
+  private enum UpdateCheck {
+    /// Nothing has been asked, or a new cycle was installed and the cycle rows above say so.
+    case idle
+    /// An update is running.
+    case checking
+    /// The newest published cycle is the one installed.
+    case upToDate
   }
 }
 
@@ -208,8 +279,10 @@ private struct ChartCacheNote: View {
 
 #if DEBUG
   #Preview("No Cycle") {
-    SettingsView()
-      .modelContainer(.makeInMemory())
+    let container = ModelContainer.makeInMemory()
+    return SettingsView()
+      .modelContainer(container)
+      .environment(NavDataLoaderViewModel(container: container))
   }
 
   #Preview("Current Cycle") {
@@ -217,6 +290,7 @@ private struct ChartCacheNote: View {
     container.mainContext.insert(PreviewData.navDataCycle())
     return SettingsView()
       .modelContainer(container)
+      .environment(NavDataLoaderViewModel(container: container))
   }
 
   #Preview("Expired Cycle") {
@@ -224,5 +298,6 @@ private struct ChartCacheNote: View {
     container.mainContext.insert(PreviewData.navDataCycle(expired: true))
     return SettingsView()
       .modelContainer(container)
+      .environment(NavDataLoaderViewModel(container: container))
   }
 #endif

@@ -27,8 +27,6 @@ struct CTA_HelperApp: App {
     ]
   #endif
 
-  /// The store the app runs against, or `nil` when it could not be opened even once rebuilt.
-  let modelContainer: ModelContainer?
   /// The weather source: the live one, or under UI tests a loader serving a fixed observation.
   let metarLoader: METARLoader?
   /**
@@ -42,28 +40,55 @@ struct CTA_HelperApp: App {
   /// The approach plates held on disk, and the only thing that fetches one.
   let chartStore: ChartStore
 
+  /// The store the app runs against, or `nil` when it could not be opened even once rebuilt.
+  @State private var modelContainer: ModelContainer?
+  /**
+   The generation ``modelContainer`` reads, which identifies the window's contents: a new
+   generation rebuilds them, so nothing drawn keeps a model from the store it replaced.
+   */
+  @State private var navDataGeneration: Int
   @State private var loaderViewModel: NavDataLoaderViewModel?
   @State private var networkMonitor: NetworkMonitor
 
+  /// The generation an update most recently installed, which the window follows.
+  @AppStorage(SettingsKey.activeNavDataGeneration)
+  private var activeNavDataGeneration = NavDataStore.emptyGeneration
+
+  @Environment(\.scenePhase)
+  private var scenePhase
+
   var body: some Scene {
     WindowGroup {
-      if let modelContainer, let loaderViewModel {
-        AppContent(
-          loaderViewModel: loaderViewModel,
-          metarLoader: metarLoader,
-          networkMonitor: networkMonitor,
-          locationStreamer: locationStreamer,
-          chartStore: chartStore
-        )
-        .modelContainer(modelContainer)
-      } else {
-        StoreUnavailableView()
+      Group {
+        if let modelContainer, let loaderViewModel {
+          AppContent(
+            loaderViewModel: loaderViewModel,
+            metarLoader: metarLoader,
+            networkMonitor: networkMonitor,
+            locationStreamer: locationStreamer,
+            chartStore: chartStore
+          )
+          .modelContainer(modelContainer)
+          .id(navDataGeneration)
+        } else {
+          StoreUnavailableView()
+        }
       }
+      .onChange(of: activeNavDataGeneration) { adoptActiveNavDataGeneration() }
+    }
+    .backgroundTask(.processingTask(BackgroundRefreshScheduler.navDataRefreshIdentifier)) {
+      await BackgroundRefreshScheduler.shared.handleNavDataRefresh()
+    }
+    .onChange(of: scenePhase) { _, phase in
+      if phase == .active || phase == .background { scheduleBackgroundWork() }
     }
   }
 
   init() {
     Self.startCrashReporting()
+    // Registered while launching: the permitted identifiers are read once, and a handler offered
+    // afterwards is not matched against them.
+    NavDataDownloadTask.shared.registerHandler()
 
     let isUITest = UITestConfiguration.isRunning
     metarLoader = Self.makeMETARLoader(isUITest: isUITest)
@@ -72,21 +97,22 @@ struct CTA_HelperApp: App {
     )
     locationStreamer = UITestConfiguration.locationStreamer
     chartStore = .makeDefault()
+    NavDataUpdater.shared.chartStore = chartStore
     if isUITest { Self.discardSettings() }
+    // The app reads its store read-only, so a UI test's airports go in before it is opened.
+    Self.seedIfRequested()
 
+    _navDataGeneration = State(initialValue: NavDataStore.activeGeneration)
     do {
       let container = try NavDataStore.shared.get()
-      Self.seedIfRequested(container)
-      modelContainer = container
-      _loaderViewModel = State(
-        initialValue: NavDataLoaderViewModel(container: container, chartStore: chartStore)
-      )
+      _modelContainer = State(initialValue: container)
+      _loaderViewModel = State(initialValue: NavDataLoaderViewModel(container: container))
     } catch {
       Self.logger.error("Could not open the nav data store: \(error)")
       SentrySDK.capture(error: error) { scope in
         scope.setFingerprint(["store", "open"])
       }
-      modelContainer = nil
+      _modelContainer = State(initialValue: nil)
       _loaderViewModel = State(initialValue: nil)
     }
   }
@@ -132,8 +158,8 @@ struct CTA_HelperApp: App {
   /**
    Discard every persisted setting before a UI test runs.
 
-   The store a UI test opens is in memory and goes with the process, but the settings beside it
-   are the app's own and outlive it. One test starring an airport or choosing a rounding
+   The stores a UI test opens are its own and go with the run, but the settings beside them are
+   the app's own and outlive it. One test starring an airport or choosing a rounding
    convention would otherwise decide the next test's outcome, in whatever order they happened
    to run.
    */
@@ -149,21 +175,36 @@ struct CTA_HelperApp: App {
     }
 
     /**
-     Seed an in-memory store with sample airports and a favorite, so a UI test can drive the
+     Install a generation holding sample airports, and favorite one, so a UI test can drive the
      airport → approach → fixes flow without a network download.
+
+     It is installed the way an update installs one, into the test's own store directory, so
+     the app opens it exactly as it opens a downloaded cycle.
      */
     @MainActor
-    private static func seedIfRequested(_ container: ModelContainer) {
-      guard UITestConfiguration.seedsStore else { return }
+    private static func seedIfRequested() {
+      guard UITestConfiguration.seedsStore, let layout = UITestConfiguration.storeLayout else {
+        return
+      }
 
       let missoula = PreviewData.missoula()
-      container.mainContext.insert(missoula)
-      container.mainContext.insert(PreviewData.sanFrancisco())
-      // Seeded airports with no cycle beside them read as a half-written import, and the app
-      // would offer the download rather than show them.
-      container.mainContext.insert(
-        PreviewData.navDataCycle(expired: UITestConfiguration.seedsExpiredCycle)
-      )
+      do {
+        let installer = NavDataStoreInstaller(layout: layout)
+        let generation = installer.reserveGeneration()
+        let context = ModelContext(
+          try NavDataStore.makeWritableContainer(layout: layout, generation: generation)
+        )
+        context.insert(missoula)
+        context.insert(PreviewData.sanFrancisco())
+        // Seeded airports with no cycle beside them read as a half-written import, and the app
+        // would offer the download rather than show them.
+        context.insert(PreviewData.navDataCycle(expired: UITestConfiguration.seedsExpiredCycle))
+        try context.save()
+        try installer.install(generation: generation)
+      } catch {
+        preconditionFailure("Could not seed the UI test store: \(error)")
+      }
+
       UserDefaults.standard.set(
         AirportIDList([missoula.siteNumber]),
         forKey: SettingsKey.favoriteAirports
@@ -175,8 +216,33 @@ struct CTA_HelperApp: App {
 
     /// A release build never seeds: ``PreviewData`` is not compiled into it.
     @MainActor
-    private static func seedIfRequested(_: ModelContainer) {}
+    private static func seedIfRequested() {}
   #endif
+
+  /**
+   Submits the app's background work to the system.
+
+   Submission is asynchronous, and a request made only as the app leaves the screen can be cut
+   short when the app is suspended. Submitting on becoming active too, when there is time to
+   finish, keeps a request in place; leaving the screen then renews it.
+   */
+  private func scheduleBackgroundWork() {
+    Task { await BackgroundRefreshScheduler.shared.scheduleNavDataRefresh() }
+  }
+
+  /**
+   Reopens the store on the generation an update has just installed.
+
+   The container holds an open handle on one generation's file, so a new one only reaches the
+   app by opening it. The generation it was reading is left on disk until the next launch, when
+   nothing holds it — which is what makes switching safe while the app is running.
+   */
+  private func adoptActiveNavDataGeneration() {
+    NavDataStore.reopen()
+    modelContainer = NavDataStore.container
+    if let modelContainer { loaderViewModel?.container = modelContainer }
+    navDataGeneration = activeNavDataGeneration
+  }
 }
 
 /**
