@@ -1,5 +1,5 @@
 {
-  "originHash" : "07db69704703b8ca72d304126d4ce5c7c79366d0f08b1178538888e8f64e86b9",
+  "originHash" : "d4fcdbd9df432699016ed1a744eb7a422ff4af7b5c22ce419f493818bb0620b7",
   "pins" : [
     {
       "identity" : "buildablemacro",
@@ -38,6 +38,15 @@
       }
     },
     {
+      "identity" : "navdatadistribution",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/CTA-Helper/NavDataDistribution",
+      "state" : {
+        "revision" : "fa862dcc2785e4ed22bc52fd05422b16ee55cf78",
+        "version" : "1.0.0"
+      }
+    },
+    {
       "identity" : "sentry-cocoa",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/getsentry/sentry-cocoa/",
@@ -51,8 +60,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/RISCfuture/StreamingLZMA",
       "state" : {
-        "branch" : "main",
-        "revision" : "748c91c912b4e5f7727ee299e49827d124d0a231"
+        "revision" : "60db3a2b44f349b459ffd578c5715059facc9a2f",
+        "version" : "2.0.1"
       }
     },
     {
@@ -132,8 +141,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/riscfuture/swiftr2",
       "state" : {
-        "branch" : "main",
-        "revision" : "6595082e5aca345c029ef8cfcc1e8edb100a884b"
+        "revision" : "4ff29069563fe58021e15f87e1bdb72a1cdeb3db",
+        "version" : "1.2.1"
       }
     },
     {
