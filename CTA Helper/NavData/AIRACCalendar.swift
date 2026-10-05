@@ -11,7 +11,7 @@ enum AIRACCalendar {
   private static let epoch = Date(timeIntervalSince1970: 1_577_923_200)
 
   /// How long each cycle is in force, in seconds.
-  private static let cycleLength: TimeInterval = 28 * 24 * 60 * 60
+  static let cycleLength: TimeInterval = 28 * 24 * 60 * 60
 
   /**
    When the cycle in force at `date` took effect, followed by each cycle before it.

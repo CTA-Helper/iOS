@@ -102,8 +102,7 @@ import UIKit
      the builder just wrote — and works with or without a UI test driving the app. It is the one
      argument here that carries a value, because a URL cannot be a bare flag; that it also lands
      in the argument domain of `UserDefaults` is harmless, since no setting shares its name.
-     Without it, a UI test serving a fixture cycle serves no prebuilt store, so the update falls
-     back to importing the fixture.
+     Without it, a UI test serving a fixture cycle serves that cycle as a prebuilt store too.
      */
     static var navDataBaseURL: URL? {
       let arguments = ProcessInfo.processInfo.arguments
@@ -179,7 +178,7 @@ import UIKit
 
     /// Where a UI test serves a nav data cycle from, in place of the published release.
     enum NavDataFixture {
-      /// The sample cycle bundled with the app, which downloads and imports the way a release does.
+      /// The sample cycle bundled with the app, downloaded and installed the way a release is.
       case bundled
       /// A path nothing answers, so the download fails and the loading screen reports it.
       case unreachable
@@ -205,9 +204,10 @@ import UIKit
           // The cycle dates are filled in for the same reason the digest is: committed ones
           // expire with the calendar, and a fixture that lands already out of date would have the
           // app offering its replacement the moment it finished importing.
-          let cycle = currentCycleDates()
-          manifest["cycleEffective"] = cycle.effective
-          manifest["cycleExpires"] = cycle.expires
+          let formatter = ISO8601DateFormatter()
+          formatter.formatOptions = [.withFullDate]
+          manifest["cycleEffective"] = formatter.string(from: currentCycle.effective)
+          manifest["cycleExpires"] = formatter.string(from: currentCycle.expires)
 
           let url = URL.temporaryDirectory.appending(component: "uiTestManifest.json")
           try JSONSerialization.data(withJSONObject: manifest).write(to: url)
@@ -216,6 +216,40 @@ import UIKit
           preconditionFailure("Could not build the nav data fixture manifest: \(error)")
         }
       }()
+
+      /**
+       The bundled cycle built into a store and published the way the builder publishes one, so
+       the update installs it rather than falling back to the import.
+       */
+      private static let publishedStore: URL = {
+        do {
+          let release = try NavDataReleaseManifest.decoder()
+            .decode(NavDataReleaseManifest.self, from: Data(contentsOf: packedManifest))
+          let document = try JSONDecoder()
+            .decode(NavDataDocument.self, from: Data(contentsOf: bundled("uiTestNavData")))
+          return try FixtureStorePublisher.publish(
+            document,
+            release: release,
+            effective: currentCycle.effective,
+            expires: currentCycle.expires,
+            in: URL.temporaryDirectory.appending(
+              component: "uiTestPrebuiltNavData",
+              directoryHint: .isDirectory
+            )
+          )
+        } catch {
+          preconditionFailure("Could not publish the nav data fixture as a store: \(error)")
+        }
+      }()
+
+      /**
+       The AIRAC cycle in force today, which the fixture is published as: the cycle the app asks
+       for first, standing over today so nothing it installs is already out of date.
+       */
+      private static var currentCycle: (effective: Date, expires: Date) {
+        let effective = AIRACCalendar.effectiveDates(at: .now, count: 1)[0]
+        return (effective, effective.addingTimeInterval(AIRACCalendar.cycleLength))
+      }
 
       /**
        The manifest describing ``dataURL``, with the digest and byte counts of the bytes actually
@@ -247,21 +281,12 @@ import UIKit
         }
       }
 
-      /**
-       Where the fixture's prebuilt stores are published: nowhere, so the update falls back to
-       importing ``dataURL``.
-       */
-      var storeBaseURL: URL { Self.unreachable("prebuilt") }
-
-      /// A cycle window standing over today, as the plain dates a manifest publishes.
-      private static func currentCycleDates() -> (effective: String, expires: String) {
-        let day: TimeInterval = 24 * 3600
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withFullDate]
-        return (
-          effective: formatter.string(from: .now.addingTimeInterval(-7 * day)),
-          expires: formatter.string(from: .now.addingTimeInterval(21 * day))
-        )
+      /// Where the fixture's prebuilt stores are published.
+      var storeBaseURL: URL {
+        switch self {
+          case .bundled: Self.publishedStore
+          case .unreachable: Self.unreachable("prebuilt")
+        }
       }
 
       private static func bundled(_ name: String) -> URL {
