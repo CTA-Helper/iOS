@@ -9,10 +9,9 @@ import os
  restart from nothing. A continued-processing task buys that time, and gives the system a
  progress and cancel affordance the app does not have to draw.
 
- This is only safe because an update writes a generation nothing is reading. The system expires
- these tasks on changing conditions, and cancels them outright when the app is swiped out of the
- switcher, without telling the app — which against the dataset in use would have meant an empty
- airport database.
+ The system expires these tasks on changing conditions, and cancels them outright when the app is
+ swiped out of the switcher, without telling the app. That is safe because an update writes a
+ generation nothing is reading: a task the system cancels costs a file, not the dataset in use.
 
  Failing to get a task is not an error. The update runs either way; it just runs unprotected.
  */
@@ -88,10 +87,12 @@ final class NavDataDownloadTask {
      - title: What the system should call this work.
      - subtitle: The phase to show beneath it.
    - Returns: The task to report progress to, or `nil` if the system would not start one — in
-     which case the caller carries on unprotected.
+     which case the caller carries on unprotected. A caller that arrives while another's request
+     is pending gets `nil` too: ``NavDataUpdater`` runs one update for both, and the pending
+     request protects it.
    */
   func begin(title: String, subtitle: String) async -> BGContinuedProcessingTask? {
-    guard isEnabled, isRegistered else { return nil }
+    guard isEnabled, isRegistered, pendingStart == nil else { return nil }
 
     // The launch handler can run as soon as the request is in, so the continuation it resumes has
     // to be parked before submission starts, not after it returns.
