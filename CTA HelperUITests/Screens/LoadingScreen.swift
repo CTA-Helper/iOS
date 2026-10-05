@@ -9,7 +9,7 @@ struct LoadingScreen {
   /// The element whose presence means this screen is up.
   static let landingID = "downloadNavDataButton"
 
-  /// How long the whole download and import may take before the airport list appears.
+  /// How long the whole update may take before the airport list appears.
   private static let importTimeout = ScaledTimeouts.scaled(60)
 
   let app: XCUIApplication
@@ -51,11 +51,14 @@ struct LoadingScreen {
     return self
   }
 
-  /// The airport picker the loading screen gives way to once a cycle has been imported.
+  /**
+   The airport picker the loading screen gives way to once the downloaded cycle has been swapped
+   in for whatever the app was reading.
+   */
   func awaitAirportList() -> AirportListScreen {
     app.descendant(id: AirportListScreen.landingID)
       .assertExists(
-        "The loading screen stayed up after the navigation data was imported",
+        "The loading screen stayed up after the navigation data was installed",
         timeout: Self.importTimeout
       )
     return AirportListScreen(app: app)
