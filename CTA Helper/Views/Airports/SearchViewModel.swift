@@ -1,4 +1,5 @@
 import Foundation
+import NavDataSchema
 import Observation
 import SwiftData
 import os

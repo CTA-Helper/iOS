@@ -1,21 +1,7 @@
 import Foundation
+import NavDataSchema
 
-/**
- The altitude each correction method enters the cold temperature calculation with.
-
- The four individual segments follow AIP ENR 1.8 5.f.2.1; ``allSegments`` is the single
- reference the All Segments Method uses for the whole approach from the IAF to the FAF
- (ENR 1.8 5.f.1). A segment whose reference the coded procedure did not publish carries a
- ``ReferenceAltitude`` case saying why — ``ReferenceAltitude/unavailable`` or
- ``ReferenceAltitude/pilotEntered``.
- */
-struct ReferenceAltitudes: Codable, Hashable, Sendable {
-  var initial: ReferenceAltitude
-  var intermediate: ReferenceAltitude
-  var final: ReferenceAltitude
-  var missed: ReferenceAltitude
-  var allSegments: ReferenceAltitude
-
+extension ReferenceAltitudes {
   /**
    The reference a given segment uses under the given method.
 

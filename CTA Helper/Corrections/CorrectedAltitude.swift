@@ -1,4 +1,5 @@
 import Foundation
+import NavDataSchema
 
 /// Why a fix's published altitude was not corrected.
 enum UncorrectableReason: Equatable, Sendable {

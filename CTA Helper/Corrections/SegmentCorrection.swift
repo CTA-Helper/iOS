@@ -1,4 +1,5 @@
 import Foundation
+import NavDataSchema
 
 /**
  The correction computed for one approach segment, which every fix in that segment is

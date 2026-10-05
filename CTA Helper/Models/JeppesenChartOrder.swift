@@ -1,4 +1,5 @@
 import Foundation
+import NavDataSchema
 
 /**
  The chart-type digit of a Jeppesen chart index number — the second digit of an index like

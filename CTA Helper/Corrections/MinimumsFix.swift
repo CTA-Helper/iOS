@@ -1,4 +1,5 @@
 import Foundation
+import NavDataSchema
 
 /**
  The pilot-entered DA or MDA presented to the correction engine as a fix of the final segment,

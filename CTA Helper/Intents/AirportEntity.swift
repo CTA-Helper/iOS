@@ -1,6 +1,7 @@
 import AppIntents
 import CoreSpotlight
 import Foundation
+import NavDataSchema
 
 /**
  An airport, as Shortcuts, Spotlight and Siri hold it.

@@ -1,5 +1,6 @@
 import Foundation
 import Gzip
+import NavDataSchema
 import SwiftData
 import os
 
@@ -63,7 +64,7 @@ actor NavDataLoader {
     }
 
     state = .downloading(progress: nil)
-    let compressed = try await download(NavDataManifest.dataURL)
+    let compressed = try await download(NavDataReleaseManifest.dataURL)
     try NavDataIntegrity.verify(compressed, against: manifest.data)
 
     state = .importing(progress: nil)
@@ -85,16 +86,16 @@ actor NavDataLoader {
     state = .finished
   }
 
-  private func fetchManifest() async throws -> NavDataManifest {
-    let data = try await download(NavDataManifest.url)
+  private func fetchManifest() async throws -> NavDataReleaseManifest {
+    let data = try await download(NavDataReleaseManifest.url)
     do {
-      return try NavDataManifest.decoder().decode(NavDataManifest.self, from: data)
+      return try NavDataReleaseManifest.decoder().decode(NavDataReleaseManifest.self, from: data)
     } catch {
       throw NavDataError.decodingFailed(underlying: error)
     }
   }
 
-  private func isAlreadyImported(_ manifest: NavDataManifest) throws -> Bool {
+  private func isAlreadyImported(_ manifest: NavDataReleaseManifest) throws -> Bool {
     do {
       let cycles = try modelContext.fetch(FetchDescriptor<NavDataCycle>())
       return cycles.first?.sha256 == manifest.data.sha256
@@ -198,7 +199,7 @@ actor NavDataLoader {
     }
   }
 
-  private func recordCycle(_ manifest: NavDataManifest) throws {
+  private func recordCycle(_ manifest: NavDataReleaseManifest) throws {
     do {
       modelContext.insert(
         NavDataCycle(

@@ -1,4 +1,5 @@
 import Foundation
+import NavDataSchema
 
 /**
  The segment names the fix and approach screens present, kept in the view layer because
