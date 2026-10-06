@@ -61,9 +61,8 @@ private struct ObservationTime: View {
 
   var body: some View {
     VStack(alignment: .trailing) {
-      // Formatted here rather than handed to `Text(_:format:)`, which resolves a date against
-      // the environment's own time zone and would put the observation back in local time.
-      Text(verbatim: date.formatted(Self.zulu))
+      Text(date, format: Self.zulu)
+        .environment(\.timeZone, .gmt)
         .monospacedDigit()
       Text(date, format: .relative(presentation: .numeric))
         .font(.caption)

@@ -83,14 +83,8 @@ private struct CorrectionsSection: View {
  cellular unasked.
  */
 private struct NavigationDataSection: View {
-  /**
-   The cycle dates as the AIRAC calendar publishes them: a plain date, read in UTC.
-
-   The manifest carries both date-only, which decodes to UTC midnight, so resolving them
-   against the device's own time zone would report a cycle west of Greenwich as taking
-   effect and expiring a day early.
-   */
-  private static let cycleDate = Date.FormatStyle(timeZone: .gmt).year().month().day()
+  /// The cycle dates as the AIRAC calendar publishes them: a plain date.
+  private static let cycleDate = Date.FormatStyle.dateTime.year().month().day()
 
   @Query private var cycles: [NavDataCycle]
 
@@ -106,17 +100,22 @@ private struct NavigationDataSection: View {
           .accessibilityLabel("AIRAC Cycle")
           .accessibilityValue(cycle.airacCycle)
           .accessibilityIdentifier("airacCycle")
-        LabeledContent("Effective") {
-          Text(cycle.effectiveDate, format: Self.cycleDate)
+        Group {
+          LabeledContent("Effective") {
+            Text(cycle.effectiveDate, format: Self.cycleDate)
+          }
+          // A pilot who deferred the update at launch dismissed that prompt for the session, so
+          // this row is what is left to say the data is out of date. The label carries the state
+          // rather than the color alone, which Dynamic Type and color-blind pilots both need.
+          LabeledContent(cycle.hasExpired ? "Expired" : "Expires") {
+            Text(cycle.expirationDate, format: Self.cycleDate)
+              .foregroundStyle(cycle.hasExpired ? Color.red : Color.primary)
+          }
+          .accessibilityIdentifier(cycle.hasExpired ? "cycleExpired" : "cycleExpires")
         }
-        // A pilot who deferred the update at launch dismissed that prompt for the session, so
-        // this row is what is left to say the data is out of date. The label carries the state
-        // rather than the color alone, which Dynamic Type and color-blind pilots both need.
-        LabeledContent(cycle.hasExpired ? "Expired" : "Expires") {
-          Text(cycle.expirationDate, format: Self.cycleDate)
-            .foregroundStyle(cycle.hasExpired ? Color.red : Color.primary)
-        }
-        .accessibilityIdentifier(cycle.hasExpired ? "cycleExpired" : "cycleExpires")
+        // Both dates are date-only, decoding to UTC midnight. Read in the device's own time zone,
+        // a cycle west of Greenwich would take effect and expire a day early.
+        .environment(\.timeZone, .gmt)
       } else {
         Text("No data")
           .foregroundStyle(.secondary)
