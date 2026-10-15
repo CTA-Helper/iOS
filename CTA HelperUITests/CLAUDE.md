@@ -68,7 +68,7 @@ arguments as app settings. `Support/AppLaunch.swift` names them.
 - `-uiTestWeatherCold` serves −31 °C instead, for a capture that has to land on
   one exact temperature: a dragged slider stops a few degrees either side of
   where it aims, and nothing in XCUITest can step it. The plate and fix list
-  screenshots use it.
+  screenshots use it, because the creative assets quote their corrections.
 - Wait for a row before swiping toward it. A row the list has not drawn yet is
   not a row below the fold, and a scroll aimed at one goes straight past it —
   `FixListScreen.scroll(to:_:describedAs:)` probes first for that reason, then
@@ -160,8 +160,8 @@ XCUIPromoKit's `promokit stills`, which `bundle exec fastlane screenshots` runs
 through the `Promo` plan on the iPhone 18 Pro Max, the 13" iPad and iPhone Duo,
 `capture(_:)` writes each with `PromoStill`; anywhere else the test skips. The
 `UI Tests` plan CI runs skips it as well. The storyboard sets the order on the
-product page, and the site's `SITE_SCREENS` names stills by the same ids, so
-renaming a shot means renaming it there too.
+product page, and `promo/creative/` and the site's `SITE_SCREENS` name stills
+by the same ids, so renaming a shot means renaming it there too.
 
 - It asserts only to synchronise a capture with the screen it means to
   photograph. Reuse the screen objects' assertions for that rather than adding

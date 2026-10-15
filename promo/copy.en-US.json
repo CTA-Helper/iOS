@@ -7,5 +7,8 @@
   "corrections": "Every fix, *corrected*.",
   "approaches": "Every approach, *by runway*.",
   "airports": "Cold airports, *flagged*.",
-  "settings": "ENR 1.8, *your way*."
+  "settings": "ENR 1.8, *your way*.",
+  "header-headline": "Cold temperature altitude *corrections*.",
+  "search-headline": "Every fix, *corrected* for the cold.",
+  "search-lede": "ENR 1.8 corrections beside each published altitude, on the list and on the plate."
 }

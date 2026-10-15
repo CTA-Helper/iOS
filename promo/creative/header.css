@@ -1,0 +1,67 @@
+/* Laid out on Apple's 3840 x 1646 header template, whose art safe area is 1646 x 661 at
+   (1097, 493). */
+
+h1 {
+  position: absolute;
+  left: 1097px;
+  top: 540px;
+  width: 700px;
+  font-size: 136px;
+}
+
+.callout {
+  position: absolute;
+  left: 1980px;
+  top: 600px;
+  font-family: var(--data);
+}
+
+.callout span {
+  display: block;
+}
+
+.callout .fix {
+  color: var(--ink-faint);
+  font: 500 40px var(--data);
+  letter-spacing: 0.14em;
+}
+
+.callout .published {
+  margin-top: 24px;
+  color: var(--ink-faint);
+  font: 400 84px / 1 var(--data);
+  text-decoration: line-through;
+  text-decoration-thickness: 5px;
+}
+
+.callout .corrected {
+  margin-top: 12px;
+  color: var(--beacon);
+  font: 600 156px / 1 var(--data);
+}
+
+.callout .delta {
+  margin-top: 28px;
+  color: var(--ink-quiet);
+  font: 500 40px var(--data);
+  letter-spacing: 0.08em;
+}
+
+.card {
+  translate: -50% -50%;
+}
+
+.fixes {
+  left: 360px;
+  top: 880px;
+  width: 580px;
+  rotate: -6deg;
+}
+
+/* In front, so nothing covers its column of corrected altitudes. */
+.plate {
+  left: 740px;
+  top: 860px;
+  width: 640px;
+  rotate: 4deg;
+}

@@ -1,0 +1,49 @@
+/* Laid out on Apple's 3840 x 2560 search template, whose art safe area is 2168 x 1030 at
+   (836, 765). */
+
+.copy {
+  position: absolute;
+  left: 836px;
+  top: 765px;
+  width: 980px;
+  height: 1030px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+h1 {
+  font-size: 184px;
+}
+
+.lede {
+  max-width: 880px;
+  margin-top: 60px;
+  font-size: 60px;
+}
+
+.card {
+  translate: -50% -50%;
+}
+
+.approaches {
+  left: 2260px;
+  top: 1200px;
+  width: 720px;
+  rotate: -8deg;
+}
+
+.plate {
+  left: 3040px;
+  top: 1180px;
+  width: 780px;
+  rotate: 7deg;
+}
+
+/* In front, the fix list down to the end of its Initial segment: CHARL's correction leads. */
+.fixes {
+  left: 2600px;
+  top: 1280px;
+  width: 800px;
+  object-view-box: inset(330px 0 900px 0);
+}
