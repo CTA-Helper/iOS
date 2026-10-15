@@ -2,9 +2,9 @@ import XCTest
 import XCUIPromoKit
 
 /**
- Captures the stills `promo/storyboard.json` sets as App Store screenshots, walking the app's
- showcase screens against the same seeded, offline store the flow tests use. `promokit stills`
- runs it; anywhere else, the test skips.
+ Captures the stills `promo/storyboard.json` sets as App Store screenshots and cuts the creative
+ assets from, walking the app's showcase screens against the same seeded, offline store the flow
+ tests use. `promokit stills` runs it; anywhere else, the test skips.
 
  These are not assertion tests. Every `assert…` below is there to synchronise a capture with the
  screen it means to photograph — a shot taken mid-push or before a correction has been computed
@@ -112,9 +112,9 @@ nonisolated final class StoreScreenshots: XCTestCase {
   }
 
   /**
-   The stills the storyboard names. The approach list and the airport picker fill only the
-   leading pane, so a two-pane layout leaves them out: beside them the detail pane shows only the
-   prompt to select an approach.
+   The stills the storyboard and the creative templates name. The approach list and the airport
+   picker fill only the leading pane, so a two-pane layout leaves them out: beside them the detail
+   pane shows only the prompt to select an approach.
    */
   private enum Shot: String {
     case chart, corrections, approaches, airports, settings
