@@ -71,24 +71,21 @@ ATTACHABLE_VERSION_STATES = %w[
   INVALID_BINARY
 ].freeze
 
-# The marketing site in `docs/` shows the same screens as the App Store set, in both appearances,
-# so a visitor reading the page in dark mode is answered by the shots as well as by the CSS. Each
-# appearance is captured into its own staging directory, leaving the App Store set in
-# `fastlane/screenshots` untouched by a site run.
-#
-# Only the iPhone captures are installed: the page lays its screenshots out as phones, and the two
-# screens the iPad run skips would leave gaps in the set.
-SITE_APPEARANCES = { "light" => false, "dark" => true }.freeze
+# The marketing site in `docs/` shows App Store stills in both appearances, so a visitor reading
+# the page in dark mode is answered by the shots as well as by the CSS. `promo/site` captures them:
+# the App Store's own stills test, on the iPhone alone, since the page lays its screenshots out as
+# phones.
+SITE_APPEARANCES = %w[light dark].freeze
 SITE_SCREENSHOT_DEVICE = "iPhone 18 Pro Max"
 
-# The screens the site shows: one for each step of the walkthrough in `docs/index.html`. The rest of
-# the App Store set is captured just the same, and simply not installed.
-SITE_SCREENS = %w[05-Airports 04-Approaches 01-Corrections].freeze
+# The stills the site shows: one for each step of the walkthrough in `docs/index.html`.
+SITE_SCREENS = %w[airports approaches corrections].freeze
 
 # fastlane runs a lane from `fastlane/`, not from the repository it belongs to, so every path here
 # is anchored rather than relative — a bare `docs/…` would address `fastlane/docs/…`.
 REPOSITORY_ROOT = File.expand_path("..", __dir__)
 SITE_SCREENSHOT_DIRECTORY = File.join(REPOSITORY_ROOT, "docs/images/screenshots")
+SITE_STAGING_DIRECTORY = File.join(REPOSITORY_ROOT, ".build/site-screenshots")
 
 # The page never draws a screenshot taller than about 640 CSS pixels, so this leaves headroom on a
 # retina display without shipping the 2868-pixel capture the simulator produces.
@@ -128,26 +125,40 @@ end
 # Which appearances a site lane works on: the one `appearance:` named, or every one of them.
 def appearances(options)
   named = options[:appearance]
-  return SITE_APPEARANCES.keys if named.nil?
-  return [named] if SITE_APPEARANCES.key?(named)
+  return SITE_APPEARANCES if named.nil?
+  return [named] if SITE_APPEARANCES.include?(named)
 
   UI.user_error!("Unknown appearance #{named.inspect}. " \
-                 "This site ships #{SITE_APPEARANCES.keys.join(' and ')}.")
+                 "This site ships #{SITE_APPEARANCES.join(' and ')}.")
 end
 
-# Where one appearance's captures land before they are installed. Deliberately not
-# `fastlane/screenshots`, which snapshot clears on every run and the App Store set owns.
+# Where one appearance's stills wait to be installed.
 def site_staging_directory(appearance)
-  File.join(REPOSITORY_ROOT, "fastlane", "screenshots-#{appearance}")
+  File.join(SITE_STAGING_DIRECTORY, appearance)
 end
 
-# Copies one capture into the site under the name `docs/index.html` asks for. snapshot names a shot
-# for the device that took it — `iPhone 18 Pro Max-01-Corrections.png` — which is neither a name a
-# URL wants nor one that survives a device being swapped for next year's.
-def install_site_screenshot(capture, into:)
-  suffix = File.basename(capture).delete_prefix("#{SITE_SCREENSHOT_DEVICE}-").downcase
-  installed = File.join(into, "iphone-#{suffix}")
-  FileUtils.cp(capture, installed)
+# The folder `promokit stills` captures one appearance of the site's device into.
+def site_stills_directory(appearance)
+  device = promo_slug(SITE_SCREENSHOT_DEVICE)
+  File.join(PROMO_STILLS_PATH, "en-US", (appearance == "light") ? device : "#{device}-#{appearance}")
+end
+
+# Copies a site run's stills into staging, and takes the dark ones out of promokit's folder:
+# `promokit render` renders every device folder it finds into the App Store set.
+def stage_site_stills
+  SITE_APPEARANCES.each do |appearance|
+    staging = site_staging_directory(appearance)
+    FileUtils.rm_rf(staging)
+    FileUtils.mkdir_p(SITE_STAGING_DIRECTORY)
+    FileUtils.cp_r(site_stills_directory(appearance), staging)
+  end
+  FileUtils.rm_rf(site_stills_directory("dark"))
+end
+
+# Copies one still into the site under the name `docs/index.html` asks for.
+def install_site_screenshot(still, into:)
+  installed = File.join(into, "iphone-#{File.basename(still)}")
+  FileUtils.cp(still, installed)
   scale_to_site_height(installed)
 end
 
@@ -179,6 +190,149 @@ def provisioning_authentication_args
     "-authenticationKeyIssuerID #{key[:issuer_id].shellescape}"
 end
 
+# promokit's folder, and the configuration and storyboard it captures and renders from.
+PROMO_PATH = File.expand_path("../promo", __dir__)
+PROMO_CONFIG = JSON.parse(File.read(File.join(PROMO_PATH, "promokit.json")))
+PROMO_STORYBOARD = JSON.parse(File.read(File.join(PROMO_PATH, "storyboard.json")))
+
+# Where promokit keeps the stills it captures, a folder per locale and device.
+PROMO_STILLS_PATH = File.expand_path("../.build/promo/stills", __dir__)
+
+# The folders `promokit render` writes into and deliver uploads from, a folder per locale in each.
+SCREENSHOTS_PATH = File.expand_path("screenshots", __dir__)
+
+# The Xcode promokit builds and tests with. The iPhone Duo simulator needs Xcode 27.1 or later.
+DUO_XCODE = ENV.fetch("DUO_XCODE", "/Applications/Xcode-27.1.0-Release.Candidate.app")
+
+# Runs the block with every tool fastlane shells out to, xcodebuild and simctl among them, taken
+# from the given Xcode rather than the selected one.
+def with_xcode(path)
+  developer_dir = File.join(path, "Contents", "Developer")
+  UI.user_error!("No Xcode at #{path}. Set DUO_XCODE in fastlane/.env.") unless Dir.exist?(developer_dir)
+
+  previous = ENV.fetch("DEVELOPER_DIR", nil)
+  ENV["DEVELOPER_DIR"] = developer_dir
+  yield
+ensure
+  ENV["DEVELOPER_DIR"] = previous
+end
+
+# Runs XCUIPromoKit's `promokit` from promo/.
+def promokit(*)
+  with_xcode(DUO_XCODE) { sh("pnpm", "--dir", PROMO_PATH, "promokit", *) }
+end
+
+# The capture lanes drive simulators, which a CI runner can't stand in for.
+def refuse_ci
+  UI.user_error!("Capturing App Store media needs a Mac with simulators; it doesn't run on CI.") if Helper.ci?
+end
+
+# A device's folder name in promokit's stills and renders, such as `iphone-18-pro-max`.
+def promo_slug(name)
+  name.downcase.gsub(/[^a-z0-9]+/, "-").delete_prefix("-").delete_suffix("-")
+end
+
+# The device folders `promokit stills` captures into: one per device and appearance.
+def promo_still_devices
+  stills = PROMO_CONFIG.fetch("stills", {})
+  stills.fetch("devices", []).product(stills.fetch("appearances", %w[light])).map do |device, appearance|
+    (appearance == "light") ? promo_slug(device) : "#{promo_slug(device)}-#{appearance}"
+  end
+end
+
+# The screenshots `promokit render` makes for one locale and device: each of the storyboard's
+# screenshots whose still the test captured there, in order. A test may leave a still out on a
+# device it doesn't suit.
+def expected_screenshots(locale, device)
+  stills = File.join(PROMO_STILLS_PATH, locale, device)
+  UI.user_error!("No #{device} stills for #{locale} in #{stills}; run the capture lane first.") unless Dir.exist?(stills)
+
+  PROMO_STORYBOARD.fetch("screenshots", []).each_with_index.filter_map do |screenshot, index|
+    next unless screenshot["file"] || File.exist?(File.join(stills, "#{screenshot["still"]}.png"))
+
+    "#{device}-#{index.to_s.rjust(2, "0")}-#{screenshot["id"]}.png"
+  end
+end
+
+# Refuses a rendered screenshot folder that is not exactly what the storyboard makes of the
+# captured stills. An upload syncs the remote sets to it, so a missing file would clear a slot on
+# the product page and a stray one would publish whatever it happens to be.
+def verify_screenshot_folder(directory, devices)
+  PROMO_CONFIG.fetch("locales", %w[en-US]).each do |locale|
+    folder = File.join(directory, locale)
+    expected = devices.flat_map { |device| expected_screenshots(locale, device) }.sort
+    found = Dir.exist?(folder) ? Dir.children(folder).grep(/\.png\z/).sort : []
+    next if found == expected
+
+    UI.user_error!("#{folder} holds #{found.join(", ").then { it.empty? ? "nothing" : it }}, " \
+                   "not #{expected.join(", ")}. Run the capture lane again.")
+  end
+end
+
+# `upload_to_app_store` syncs every slot it uploads into, so an empty directory would strip the
+# screenshots from the product page rather than leave the ones already there alone.
+def verify_screenshots_present(directory, lane:)
+  return if Dir.glob(File.join(directory, "*", "*.png")).any?
+
+  UI.user_error!("No screenshots under #{directory}; run the #{lane} lane first. Uploading an " \
+                 "empty set would clear the screenshots already on the App Store.")
+end
+
+# Every screenshot set on the version currently open for editing.
+def editable_screenshot_sets(platform)
+  app = Spaceship::ConnectAPI::App.find(APP_IDENTIFIER)
+  version = app.get_edit_app_store_version(platform: platform)
+  UI.user_error!("No editable #{platform} version of #{APP_IDENTIFIER} to hold screenshots.") unless version
+
+  version.get_app_store_version_localizations.flat_map(&:get_app_screenshot_sets)
+end
+
+# Empties those sets before an upload refills them.
+#
+# A set holds at most ten images, and deliver's sync uploads before it deletes, so a set already at
+# that ceiling has no room to work in and the sync fails outright. Clearing it first also spares the
+# sync from reconciling screenshots that are about to be replaced anyway.
+#
+# The count is re-read from App Store Connect rather than inferred from the deletions: deliver's own
+# overwrite path checks the objects it already holds, which is why it reports having removed
+# screenshots that are still there.
+def purge_remote_screenshots(platform)
+  editable_screenshot_sets(platform).each do |set|
+    set.app_screenshots.each(&:delete!)
+  end
+
+  remaining = editable_screenshot_sets(platform).sum { |set| set.app_screenshots.count }
+  return if remaining.zero?
+
+  UI.user_error!("#{remaining} screenshot(s) are still on App Store Connect after being deleted. " \
+                 "Uploading now would leave the set a mix of old and new.")
+end
+
+# Syncs one platform's rendered screenshots to the version open for editing, after `verify` and a
+# purge.
+def upload_rendered_screenshots(directory, platform:, lane:)
+  verify_screenshots_present(directory, lane: lane)
+  verify
+  ensure_api_key
+  purge_remote_screenshots(Spaceship::ConnectAPI::Platform.map(platform))
+  # deliver ships screenshot syncing as a beta and refuses `sync_screenshots` without this opt-in.
+  ENV["FASTLANE_ENABLE_BETA_DELIVER_SYNC_SCREENSHOTS"] = "true"
+  upload_to_app_store(
+    app_identifier:                       APP_IDENTIFIER,
+    platform:                             platform,
+    screenshots_path:                     directory,
+    # `overwrite_screenshots` verifies its deletions against the objects it already held rather
+    # than App Store Connect; syncing reconciles against what is actually there.
+    sync_screenshots:                     true,
+    skip_binary_upload:                   true,
+    skip_metadata:                        true,
+    languages:                            PROMO_CONFIG.fetch("locales", %w[en-US]),
+    force:                                true,
+    run_precheck_before_submit:           false,
+    ignore_language_directory_validation: true
+  )
+end
+
 # The listing text deliver uploads and downloads, a folder per locale.
 METADATA_PATH = File.expand_path("metadata", __dir__)
 
@@ -189,17 +343,6 @@ def remove_unversioned_metadata
   FileUtils.rm_f(Dir.glob(File.join(METADATA_PATH, "*", "{release_notes,apple_tv_privacy_policy}.txt")))
   FileUtils.rm_rf(Dir.glob(File.join(METADATA_PATH, "{review_information,trade_representative_contact_information}")))
 end
-
-# How long a capture run waits for an erased simulator to come back up before it overrides the
-# status bar.
-#
-# `erase_simulator` shuts the device down, and snapshot's own wait is `ENV[...].to_i || 10` — which
-# is `0` whenever the variable is unset, because `nil.to_i` is `0` and Ruby reads that as true. The
-# override then lands on a device still shutting down and `simctl` refuses it outright: "Unable to
-# lookup in current state: Shutting Down". That override is what puts 9:41 and a full battery on an
-# App Store capture, so a run that loses it cannot be trusted to have produced a shippable set.
-# Naming the variable ourselves is what actually buys the wait.
-ENV["SNAPSHOT_SIMULATOR_WAIT_FOR_BOOT_TIMEOUT"] ||= "30"
 
 # One version's release notes, rendered as App Store Connect wants them — the store field shows
 # whatever it is given verbatim, so the script strips the Markdown the changelog is written in.
@@ -328,25 +471,23 @@ def await_processing(build, name:)
 end
 
 platform :ios do
-  desc "Generate App Store screenshots (iPhone + iPad)"
+  desc "Capture the iPhone and iPad stills and render the App Store screenshots"
   lane :screenshots do
-    capture_screenshots
+    refuse_ci
+    promokit("stills")
+    promokit("render", "--only", "screenshots")
+    verify
   end
 
-  desc "Upload the generated screenshots to App Store Connect"
+  desc "Check the rendered media against Apple's rules and the screenshots against the storyboard"
+  lane :verify do
+    verify_screenshot_folder(SCREENSHOTS_PATH, promo_still_devices) if Dir.exist?(SCREENSHOTS_PATH)
+    promokit("check")
+  end
+
+  desc "Upload the rendered screenshots to App Store Connect"
   lane :upload_screenshots do
-    ensure_api_key
-    upload_to_app_store(
-      app_identifier:                       APP_IDENTIFIER,
-      screenshots_path:                     "./fastlane/screenshots",
-      overwrite_screenshots:                true, # Clear each locale's slots first, so re-runs stay idempotent
-      skip_binary_upload:                   true,
-      skip_metadata:                        true,
-      languages:                            %w[en-US],
-      force:                                true, # Skip the HTML preview
-      run_precheck_before_submit:           false,
-      ignore_language_directory_validation: true
-    )
+    upload_rendered_screenshots(SCREENSHOTS_PATH, platform: "ios", lane: "screenshots")
   end
 
   desc "Upload fastlane/metadata to the version open for editing"
@@ -389,34 +530,29 @@ platform :ios do
 
   desc "Capture the marketing site's screenshots and install them into docs/"
   lane :site_screenshots do |options|
-    appearances(options).each do |appearance|
-      capture_screenshots(
-        dark_mode:        SITE_APPEARANCES.fetch(appearance),
-        output_directory: site_staging_directory(appearance)
-      )
-      install_site_screenshots(options.merge(appearance: appearance))
-    end
+    refuse_ci
+    promokit("--directory", "site", "stills")
+    stage_site_stills
+    install_site_screenshots(options)
   end
 
   desc "Install already-captured site screenshots into docs/, without re-capturing them"
   lane :install_site_screenshots do |options|
     appearances(options).each do |appearance|
-      staging = File.join(site_staging_directory(appearance), "en-US")
+      staging = site_staging_directory(appearance)
       # Named outright rather than globbed: a missing screen should fail the lane, not quietly
       # publish a page one screenshot short.
-      captures = SITE_SCREENS.to_h do |screen|
-        [screen, File.join(staging, "#{SITE_SCREENSHOT_DEVICE}-#{screen}.png")]
-      end
+      stills = SITE_SCREENS.to_h { |screen| [screen, File.join(staging, "#{screen}.png")] }
 
-      missing = captures.reject { |_, capture| File.exist?(capture) }.keys
+      missing = stills.reject { |_, still| File.exist?(still) }.keys
       UI.user_error!("Missing from #{staging}: #{missing.join(', ')}.") if missing.any?
 
       destination = File.join(SITE_SCREENSHOT_DIRECTORY, appearance)
       FileUtils.rm_rf(destination)
       FileUtils.mkdir_p(destination)
 
-      captures.each_value { |capture| install_site_screenshot(capture, into: destination) }
-      UI.success("Installed #{captures.count} #{appearance} screenshots into #{destination}.")
+      stills.each_value { |still| install_site_screenshot(still, into: destination) }
+      UI.success("Installed #{stills.count} #{appearance} screenshots into #{destination}.")
     end
   end
 

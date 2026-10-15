@@ -49,6 +49,16 @@ import UIKit
     static var isOffline: Bool { arguments.contains("\(argumentPrefix)Offline") }
 
     /**
+     Whether the weather reports the cold the screenshots are corrected for, rather than a reading
+     above the seeded restriction.
+
+     The fix list fills in its reported temperature from the weather, so this is how a capture
+     lands on exactly one temperature: a dragged slider stops a few degrees either side of where
+     it aims.
+     */
+    static var reportsColdWeather: Bool { arguments.contains("\(argumentPrefix)WeatherCold") }
+
+    /**
      How long each fixture plate takes to arrive, or `nil` to serve them as fast as the disk can.
 
      A bulk download that finishes at once never overlaps the controls it finishes over — the

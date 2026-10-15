@@ -1,7 +1,7 @@
 {
   "configurations" : [
     {
-      "id" : "C7A0E1F2-0000-4000-8000-000000000003",
+      "id" : "C7A0E1F2-0000-4000-8000-000000000004",
       "name" : "Debug",
       "options" : {
 
@@ -25,7 +25,7 @@
   "testTargets" : [
     {
       "selectedTests" : [
-        "GenerateScreenshots"
+        "StoreScreenshots"
       ],
       "target" : {
         "containerPath" : "container:CTA Helper.xcodeproj",

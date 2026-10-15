@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		CA0000000000000000000022 /* XCUIPromoKit in Frameworks */ = {isa = PBXBuildFile; productRef = CA0000000000000000000021 /* XCUIPromoKit */; };
 		01597BDB3016A663008AE3B6 /* XCUITestKit in Frameworks */ = {isa = PBXBuildFile; productRef = 01597BDA3016A663008AE3B6 /* XCUITestKit */; };
 		43BAC51A24D44E908F705515 /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = 311119389286435C82B937B5 /* Sentry */; };
 		CA0000000000000000000005 /* SwiftMETAR in Frameworks */ = {isa = PBXBuildFile; productRef = CA0000000000000000000003 /* SwiftMETAR */; };
@@ -116,6 +117,7 @@
 			isa = PBXFrameworksBuildPhase;
 			files = (
 				01597BDB3016A663008AE3B6 /* XCUITestKit in Frameworks */,
+				CA0000000000000000000022 /* XCUIPromoKit in Frameworks */,
 			);
 		};
 /* End PBXFrameworksBuildPhase section */
@@ -212,6 +214,7 @@
 			name = "CTA HelperUITests";
 			packageProductDependencies = (
 				01597BDA3016A663008AE3B6 /* XCUITestKit */,
+				CA0000000000000000000021 /* XCUIPromoKit */,
 			);
 			productName = "CTA HelperUITests";
 			productReference = 013A15313011372B00025551 /* CTA HelperUITests.xctest */;
@@ -253,6 +256,7 @@
 				CA0000000000000000000001 /* XCRemoteSwiftPackageReference "SwiftMETAR" */,
 				CA0000000000000000000002 /* XCRemoteSwiftPackageReference "GzipSwift" */,
 				01597BD93016A663008AE3B6 /* XCRemoteSwiftPackageReference "XCUITestKit" */,
+				CA0000000000000000000020 /* XCRemoteSwiftPackageReference "XCUIPromoKit" */,
 				433C45F5269F45B6BC09085B /* XCRemoteSwiftPackageReference "sentry-cocoa" */,
 				CA0000000000000000000007 /* XCRemoteSwiftPackageReference "MeasurementKit" */,
 				CA000000000000000000000C /* XCRemoteSwiftPackageReference "NavDataDistribution" */,
@@ -682,6 +686,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		CA0000000000000000000020 /* XCRemoteSwiftPackageReference "XCUIPromoKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/RISCfuture/XCUIPromoKit";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.0;
+			};
+		};
 		01597BD93016A663008AE3B6 /* XCRemoteSwiftPackageReference "XCUITestKit" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/RISCfuture/XCUITestKit";
@@ -735,6 +747,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		CA0000000000000000000021 /* XCUIPromoKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CA0000000000000000000020 /* XCRemoteSwiftPackageReference "XCUIPromoKit" */;
+			productName = XCUIPromoKit;
+		};
 		01597BDA3016A663008AE3B6 /* XCUITestKit */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 01597BD93016A663008AE3B6 /* XCRemoteSwiftPackageReference "XCUITestKit" */;

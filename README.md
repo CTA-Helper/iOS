@@ -139,8 +139,8 @@ Events from debug builds and the simulator are discarded before transmission.
 
 ## Testing
 
-Three test plans: `Unit Tests`, `UI Tests`, and `Screenshots` (the capture run
-the fastlane lanes drive).
+Three test plans: `Unit Tests`, `UI Tests`, and `Promo`, which drives the App
+Store and marketing captures.
 
 A UI test cannot reach into the app it drives, so everything that has to be
 settled before the first screen draws — what the store holds, where nav data
@@ -206,9 +206,16 @@ shows whatever it is given verbatim. A tag whose section is missing, empty or
 over App Store Connect's 4,000-character ceiling fails in seconds, before an
 archive runs and before an upload that cannot be taken back.
 
+[XCUIPromoKit](https://github.com/RISCfuture/XCUIPromoKit) captures and renders
+the listing's media from `promo/`: run `pnpm install` there once, then
+`fastlane screenshots`. It builds with Xcode 27.1 or later, which the iPhone Duo
+simulator needs; set `DUO_XCODE` in `fastlane/.env` if it isn't the release
+candidate in `/Applications`. `promo/storyboard.json` and `promo/brand.css` set how they
+look. The listing's text lives in `fastlane/metadata`.
+
 ```sh
-bundle exec fastlane screenshots        # capture the App Store screenshot set
-bundle exec fastlane upload_screenshots # upload that set to App Store Connect
+bundle exec fastlane screenshots        # capture and render the App Store screenshots
+bundle exec fastlane upload_screenshots # upload them to App Store Connect
 bundle exec fastlane site_screenshots   # capture the site's set, light and dark
 bundle exec fastlane beta               # build and upload to TestFlight
 bundle exec fastlane release            # build and upload to the App Store

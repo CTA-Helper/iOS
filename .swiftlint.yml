@@ -6,8 +6,3 @@ disabled_rules:
   - prefer_nimble
   - quick_discouraged_focused_test
   - quick_discouraged_pending_test
-
-# SnapshotHelper.swift is fastlane's verbatim vendored helper — keep it in step with upstream rather
-# than reformatting it to satisfy our rules.
-excluded:
-  - CTA HelperUITests/Support/SnapshotHelper.swift

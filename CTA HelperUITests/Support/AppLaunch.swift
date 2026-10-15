@@ -28,33 +28,19 @@ enum LaunchArgument {
   static let pacedCharts = "-uiTestChartsPaced"
   /// Report the device as offline, so the states that depend on having no network can be driven.
   static let offline = "-uiTestOffline"
+  /// Serve weather colder than the seeded restriction, which the fix list corrects for at once.
+  static let coldWeather = "-uiTestWeatherCold"
 }
-
-/**
- Something to settle on the `XCUIApplication` itself in the moment between its creation and its
- launch.
-
- Everything the app reads is already on the command line, so an ordinary test has nothing to do
- here; the screenshot run uses it to wire up fastlane's `setupSnapshot(_:)`, which appends launch
- arguments of its own and so has to run after the test's are in place but before the process
- starts.
- */
-typealias LaunchPreparation = @MainActor (XCUIApplication) -> Void
 
 /**
  Launches the app against the seeded store and returns the airport picker it lands on.
 
- - Parameters:
-   - arguments: anything the test wants settled beyond the seeded store — a location to report,
-     say.
-   - prepare: what to do to the app before it launches, if anything.
+ - Parameter arguments: anything the test wants settled beyond the seeded store — a location to
+   report, say.
  */
 @discardableResult
-func launchSeededApp(
-  _ arguments: String...,
-  preparedBy prepare: LaunchPreparation? = nil
-) -> AirportListScreen {
-  let app = launchApp([LaunchArgument.seedStore] + arguments, preparedBy: prepare) {
+func launchSeededApp(_ arguments: String...) -> AirportListScreen {
+  let app = launchApp([LaunchArgument.seedStore] + arguments) {
     $0.descendant(id: AirportListScreen.landingID)
   }
   return AirportListScreen(app: app)
@@ -95,12 +81,10 @@ func launchFirstRunApp(navData: String) -> LoadingScreen {
  */
 private func launchApp(
   _ arguments: [String],
-  preparedBy prepare: LaunchPreparation? = nil,
   readyElement: (XCUIApplication) -> XCUIElement
 ) -> XCUIApplication {
   let app = XCUIApplication()
   app.launchArguments = arguments
-  prepare?(app)
   app.launchAndWaitUntilReady(readyElement: readyElement)
   return app
 }

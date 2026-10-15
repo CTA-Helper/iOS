@@ -12,7 +12,22 @@ struct AirportListScreen {
   /// How long a debounced search may take to put its results on screen.
   private static let searchTimeout = ScaledTimeouts.slowElement
 
+  /// The share of the window's width below which the airport list is a sidebar beside a detail pane.
+  private static let sidebarWidthFraction = 0.75
+
   let app: XCUIApplication
+
+  /**
+   Whether the airport list sits in a sidebar beside a detail pane rather than filling the window.
+
+   Read from the layout rather than the device idiom: iPhone Duo's inner display lays the app out
+   in two panes while still reporting itself a phone.
+   */
+  var isBesideDetailPane: Bool {
+    let list = app.descendant(id: Self.landingID).frame.width
+    let window = app.windows.firstMatch.frame.width
+    return list < window * Self.sidebarWidthFraction
+  }
 
   @discardableResult
   func selectTab(_ tab: Tab) -> Self {
@@ -25,11 +40,23 @@ struct AirportListScreen {
   /// Type into the Search tab's field. Results arrive debounced, so nothing waits here.
   @discardableResult
   func search(for query: String) -> Self {
-    let field = app.searchFields.firstMatch
-      .assertExists("No search field on the Search tab")
+    let field = searchField()
     field.tap()
     field.typeText(query)
     return self
+  }
+
+  /**
+   The Search tab's field. In a window too short to show it outright — iPhone Duo's outer display —
+   the system minimizes it to a toolbar button, which expands it.
+   */
+  private func searchField() -> XCUIElement {
+    let field = app.searchFields.firstMatch
+    let minimized = app.toolbars.buttons["Search"]
+    if !field.wait(timeout: ScaledTimeouts.short), minimized.exists {
+      minimized.tap()
+    }
+    return field.assertExists("No search field on the Search tab")
   }
 
   /// Put the soft keyboard away, so it neither covers the list nor swallows the next tap.
