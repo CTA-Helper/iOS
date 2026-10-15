@@ -29,7 +29,7 @@ hand-rolling a wait, a tap or a scroll:
   test `async` to reach them.
 
 `ScaledTimeouts` reads `XCUITEST_TIMEOUT_MULTIPLIER` and defaults to 1. The
-`UI Tests` and `Screenshots` test plans both set it to 3, which is what gives a
+`UI Tests` and `Promo` test plans both set it to 3, which is what gives a
 hosted CI runner — several times slower than local hardware — room to finish.
 
 ## Launch arguments
@@ -65,6 +65,10 @@ arguments as app settings. `Support/AppLaunch.swift` names them.
   `testCorrectsAnApproachFromTheAirportList` asserts against, and what draws the
   airport list's badge in the state the marketing screenshots show. Move it
   below the restriction and both stop holding.
+- `-uiTestWeatherCold` serves −31 °C instead, for a capture that has to land on
+  one exact temperature: a dragged slider stops a few degrees either side of
+  where it aims, and nothing in XCUITest can step it. The plate and fix list
+  screenshots use it.
 - Wait for a row before swiping toward it. A row the list has not drawn yet is
   not a row below the fold, and a scroll aimed at one goes straight past it —
   `FixListScreen.scroll(to:_:describedAs:)` probes first for that reason, then
@@ -150,11 +154,14 @@ itself and blamed the correction engine.
 
 ## Screenshots
 
-`GenerateScreenshots` captures the App Store set with fastlane's `snapshot`, off
-the same seeded store the flow tests use. `bundle exec fastlane screenshots`
-runs it; `fastlane/Snapfile` names the devices and points at the `Screenshots`
-test plan, which selects this class alone. The `UI Tests` plan CI runs skips it
-in turn, so neither plan pays for the other's work.
+`StoreScreenshots` captures the stills `promo/storyboard.json` captions as App
+Store screenshots, off the same seeded store the flow tests use. Under
+XCUIPromoKit's `promokit stills`, which `bundle exec fastlane screenshots` runs
+through the `Promo` plan on the iPhone 18 Pro Max, the 13" iPad and iPhone Duo,
+`capture(_:)` writes each with `PromoStill`; anywhere else the test skips. The
+`UI Tests` plan CI runs skips it as well. The storyboard sets the order on the
+product page, and the site's `SITE_SCREENS` names stills by the same ids, so
+renaming a shot means renaming it there too.
 
 - It asserts only to synchronise a capture with the screen it means to
   photograph. Reuse the screen objects' assertions for that rather than adding
@@ -164,20 +171,12 @@ in turn, so neither plan pays for the other's work.
   has no single answer; each chapter runs forwards from its own launch instead,
   so one flow serves iPhone and iPad alike.
 - The screens that fill only the leading pane — the airport picker and the
-  approach list — are captured on iPhone alone. On iPad they leave the detail
-  pane showing the prompt to select an approach, which is a screenshot mostly of
-  empty space. `XCTSkipIf(isSplitViewLayout)` is what leaves them out.
-- The name decides where a shot lands on the product page, not when it was
-  taken, so the numbering and the capture order disagree on purpose. A device
-  that skips a shot leaves a gap in the numbering, which is harmless.
+  approach list — are captured on single-pane layouts alone. On iPad and on
+  iPhone Duo's inner display they leave the detail pane showing the prompt to
+  select an approach, which is a screenshot mostly of empty space.
+  `airports.isBesideDetailPane` leaves them out. It measures the layout rather
+  than the idiom, because the Duo's inner display is two panes wide and still
+  reports itself a phone.
 - Nothing scrolls before a capture. A screen photographed part-way down reads as
   a fragment on the product page, and scrolling away from the top of the fix list
   puts the weather link out of reach of the tap that opens it.
-- `setupSnapshot(_:)` has to run between the app's creation and its launch — it
-  appends launch arguments of its own. That is what `launchSeededApp`'s
-  `preparedBy:` seam is for. Pass a closure capturing nothing: a main
-  actor-isolated function type is implicitly `@Sendable`, so a method reference
-  off the test case will not convert.
-- `Support/SnapshotHelper.swift` is generated third-party source. Replace it with
-  a newer `fastlane snapshot init` copy rather than editing it, restoring the
-  `swiftlint:disable`/`enable` pair and the `swift-format-ignore-file` marker.

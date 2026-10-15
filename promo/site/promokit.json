@@ -1,0 +1,20 @@
+{
+  "$schema": "../node_modules/xcuipromokit/schema/promokit.schema.json",
+  "app": "CTA-Helper",
+  "project": "../../CTA Helper.xcodeproj",
+  "scheme": "CTA Helper",
+  "testPlan": "Promo",
+  "brand": {
+    "css": "../brand.css"
+  },
+  "stills": {
+    "test": "CTA HelperUITests/StoreScreenshots/testCaptureStills",
+    "devices": [
+      "iPhone 18 Pro Max"
+    ],
+    "appearances": [
+      "light",
+      "dark"
+    ]
+  }
+}

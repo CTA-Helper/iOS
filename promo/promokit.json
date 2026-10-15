@@ -1,0 +1,24 @@
+{
+  "$schema": "./node_modules/xcuipromokit/schema/promokit.schema.json",
+  "app": "CTA-Helper",
+  "project": "../CTA Helper.xcodeproj",
+  "scheme": "CTA Helper",
+  "testPlan": "Promo",
+  "locales": [
+    "en-US"
+  ],
+  "brand": {
+    "css": "brand.css",
+    "assets": [
+      "../docs/fonts"
+    ]
+  },
+  "stills": {
+    "test": "CTA HelperUITests/StoreScreenshots/testCaptureStills",
+    "devices": [
+      "iPhone 18 Pro Max",
+      "iPad Pro 13-inch (M5)",
+      "iPhone Duo"
+    ]
+  }
+}

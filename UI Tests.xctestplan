@@ -23,7 +23,7 @@
   "testTargets" : [
     {
       "skippedTests" : [
-        "GenerateScreenshots"
+        "StoreScreenshots"
       ],
       "target" : {
         "containerPath" : "container:CTA Helper.xcodeproj",

@@ -1,0 +1,30 @@
+{
+  "$schema": "./node_modules/xcuipromokit/schema/storyboard.schema.json",
+  "screenshots": [
+    {
+      "id": "chart",
+      "still": "chart",
+      "caption": "chart"
+    },
+    {
+      "id": "corrections",
+      "still": "corrections",
+      "caption": "corrections"
+    },
+    {
+      "id": "approaches",
+      "still": "approaches",
+      "caption": "approaches"
+    },
+    {
+      "id": "airports",
+      "still": "airports",
+      "caption": "airports"
+    },
+    {
+      "id": "settings",
+      "still": "settings",
+      "caption": "settings"
+    }
+  ]
+}

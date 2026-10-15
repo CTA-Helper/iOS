@@ -15,16 +15,25 @@ struct CTA_HelperApp: App {
      The reading sits above KMSO's −11 °C restriction, so the airport list draws the badge in the
      state that says a station is reporting and no correction is called for — the state the
      marketing screenshots show. The fix list auto-fills its reported temperature from this, so
-     it is what the seeded approach is corrected at.
+     it is what the seeded approach is corrected at. Under `-uiTestWeatherCold` it reports the
+     −31 °C the screenshots of the corrections are taken at instead.
+
+     It is observed shortly before launch, so the screenshots show a current report.
      */
     private static let uiTestObservations = [
-      "KMSO": METARObservation(
-        stationID: "KMSO",
-        temperature: .celsius(-5),
-        date: Date(timeIntervalSince1970: 1_700_000_000),
-        rawText: "METAR KMSO 141953Z 28008KT 10SM FEW070 SCT090 M05/M12 A2996 RMK AO2"
-      )
+      "KMSO": uiTestObservation(at: .now.addingTimeInterval(-uiTestObservationAge))
     ]
+
+    /// How long before launch the UI-test observation was taken.
+    private static let uiTestObservationAge: TimeInterval = 17 * 60
+
+    /// The UI-test temperature, with the temperature/dew point group a METAR prints it in.
+    private static let mildUITestReading = (
+      temperature: Measurement<UnitTemperature>.celsius(-5), group: "M05/M12"
+    )
+    private static let coldUITestReading = (
+      temperature: Measurement<UnitTemperature>.celsius(-31), group: "M31/M35"
+    )
   #endif
 
   /// The weather source: the live one, or under UI tests a loader serving a fixed observation.
@@ -176,6 +185,32 @@ struct CTA_HelperApp: App {
     /// The weather source: the live one, or under UI tests a loader serving a fixed observation.
     private static func makeMETARLoader(isUITest: Bool) -> METARLoader? {
       isUITest ? METARLoader(serving: uiTestObservations) : METARLoader()
+    }
+
+    private static func uiTestObservation(at date: Date) -> METARObservation {
+      let reading = UITestConfiguration.reportsColdWeather ? coldUITestReading : mildUITestReading
+      return METARObservation(
+        stationID: "KMSO",
+        temperature: reading.temperature,
+        date: date,
+        rawText:
+          "METAR KMSO \(metarTimeGroup(date)) 28008KT 10SM FEW070 SCT090 \(reading.group) A2996 RMK AO2"
+      )
+    }
+
+    /// The `ddhhmmZ` group a METAR is stamped with.
+    private static func metarTimeGroup(_ date: Date) -> String {
+      let hour = Date.FormatStyle.Symbol.VerbatimHour.twoDigits(
+        clock: .twentyFourHour,
+        hourCycle: .zeroBased
+      )
+      return date.formatted(
+        .verbatim(
+          "\(day: .twoDigits)\(hour: hour)\(minute: .twoDigits)Z",
+          timeZone: .gmt,
+          calendar: Calendar(identifier: .gregorian)
+        )
+      )
     }
 
     /**

@@ -36,14 +36,14 @@ the same reason.
 
 ## Screenshots
 
-`site_screenshots` captures the same screens as the App Store set in both
-appearances and installs the three iPhone shots the page walks through, scaled
-down, into `images/screenshots/{light,dark}/`, where the page picks between them
-with `prefers-color-scheme`.
+`site_screenshots` captures the App Store stills on the iPhone in both
+appearances, through `promo/site/promokit.json`, and installs the three the page
+walks through, scaled down, into `images/screenshots/{light,dark}/`, where the
+page picks between them with `prefers-color-scheme`.
 
 ```sh
 bundle exec fastlane site_screenshots                   # both appearances
-bundle exec fastlane site_screenshots appearance:light  # just one
+bundle exec fastlane site_screenshots appearance:light  # install just one
 bundle exec fastlane install_site_screenshots           # re-install a capture
 ```
 
