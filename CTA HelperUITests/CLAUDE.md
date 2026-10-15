@@ -180,3 +180,27 @@ renaming a shot means renaming it there too.
 - Nothing scrolls before a capture. A screen photographed part-way down reads as
   a fragment on the product page, and scrolling away from the top of the fix list
   puts the weather link out of reach of the tap that opens it.
+
+## App preview
+
+`PreviewRecording` plays the App Store preview's take while XCUIPromoKit's
+`promokit record cold-approach` films the simulator; `bundle exec fastlane
+preview` records, renders and checks it. `promo/storyboard.json` cuts the
+scenes the take files with `PromoTake`, and outside `promokit record` the test
+skips. The `UI Tests` plan skips it, and the `Promo` plan selects it beside
+`StoreScreenshots`.
+
+- It deliberately holds where every other test races: the holds are what a
+  viewer reads. Don't reuse them in a flow test.
+- Everything before `startRolling()` is off camera: fetching the plate, so the
+  take never shows it loading, and starring KSFO beside the seeded KMSO.
+- A tap keeps its `settle` after the screen stops changing, so a tap's settle
+  is how long the screen it lands on holds. The approach list, which the take
+  only passes through, settles for less than the screens it dwells on.
+- Don't give the storyboard a transition into a scene that opens on a tap that
+  navigates. The transition lands on the screen the last scene showed, and the
+  push straight after it reads as skipping a screen; cut instead.
+- Drag the slider with `PromoTake.drag`, not
+  `adjust(toNormalizedSliderPosition:)`, which jumps the thumb. The drag starts
+  from wherever the thumb sits, so the take reads the slider's position rather
+  than assuming the one it set off camera.

@@ -85,7 +85,7 @@ struct ApproachListScreen {
     return AirportListScreen(app: app)
   }
 
-  private func approachRow(_ identifier: String) -> XCUIElement {
+  func approachRow(_ identifier: String) -> XCUIElement {
     app.descendant(id: "approachRow-\(identifier)")
   }
 }

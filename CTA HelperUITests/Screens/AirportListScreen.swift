@@ -115,7 +115,7 @@ struct AirportListScreen {
     return self
   }
 
-  private func airportRow(_ identifier: String) -> XCUIElement {
+  func airportRow(_ identifier: String) -> XCUIElement {
     app.descendant(id: "airportRow-\(identifier)")
   }
 
