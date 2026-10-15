@@ -1,5 +1,129 @@
 {
   "$schema": "./node_modules/xcuipromokit/schema/storyboard.schema.json",
+  "previews": [
+    {
+      "id": "cold-approach",
+      "take": "cold-approach",
+      "device": "iphone",
+      "poster": {
+        "scene": "plate",
+        "at": 1.0
+      },
+      "taps": {
+        "before": 0.15,
+        "after": 0.35
+      },
+      "captionEntrance": {
+        "unit": "word",
+        "delay": 0.15,
+        "duration": 0.32,
+        "stagger": 0.06,
+        "easing": [
+          0.16,
+          1,
+          0.3,
+          1
+        ],
+        "keyframes": [
+          {
+            "at": 0,
+            "opacity": 0,
+            "x": 1.2,
+            "y": 0.25,
+            "skew": -24,
+            "blur": 0.06
+          },
+          {
+            "at": 0.35,
+            "opacity": 1
+          },
+          {
+            "at": 0.75,
+            "x": -0.05,
+            "skew": 5,
+            "blur": 0
+          },
+          {
+            "at": 1,
+            "x": 0,
+            "y": 0,
+            "skew": 0
+          }
+        ]
+      },
+      "scenes": [
+        {
+          "scene": "airports",
+          "trim": {
+            "end": 0.3
+          },
+          "caption": {
+            "copy": "preview-airports",
+            "y": 0.56
+          }
+        },
+        {
+          "scene": "approach",
+          "trim": {
+            "end": 0.6
+          },
+          "taps": true
+        },
+        {
+          "scene": "cold",
+          "trim": {
+            "end": 0.4
+          },
+          "taps": true,
+          "caption": {
+            "copy": "preview-cold",
+            "y": 0.84
+          }
+        },
+        {
+          "scene": "corrected",
+          "zoom": {
+            "to": 3.8,
+            "x": 0.95,
+            "y": 0.53,
+            "at": 0.6,
+            "duration": 0.45,
+            "easing": [
+              0.7,
+              0,
+              0.2,
+              1
+            ]
+          },
+          "caption": {
+            "copy": "preview-corrected",
+            "y": 0.84
+          }
+        },
+        {
+          "scene": "plate",
+          "taps": true,
+          "zoom": {
+            "to": 2.8,
+            "x": 0.86,
+            "y": 0.24,
+            "at": 2.0,
+            "duration": 0.45,
+            "easing": [
+              0.7,
+              0,
+              0.2,
+              1
+            ]
+          },
+          "caption": {
+            "copy": "preview-plate",
+            "y": 0.84
+          }
+        }
+      ]
+    }
+  ],
   "screenshots": [
     {
       "id": "chart",

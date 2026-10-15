@@ -13,6 +13,12 @@
       "../docs/fonts"
     ]
   },
+  "takes": {
+    "cold-approach": {
+      "test": "CTA HelperUITests/PreviewRecording/testRecordPreview",
+      "device": "iPhone 18 Pro Max"
+    }
+  },
   "stills": {
     "test": "CTA HelperUITests/StoreScreenshots/testCaptureStills",
     "devices": [

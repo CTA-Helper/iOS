@@ -7,12 +7,52 @@
   src: url("../docs/fonts/plex-sans-condensed-600.woff2") format("woff2");
 }
 
+@font-face {
+  font-family: "IBM Plex Sans Condensed";
+  font-weight: 700;
+  src: url("../docs/fonts/plex-sans-condensed-700.woff2") format("woff2");
+}
+
 .promo-root {
   --plate: #f5f7fa;
   --ink: #0f1720;
   --beacon: #2e4fa8;
 
   background: var(--plate);
+}
+
+/* Preview captions: heavy condensed type, outlined in the plate colour to lift it off the app. */
+.promo-caption {
+  padding: 0 7vw;
+  font-family: "IBM Plex Sans Condensed", sans-serif;
+  font-size: 11vw;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 0.98;
+  text-align: center;
+  text-wrap: balance;
+  color: var(--ink);
+  -webkit-text-stroke: 0.42em var(--plate);
+  paint-order: stroke fill;
+  stroke-linejoin: round;
+}
+
+.promo-caption-em {
+  font-style: normal;
+  color: var(--beacon);
+}
+
+/* A tap is a beacon ring that lands and spreads as the finger lifts. */
+.promo-tap {
+  width: 13vmin;
+  background: none;
+  border: 1.2vmin solid var(--beacon);
+  scale: calc(0.7 + 0.3 * var(--promo-tap-in) + 0.4 * var(--promo-tap-out));
+}
+
+/* A drag fills the ring, so it reads as a finger held down. */
+.promo-tap[data-gesture="drag"] {
+  background: color-mix(in oklab, var(--beacon) 18%, transparent);
 }
 
 /* Screenshots: a headline over the capture, which sits in an ink bezel and runs off the bottom. */

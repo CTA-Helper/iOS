@@ -28,6 +28,12 @@ struct FixListScreen {
   /// The corrected DA or MDA as it reads on screen, or the placeholder standing in for none.
   var correctedMinimumsLabel: String { correctedMinimums.label }
 
+  /// The slider that reports the temperature, across −50…+10 °C.
+  var temperatureSlider: XCUIElement { app.sliders["reportedTemperatureSlider"] }
+
+  /// The way through to the approach plate.
+  var chartButton: XCUIElement { app.descendant(id: "chartButton") }
+
   private var notice: XCUIElement { app.staticTexts["noCorrectionNotice"] }
 
   private var correctedMinimums: XCUIElement { app.staticTexts["correctedMinimums"] }
@@ -58,7 +64,7 @@ struct FixListScreen {
 
   /// Open the approach plate, with the corrected altitudes laid over it.
   func openChart() -> ChartScreen {
-    app.descendant(id: "chartButton")
+    chartButton
       .assertExists("The fix list offers no way through to the approach plate")
       .tap(
         untilExists: app.descendant(id: "chartDisclaimer"),
@@ -69,7 +75,7 @@ struct FixListScreen {
 
   /// What the chart button says it can do, which is not the same with and without a network.
   func chartButtonLabel() -> String {
-    app.descendant(id: "chartButton")
+    chartButton
       .assertExists("The fix list offers no way through to the approach plate")
       .label
   }
@@ -96,10 +102,16 @@ struct FixListScreen {
   /// Drag the temperature slider well below the airport's restriction.
   @discardableResult
   func reportColdTemperature() -> Self {
-    let slider = app.sliders["reportedTemperatureSlider"]
-      .assertExists("Temperature slider not found")
     // 0.25 of the −50…+10 range is −35 °C.
-    slider.adjust(toNormalizedSliderPosition: 0.25)
+    reportTemperature(atNormalizedPosition: 0.25)
+  }
+
+  /// Drag the temperature slider to `position` of its −50…+10 °C range.
+  @discardableResult
+  func reportTemperature(atNormalizedPosition position: CGFloat) -> Self {
+    temperatureSlider
+      .assertExists("Temperature slider not found")
+      .adjust(toNormalizedSliderPosition: position)
     return self
   }
 
