@@ -1,0 +1,17 @@
+Pick an airport and an approach, and CTA Helper shows every fix at its published altitude and at the altitude cold air makes it — in the fix list, and down the edge of the FAA approach plate.
+
+It applies the cold temperature corrections in ENR 1.8, using the airport's current METAR or a temperature you set.
+
+* Approaches at more than 3,000 US airports, from the current AIRAC cycle, with the restriction temperature and affected segments at every Cold Temperature Airport
+* The FAA approach plate with the corrected altitudes beside it. Plates you have opened stay on the device for the cycle, so they are there without a signal
+* Temperature from the latest METAR, or set it yourself
+* All Segments or Individual Segments method (both acceptable to ENR 1.8)
+* Enter your DA or MDA and see it corrected, where the method allows it
+* Round each correction up, or to the nearest 100 ft (both acceptable to ENR 1.8)
+* Find an airport by identifier or city, or from favorites, recents and nearest, with a badge wherever the restriction is in force
+* Open an airport or an approach from Siri or Spotlight
+* The display stays awake while the fix list is showing
+
+For situational awareness and planning only — not for primary navigation. Verify every correction independently, and read the DA/MDA and all altitudes from the official approach plate before you fly them.
+
+CTA Helper is free and open source.

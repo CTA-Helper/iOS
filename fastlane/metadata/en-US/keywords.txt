@@ -1,0 +1,1 @@
+altitude,altimeter,ENR 1.8,approach,plate,METAR,IFR,pilot,FAA,instrument,aviation,MDA,AIRAC,airport

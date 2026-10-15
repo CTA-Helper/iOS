@@ -31,6 +31,22 @@ Generate App Store screenshots (iPhone + iPad)
 
 Upload the generated screenshots to App Store Connect
 
+### ios upload_metadata
+
+```sh
+[bundle exec] fastlane ios upload_metadata
+```
+
+Upload fastlane/metadata to the version open for editing
+
+### ios download_metadata
+
+```sh
+[bundle exec] fastlane ios download_metadata
+```
+
+Download the live listing into fastlane/metadata
+
 ### ios screenshots_and_upload
 
 ```sh
