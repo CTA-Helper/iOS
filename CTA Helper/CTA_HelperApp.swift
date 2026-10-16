@@ -140,7 +140,7 @@ struct CTA_HelperApp: App {
   private static func startCrashReporting() {
     SentrySDK.start { options in
       options.dsn =
-        "https://39ee28977ce0467ef5c6da61b33e6665@o4510156629475328.ingest.us.sentry.io/4511805712498688"
+        "https://1351a5d5289dc9ee24daa82f5d3559eb@o4510156629475328.ingest.us.sentry.io/4512264461877248"
 
       // Keep the SDK quiet in release: its diagnostics belong in development, not a shipped console.
       options.debug = false
