@@ -9,8 +9,12 @@ struct FixListScreen {
   /// The altitude the seeded approach publishes at `CHARL`, which a correction moves it off.
   private static let charlPublishedFt = "10,000"
 
-  /// The identifier of the key that closes the number pad, which has no return key of its own.
-  private static let dismissKeyboardID = "dismissKeyboard"
+  /**
+   The identifier of the key that closes the number pad, which has no return key of its own:
+   MeasurementKitUI's `NumericKeypad.doneButtonIdentifier`, written out because this bundle does
+   not link MeasurementKitUI.
+   */
+  private static let dismissKeyboardID = "MeasurementKit.NumericField.done"
 
   /**
    How many swipes it may take to reach the end of the longest approach in the seeded data.

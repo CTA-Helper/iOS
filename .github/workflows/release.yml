@@ -26,7 +26,7 @@ concurrency:
 
 jobs:
   release:
-    uses: RISCfuture/XCUITestKit/.github/workflows/ios-release.yml@1.0.0
+    uses: RISCfuture/XCUITestKit/.github/workflows/ios-release.yml@1.2.0
     with:
       platforms: '["iOS"]'
       runner: xcode-27

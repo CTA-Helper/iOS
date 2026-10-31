@@ -699,7 +699,7 @@
 			repositoryURL = "https://github.com/RISCfuture/XCUITestKit";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 1.0.0;
+				minimumVersion = 1.2.0;
 			};
 		};
 		433C45F5269F45B6BC09085B /* XCRemoteSwiftPackageReference "sentry-cocoa" */ = {
@@ -717,7 +717,7 @@
 			repositoryURL = "https://github.com/RISCfuture/SwiftMETAR";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 4.1.0;
+				minimumVersion = 5.0.0;
 			};
 		};
 		CA0000000000000000000002 /* XCRemoteSwiftPackageReference "GzipSwift" */ = {
@@ -733,7 +733,7 @@
 			repositoryURL = "https://github.com/RISCfuture/MeasurementKit";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 1.1.0;
+				minimumVersion = 1.2.0;
 			};
 		};
 		CA000000000000000000000C /* XCRemoteSwiftPackageReference "NavDataDistribution" */ = {
@@ -741,7 +741,7 @@
 			repositoryURL = "https://github.com/CTA-Helper/NavDataDistribution";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 1.0.0;
+				minimumVersion = 1.1.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */

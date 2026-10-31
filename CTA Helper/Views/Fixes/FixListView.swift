@@ -78,8 +78,6 @@ struct FixListView: View {
    */
   @State private var filledFromAirport: PersistentIdentifier?
 
-  @FocusState private var isEditingMinimums: Bool
-
   @Environment(\.metarLoader)
   private var metarLoader
   @Environment(\.networkMonitor)
@@ -108,8 +106,7 @@ struct FixListView: View {
           fixes: approach.fixes,
           corrector: corrector,
           selectedTransitions: $selectedTransitions,
-          minimums: $minimums,
-          isEditingMinimums: $isEditingMinimums
+          minimums: $minimums
         )
       } else {
         NoCorrectionNotice()
@@ -123,13 +120,6 @@ struct FixListView: View {
           transitions: selectedTransitions,
           minimums: minimums
         )
-      }
-      // The number pad has no return key, and the minimums sit at the foot of the list, so
-      // without this the keyboard covers the corrected value it was opened to produce.
-      ToolbarItemGroup(placement: .keyboard) {
-        Spacer()
-        Button("Done") { isEditingMinimums = false }
-          .accessibilityIdentifier("dismissKeyboard")
       }
     }
     .navigationTitle(approach.name)
@@ -350,7 +340,6 @@ private struct SegmentSections: View {
   let corrector: ApproachCorrector
   @Binding var selectedTransitions: [Segment: String]
   @Binding var minimums: Measurement<UnitLength>?
-  @FocusState.Binding var isEditingMinimums: Bool
 
   var body: some View {
     ForEach(groups) { group in
@@ -358,8 +347,7 @@ private struct SegmentSections: View {
         group: group,
         selectedTransition: transitionBinding(for: group),
         corrector: corrector,
-        minimums: $minimums,
-        isEditingMinimums: $isEditingMinimums
+        minimums: $minimums
       )
     }
   }
@@ -396,7 +384,6 @@ private struct SegmentSection: View {
   @Binding var selectedTransition: String?
   let corrector: ApproachCorrector
   @Binding var minimums: Measurement<UnitLength>?
-  @FocusState.Binding var isEditingMinimums: Bool
 
   var body: some View {
     Section {
@@ -404,8 +391,7 @@ private struct SegmentSection: View {
         CorrectedRow(
           entry: entry,
           corrector: corrector,
-          minimums: $minimums,
-          isEditingMinimums: $isEditingMinimums
+          minimums: $minimums
         )
       }
     } header: {
@@ -495,7 +481,6 @@ private struct CorrectedRow: View {
   let entry: FixListEntry
   let corrector: ApproachCorrector
   @Binding var minimums: Measurement<UnitLength>?
-  @FocusState.Binding var isEditingMinimums: Bool
 
   var body: some View {
     switch entry {
@@ -504,8 +489,7 @@ private struct CorrectedRow: View {
       case .minimums:
         MinimumsRow(
           minimums: $minimums,
-          corrector: corrector,
-          isEditing: $isEditingMinimums
+          corrector: corrector
         )
     }
   }

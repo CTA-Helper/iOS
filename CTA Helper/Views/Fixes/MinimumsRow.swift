@@ -26,11 +26,8 @@ struct MinimumsRow: View {
   /// The corrector that resolves the entered minimums.
   let corrector: ApproachCorrector
 
-  /**
-   Whether the entry field holds the keyboard, owned by the screen so the key that dismisses
-   it can live on the screen's toolbar rather than on this row.
-   */
-  @FocusState.Binding var isEditing: Bool
+  /// Whether the entry field holds the keyboard.
+  @FocusState private var isEditing: Bool
 
   var body: some View {
     VStack(alignment: .leading) {
@@ -112,35 +109,30 @@ private struct CorrectedMinimums: View {
 #if DEBUG
   #Preview("Entered") {
     @Previewable @State var minimums: Measurement<UnitLength>? = .feet(4520)
-    @Previewable @FocusState var isEditing: Bool
     let airport = PreviewData.missoula()
 
     List {
       MinimumsRow(
         minimums: $minimums,
-        corrector: .preview(for: airport, minimums: minimums),
-        isEditing: $isEditing
+        corrector: .preview(for: airport, minimums: minimums)
       )
     }
   }
 
   #Preview("Empty") {
     @Previewable @State var minimums: Measurement<UnitLength>?
-    @Previewable @FocusState var isEditing: Bool
     let airport = PreviewData.missoula()
 
     List {
       MinimumsRow(
         minimums: $minimums,
-        corrector: .preview(for: airport, minimums: minimums),
-        isEditing: $isEditing
+        corrector: .preview(for: airport, minimums: minimums)
       )
     }
   }
 
   #Preview("Uncorrected") {
     @Previewable @State var minimums: Measurement<UnitLength>? = .feet(4520)
-    @Previewable @FocusState var isEditing: Bool
 
     List {
       MinimumsRow(
@@ -149,8 +141,7 @@ private struct CorrectedMinimums: View {
           for: PreviewData.missoula(),
           temperature: .celsius(20),
           minimums: minimums
-        ),
-        isEditing: $isEditing
+        )
       )
     }
   }
