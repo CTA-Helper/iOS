@@ -183,14 +183,19 @@ after the OS, and `macos-26` stops at Xcode 26.6. `macos-latest` resolves to
 `macos-26`, so it does not carry the toolchain this app needs; the lint jobs run
 on it because they need neither the SDK nor a simulator.
 
+A release is a commit titled "Release X.Y" that advances the app's
+`MARKETING_VERSION`, beside a `## X.Y` section in `CHANGELOG.md`, tagged `X.Y`
+on `main` or on a `release/X.Y` branch for a hotfix. CI runs on both.
+
 Pushing a version tag releases:
 
 - **Release** (`release.yml`) delegates to XCUITestKit's reusable release
-  workflow. It verifies the version's release notes before anything is built,
-  resolves the next build number from App Store Connect, archives, signs and
-  uploads, then writes the notes onto the version and attaches the build once
-  Apple has processed it. It re-runs no tests, so tag a commit CI has already
-  passed.
+  workflow. Before anything is built it refuses a tag the project's
+  `MARKETING_VERSION` doesn't match, a tagged commit on neither `main` nor a
+  `release/*` branch, and missing release notes. It then numbers the build one
+  past App Store Connect's latest, archives, signs and uploads, writes the
+  notes onto the version and attaches the build once Apple has processed it.
+  It re-runs no tests, so tag a commit CI has already passed.
 
 Submitting for review is the only step left by hand. Re-tagging a version is
 how its build is replaced: the tag push runs the whole thing again and the
@@ -220,7 +225,7 @@ bundle exec fastlane upload_screenshots # upload them to App Store Connect
 bundle exec fastlane site_screenshots   # capture the site's set, light and dark
 bundle exec fastlane beta               # build and upload to TestFlight
 bundle exec fastlane release            # build and upload to the App Store
-./Scripts/release-notes.sh --plain 1.1   # the notes a release would publish
+./Scripts/release-notes.sh --plain 2.0  # the notes a release would publish
 ```
 
 Every lane that talks to Apple authenticates with an App Store Connect API key
