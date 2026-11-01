@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   ci:
-    uses: RISCfuture/XCUITestKit/.github/workflows/ios-ci.yml@1.2.0
+    uses: RISCfuture/XCUITestKit/.github/workflows/ios-ci.yml@1.2.1
     with:
       scheme: "CTA Helper"
       unit-test-plan: "Unit Tests"
@@ -52,10 +52,10 @@ jobs:
     name: Build Documentation
     runs-on: xcode-27
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7.0.1
       - name: Set up iOS simulator
         id: sim
-        uses: RISCfuture/XCUITestKit/ci-templates/setup-ios-simulator@1.2.0
+        uses: RISCfuture/XCUITestKit/ci-templates/setup-ios-simulator@1.2.1
         with:
           device: "iPhone 18 Pro"
           device-type: com.apple.CoreSimulator.SimDeviceType.iPhone-18-Pro
@@ -66,14 +66,14 @@ jobs:
         id: toolchain
         run: echo "xcode=$(xcodebuild -version | tr '\n' '-')" >> "$GITHUB_OUTPUT"
       - name: Cache SwiftPM dependencies
-        uses: actions/cache@v6
+        uses: actions/cache@v6.1.0
         with:
           path: ~/Library/Caches/org.swift.swiftpm
           key: spm-${{ runner.os }}-${{ hashFiles('**/Package.resolved') }}
           restore-keys: |
             spm-${{ runner.os }}-
       - name: Cache Xcode build products
-        uses: actions/cache@v6
+        uses: actions/cache@v6.1.0
         with:
           path: ${{ runner.temp }}/DocumentationDerivedData
           key: derived-docs-xcode-27-${{ steps.toolchain.outputs.xcode }}-${{ hashFiles('**/Package.resolved') }}

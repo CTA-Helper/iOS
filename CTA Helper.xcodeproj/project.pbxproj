@@ -712,7 +712,7 @@
 			repositoryURL = "https://github.com/RISCfuture/XCUITestKit";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 1.2.0;
+				minimumVersion = 1.2.1;
 			};
 		};
 		433C45F5269F45B6BC09085B /* XCRemoteSwiftPackageReference "sentry-cocoa" */ = {
@@ -720,7 +720,7 @@
 			repositoryURL = "https://github.com/getsentry/sentry-cocoa/";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 9.0.0;
+				minimumVersion = 9.32.0;
 			};
 			traits = (
 			);

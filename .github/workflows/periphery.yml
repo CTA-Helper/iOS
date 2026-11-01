@@ -21,7 +21,7 @@ jobs:
       # Don't add a setup-swift step: naming a Swift version fetches a standalone swift.org
       # toolchain and points TOOLCHAINS at it, and that toolchain's clang cannot link for the
       # simulator, so the scan's build fails before it reaches any source.
-      - uses: maxim-lobanov/setup-xcode@v1
+      - uses: maxim-lobanov/setup-xcode@v1.7.0
         with:
           xcode-version: latest-stable
       - name: Ensure iOS simulator runtime
@@ -39,21 +39,21 @@ jobs:
           while xcrun simctl delete "periphery-sim" 2>/dev/null; do :; done
           UDID=$(xcrun simctl create "periphery-sim" com.apple.CoreSimulator.SimDeviceType.iPhone-18-Pro)
           echo "udid=$UDID" >> "$GITHUB_OUTPUT"
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7.0.1
       - name: Enable macros
         run: defaults write com.apple.dt.Xcode IDESkipMacroFingerprintValidation -bool YES
       - name: Record toolchain version
         id: toolchain
         run: echo "xcode=$(xcodebuild -version | tr '\n' '-')" >> "$GITHUB_OUTPUT"
       - name: Cache SwiftPM dependencies
-        uses: actions/cache@v6
+        uses: actions/cache@v6.1.0
         with:
           path: ~/Library/Caches/org.swift.swiftpm
           key: spm-${{ runner.os }}-${{ hashFiles('**/Package.resolved') }}
           restore-keys: |
             spm-${{ runner.os }}-
       - name: Cache Xcode build products
-        uses: actions/cache@v6
+        uses: actions/cache@v6.1.0
         with:
           path: ~/Library/Developer/Xcode/DerivedData
           key: derived-periphery-xcode-27-${{ steps.toolchain.outputs.xcode }}-${{ hashFiles('**/Package.resolved') }}
