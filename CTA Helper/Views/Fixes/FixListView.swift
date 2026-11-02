@@ -21,8 +21,8 @@ import SwiftUI
  not a CTA has no such threshold and is corrected at any temperature.
 
  This is the one screen a pilot reads without touching it — yoke-mounted, hands on the
- controls, eyes moving between the corrected altitudes and the panel — so it holds the display
- on for as long as it is showing.
+ controls, eyes moving between the corrected altitudes and the panel — so the display is held on
+ for as long as an approach is open, by the split view above it; see ``ScreenAwake``.
 
  The correction is a cheap pure computation, so the view rebuilds an ``ApproachCorrector``
  from its inputs each time rather than caching it. The inputs themselves, and the screen pushed
@@ -87,7 +87,6 @@ struct FixListView: View {
       )
     }
     .navigationTitle(approach.name)
-    .keepsScreenAwake()
     .task(id: approach.persistentModelID) {
       await model.prepare(
         approach,
