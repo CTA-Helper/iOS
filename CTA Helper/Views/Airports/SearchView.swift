@@ -5,6 +5,11 @@ import SwiftUI
 /// Search airports by identifier, name or city.
 struct SearchView: View {
   @Binding var selection: Airport?
+  /**
+   What the pilot has typed, held above the layout: the view model is this view's own and is
+   built again whenever a change of layout rebuilds the view, so it starts from this.
+   */
+  @Binding var query: String
 
   @Environment(\.modelContext)
   private var modelContext
@@ -20,8 +25,13 @@ struct SearchView: View {
     }
     .onAppear {
       if viewModel == nil {
-        viewModel = SearchViewModel(container: modelContext.container)
+        let viewModel = SearchViewModel(container: modelContext.container)
+        viewModel.query = query
+        self.viewModel = viewModel
       }
+    }
+    .onChange(of: viewModel?.query) { _, typed in
+      if let typed { query = typed }
     }
   }
 }
@@ -46,8 +56,9 @@ private struct SearchResults: View {
 #if DEBUG
   #Preview {
     @Previewable @State var selection: Airport?
+    @Previewable @State var query = ""
     NavigationStack {
-      SearchView(selection: $selection)
+      SearchView(selection: $selection, query: $query)
     }
     .modelContainer(.preview)
   }

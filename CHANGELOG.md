@@ -20,6 +20,11 @@ an airport whose plates are all on the device stops offering the download.
 
 VoiceOver now reads Favorites, Recents, Nearest and Search as tabs.
 
+Opening or closing iPhone Duo, rotating a Pro Max, or resizing the window on
+iPad keeps everything you had going: the temperature, minimums and transitions
+you entered, the weather or plate you opened, and the airport tab and search you
+were on.
+
 ## 1.1
 
 Approach plates. Open an approach's FAA plate and read every named fix beside it

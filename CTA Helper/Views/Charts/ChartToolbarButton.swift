@@ -16,12 +16,8 @@ import SwiftUI
 struct ChartToolbarButton: View {
   /// The approach whose plate the button opens.
   let approach: Approach
-  /// The correction in force, handed to the chart screen so the overlay stays in step.
-  let corrector: ApproachCorrector
-  /// The transition each segment is showing.
-  let transitions: [Segment: String]
-  /// The DA or MDA the pilot entered, or `nil` until they enter one.
-  let minimums: Measurement<UnitLength>?
+  /// Push the chart screen over the fix list.
+  let open: () -> Void
 
   /// Where the plate is already filed, once the cache has been asked.
   @State private var cachedPlate: URL?
@@ -36,14 +32,7 @@ struct ChartToolbarButton: View {
   var body: some View {
     Group {
       if approach.chartID != nil {
-        NavigationLink {
-          ChartScreen(
-            approach: approach,
-            corrector: corrector,
-            transitions: transitions,
-            minimums: minimums
-          )
-        } label: {
+        Button(action: open) {
           Label(label, systemImage: icon)
         }
         .accessibilityIdentifier("chartButton")

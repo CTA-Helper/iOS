@@ -5,16 +5,6 @@ import SwiftData
 import SwiftUI
 
 /**
- The temperatures the reported-temperature slider spans.
-
- The correction tables stop at −50 °C, and above +10 °C no US Cold Temperature Airport
- restriction is in force. An observation outside that span is pinned to the nearer end rather
- than left off the track, where the slider could not show it.
- */
-private let reportedTemperatureRange =
-  Measurement<UnitTemperature>.celsius(-50)...Measurement<UnitTemperature>.celsius(10)
-
-/**
  The app's signature screen: every fix of an approach with its published altitude and the
  applied cold temperature correction.
 
@@ -35,48 +25,19 @@ private let reportedTemperatureRange =
  on for as long as it is showing.
 
  The correction is a cheap pure computation, so the view rebuilds an ``ApproachCorrector``
- from its inputs each time rather than caching it. Nothing the pilot sets is persisted across
- launches, and what survives within one depends on whose it is: the minimums and the chosen
- transitions belong to the approach, so another approach starts them over, while the reported
- temperature belongs to the airport and stands across every approach to it.
+ from its inputs each time rather than caching it. The inputs themselves, and the screen pushed
+ over the list, are held above the layout rather than here, since a change of layout builds this
+ view afresh; ``FixListViewModel`` says which of them another approach starts over.
  */
 struct FixListView: View {
   /// The airport whose elevation and cold temperature restriction the correction uses.
   let airport: Airport
   /// The approach whose fixes are listed.
   let approach: Approach
-
-  @State private var reportedTemperature: Measurement<UnitTemperature>
-  @State private var minimums: Measurement<UnitLength>?
-  /**
-   The station's latest METAR, once fetched — the source of the reported temperature, and the
-   subject of the weather section.
-   */
-  @State private var observation: METARObservation?
-  /**
-   The transition each segment is showing, where the pilot has chosen one. A segment with no
-   entry shows the first transition it codes.
-   */
-  @State private var selectedTransitions: [Segment: String] = [:]
-
-  /**
-   The approach the typed minimums and chosen transitions belong to.
-
-   They are the approach's own: a DA/MDA is the one charted for this procedure, and a transition
-   is one this procedure codes. Opening another approach starts both over. The identity is the
-   persistent one rather than the ARINC identifier, which two airports can both publish.
-   */
-  @State private var preparedApproach: PersistentIdentifier?
-
-  /**
-   The airport the reported temperature was filled from a METAR for.
-
-   The temperature is the airport's weather rather than the approach's — it is the station's
-   reading the pilot is overriding — so it goes on standing when they open another approach to
-   the same field. Filling it per approach would pull the slider back to the METAR every time
-   they compared two approaches at one airport, discarding a reading they had deliberately set.
-   */
-  @State private var filledFromAirport: PersistentIdentifier?
+  /// What the pilot has set: the reported temperature, the minimums and the transitions.
+  @Bindable var model: FixListViewModel
+  /// The screen pushed over the list, or `nil` while the list itself is showing.
+  @Binding var destination: FixListDestination?
 
   @Environment(\.metarLoader)
   private var metarLoader
@@ -95,9 +56,9 @@ struct FixListView: View {
   var body: some View {
     List {
       Section {
-        TemperatureControl(reportedTemperature: $reportedTemperature)
-        if let observation {
-          WeatherLink(observation: observation)
+        TemperatureControl(reportedTemperature: $model.reportedTemperature)
+        if let observation = model.observation {
+          WeatherLink(observation: observation) { destination = .weather }
         }
       }
       if isCorrectionRequired {
@@ -105,8 +66,8 @@ struct FixListView: View {
         SegmentSections(
           fixes: approach.fixes,
           corrector: corrector,
-          selectedTransitions: $selectedTransitions,
-          minimums: $minimums
+          selectedTransitions: $model.selectedTransitions,
+          minimums: $model.minimums
         )
       } else {
         NoCorrectionNotice()
@@ -114,17 +75,27 @@ struct FixListView: View {
     }
     .toolbar {
       ToolbarItem(placement: .topBarTrailing) {
-        ChartToolbarButton(
-          approach: approach,
-          corrector: corrector,
-          transitions: selectedTransitions,
-          minimums: minimums
-        )
+        ChartToolbarButton(approach: approach) { destination = .chart }
       }
+    }
+    .navigationDestination(item: $destination) { destination in
+      PushedScreen(
+        destination: destination,
+        approach: approach,
+        model: model,
+        corrector: corrector
+      )
     }
     .navigationTitle(approach.name)
     .keepsScreenAwake()
-    .task(id: approach.persistentModelID) { await prepare() }
+    .task(id: approach.persistentModelID) {
+      await model.prepare(
+        approach,
+        at: airport,
+        metarLoader: metarLoader,
+        networkMonitor: networkMonitor
+      )
+    }
   }
 
   /**
@@ -133,7 +104,7 @@ struct FixListView: View {
    */
   private var isCorrectionRequired: Bool {
     guard let coldTemperature = airport.coldTemperature else { return true }
-    return reportedTemperature <= coldTemperature.restrictionTemperature
+    return model.reportedTemperature <= coldTemperature.restrictionTemperature
   }
 
   /// The correction in force, rebuilt from the current controls.
@@ -141,94 +112,77 @@ struct FixListView: View {
     ApproachCorrector(
       elevation: airport.elevation,
       referenceAltitudes: approach.referenceAltitudes,
-      reportedTemperature: reportedTemperature,
+      reportedTemperature: model.reportedTemperature,
       coldTemperature: airport.coldTemperature,
       method: method,
       rounding: rounding,
       extrapolateAboveTable: extrapolateAboveTable,
-      minimumsAltitude: minimums
+      minimumsAltitude: model.minimums
     )
   }
+}
 
-  /**
-   Creates the fix list for an approach.
+/**
+ The screen pushed over the fix list, built from what the pilot has set on it so the plate's
+ overlay shows the correction the list does.
+ */
+private struct PushedScreen: View {
+  let destination: FixListDestination
+  let approach: Approach
+  let model: FixListViewModel
+  let corrector: ApproachCorrector
 
-   - Parameters:
-     - airport: the airport the approach serves.
-     - approach: the approach to list.
-     - initialTemperature: the temperature the slider starts at, so a fetched METAR temperature
-       can be injected later; the pilot then adjusts it with the slider.
-   */
-  init(
-    airport: Airport,
-    approach: Approach,
-    initialTemperature: Measurement<UnitTemperature> = .celsius(0)
-  ) {
-    self.airport = airport
-    self.approach = approach
-    _reportedTemperature = State(initialValue: initialTemperature)
-  }
-
-  /**
-   Start the screen on an approach: drop what belonged to the one before it, and fill the
-   reported temperature from the station's latest METAR.
-
-   The two halves are keyed apart because they belong to different things — the entries to the
-   approach, the temperature to the airport — so switching approaches at one field clears the
-   minimums without disturbing the reading they are corrected against.
-
-   Both are guarded rather than run on sight, because a `task` starts afresh every time the view
-   appears, and this screen appears again whenever the plate pushed over it is dismissed. Left
-   unguarded, coming back from the chart would blank the minimums the overlay was just showing
-   and pull the temperature back to the METAR's.
-   */
-  private func prepare() async {
-    if preparedApproach != approach.persistentModelID {
-      preparedApproach = approach.persistentModelID
-      minimums = nil
-      selectedTransitions = [:]
+  var body: some View {
+    switch destination {
+      case .weather:
+        if let observation = model.observation {
+          WeatherView(observation: observation)
+        }
+      case .chart:
+        ChartScreen(
+          approach: approach,
+          corrector: corrector,
+          transitions: model.selectedTransitions,
+          minimums: model.minimums
+        )
     }
-
-    guard filledFromAirport != airport.persistentModelID else { return }
-    filledFromAirport = airport.persistentModelID
-    observation = nil
-    await loadObservation()
-  }
-
-  /**
-   Fetch the airport's latest METAR when the network is available, and fill the reported
-   temperature from it.
-
-   An observation warmer or colder than the slider spans is pinned to the nearer end. Off the
-   track the thumb is unreadable and the value is one the control cannot express, and a
-   temperature above the span is warmer than any restriction — so the pinned reading and the
-   true one call for the same correction: none.
-   */
-  private func loadObservation() async {
-    guard let metarLoader, let networkMonitor, networkMonitor.isConnected else { return }
-    observation = await metarLoader.observation(for: airport.metarStationID)
-    guard let temperature = observation?.temperature else { return }
-    reportedTemperature = temperature.roundedToWholeCelsius.clamped(to: reportedTemperatureRange)
   }
 }
 
 /**
  The way through to the METAR the reported temperature was filled from: the reporting station
  over how long ago it filed, so the pilot can weigh the reading before flying it.
+
+ A button rather than a `NavigationLink`, because what it pushes is held above the layout rather
+ than by the stack it pushes onto; it draws the disclosure indicator a link would.
  */
 private struct WeatherLink: View {
   let observation: METARObservation
+  let open: () -> Void
 
   var body: some View {
-    NavigationLink {
-      WeatherView(observation: observation)
-    } label: {
-      VStack(alignment: .leading, spacing: 2) {
-        ReportingStation(observation: observation)
-        ObservationAge(date: observation.date)
+    Button(action: open) {
+      HStack {
+        VStack(alignment: .leading, spacing: 2) {
+          ReportingStation(observation: observation)
+          ObservationAge(date: observation.date)
+        }
+        Spacer()
+        DisclosureIndicator()
       }
     }
+    .tint(.primary)
     .accessibilityIdentifier("weatherLink")
+  }
+}
+
+/// The chevron a list row that pushes a screen ends in.
+private struct DisclosureIndicator: View {
+  var body: some View {
+    Image(systemName: "chevron.forward")
+      .font(.footnote.weight(.semibold))
+      .foregroundStyle(.tertiary)
+      .accessibilityHidden(true)
   }
 }
 
@@ -269,15 +223,18 @@ private struct ObservationAge: View {
  so nothing divides the reading from the control that sets it.
  */
 private struct TemperatureControl: View {
+  /// The temperatures the slider spans.
+  private static let range = FixListViewModel.reportedTemperatureRange
+
   /**
-   The span of ``reportedTemperatureRange`` in the bare degrees `Slider` is defined over.
+   The span of ``range`` in the bare degrees `Slider` is defined over.
 
    The track is the one thing on this screen that cannot hold a measurement — `Slider` works in
    `BinaryFloatingPoint` — so the scalar is derived here and goes no further.
    */
   private static let trackC: ClosedRange<Double> = {
-    let coldest = reportedTemperatureRange.lowerBound.converted(to: .celsius).value
-    let warmest = reportedTemperatureRange.upperBound.converted(to: .celsius).value
+    let coldest = range.lowerBound.converted(to: .celsius).value
+    let warmest = range.upperBound.converted(to: .celsius).value
     return coldest...warmest
   }()
 
@@ -295,9 +252,9 @@ private struct TemperatureControl: View {
         // The ends of the track are labelled in the same unit as the reading above it, so the
         // span the slider covers is read off the control rather than inferred from where the
         // thumb stops.
-        Text(reportedTemperatureRange.lowerBound, format: .reportedTemperature)
+        Text(Self.range.lowerBound, format: .reportedTemperature)
       } maximumValueLabel: {
-        Text(reportedTemperatureRange.upperBound, format: .reportedTemperature)
+        Text(Self.range.upperBound, format: .reportedTemperature)
       }
       .accessibilityIdentifier("reportedTemperatureSlider")
     }
@@ -551,57 +508,50 @@ private struct NoCorrectionNotice: View {
 }
 
 #if DEBUG
-  #Preview("Cold") {
-    NavigationStack {
-      let airport = PreviewData.missoula()
-      FixListView(
-        airport: airport,
-        approach: airport.approaches[0],
-        initialTemperature: .celsius(-20)
-      )
-    }
-    .modelContainer(.preview)
-  }
-#endif
+  /// Missoula's worked approach in a stack of its own, the slider starting where a preview says.
+  private struct FixListPreview: View {
+    @State private var model: FixListViewModel
+    @State private var destination: FixListDestination?
 
-// The weather block only renders where a loader and a connected monitor are both in the
-// environment, so this preview seeds both. Serving one fixed cold observation keeps the preview
-// off the network and shows the temperature auto-filling from the METAR it links to.
-#if DEBUG
-  #Preview("Reporting station") {
-    NavigationStack {
-      let airport = PreviewData.missoula()
-      FixListView(airport: airport, approach: airport.approaches[0])
+    var body: some View {
+      NavigationStack {
+        let airport = PreviewData.missoula()
+        FixListView(
+          airport: airport,
+          approach: airport.approaches[0],
+          model: model,
+          destination: $destination
+        )
+      }
+      .modelContainer(.preview)
     }
-    .modelContainer(.preview)
-    .environment(\.metarLoader, METARLoader(serving: ["KMSO": .preview]))
-    .environment(\.networkMonitor, NetworkMonitor(reporting: true))
+
+    init(temperature: Measurement<UnitTemperature> = .celsius(0)) {
+      _model = State(initialValue: FixListViewModel(reportedTemperature: temperature))
+    }
+  }
+
+  #Preview("Cold") {
+    FixListPreview(temperature: .celsius(-20))
+  }
+
+  // The weather block only renders where a loader and a connected monitor are both in the
+  // environment, so this preview seeds both. Serving one fixed cold observation keeps the preview
+  // off the network and shows the temperature auto-filling from the METAR it links to.
+  #Preview("Reporting station") {
+    FixListPreview()
+      .environment(\.metarLoader, METARLoader(serving: ["KMSO": .preview]))
+      .environment(\.networkMonitor, NetworkMonitor(reporting: true))
   }
 
   // The Individual Segments Method leaves KMSO's missed approach uncorrected, and the minimums
   // start unentered, so two segments carry a footer saying why.
   #Preview("Uncorrected segments") {
-    NavigationStack {
-      let airport = PreviewData.missoula()
-      FixListView(
-        airport: airport,
-        approach: airport.approaches[0],
-        initialTemperature: .celsius(-20)
-      )
-    }
-    .modelContainer(.preview)
-    .defaultAppStorage(.individualSegmentsPreview)
+    FixListPreview(temperature: .celsius(-20))
+      .defaultAppStorage(.individualSegmentsPreview)
   }
 
   #Preview("No correction necessary") {
-    NavigationStack {
-      let airport = PreviewData.missoula()
-      FixListView(
-        airport: airport,
-        approach: airport.approaches[0],
-        initialTemperature: .celsius(5)
-      )
-    }
-    .modelContainer(.preview)
+    FixListPreview(temperature: .celsius(5))
   }
 #endif

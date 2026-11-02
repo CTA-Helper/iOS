@@ -8,8 +8,11 @@ import SwiftUI
  */
 struct AirportSidebar: View {
   @Binding var selection: Airport?
+  /// The tab showing, held above the layout so a change of layout comes back to it.
+  @Binding var tab: AirportTab
+  /// What the pilot has typed into the Search tab, held above the layout likewise.
+  @Binding var searchQuery: String
 
-  @State private var tab: AirportTab = .favorites
   @State private var showsSettings = false
 
   var body: some View {
@@ -25,7 +28,7 @@ struct AirportSidebar: View {
       .padding([.horizontal, .bottom])
       .accessibilityIdentifier("airportTabPicker")
 
-      SelectedAirportTab(tab: tab, selection: $selection)
+      SelectedAirportTab(tab: tab, selection: $selection, searchQuery: $searchQuery)
     }
     .navigationTitle("Airports")
     .toolbar {
@@ -55,13 +58,14 @@ private struct SelectedAirportTab: View {
   let tab: AirportTab
 
   @Binding var selection: Airport?
+  @Binding var searchQuery: String
 
   var body: some View {
     switch tab {
       case .favorites: FavoritesView(selection: $selection)
       case .recents: RecentsView(selection: $selection)
       case .nearest: NearestView(selection: $selection)
-      case .search: SearchView(selection: $selection)
+      case .search: SearchView(selection: $selection, query: $searchQuery)
     }
   }
 }
@@ -85,8 +89,10 @@ enum AirportTab: String, CaseIterable, Identifiable {
 #if DEBUG
   #Preview {
     @Previewable @State var selection: Airport?
+    @Previewable @State var tab = AirportTab.favorites
+    @Previewable @State var searchQuery = ""
     NavigationStack {
-      AirportSidebar(selection: $selection)
+      AirportSidebar(selection: $selection, tab: $tab, searchQuery: $searchQuery)
     }
     .modelContainer(.preview)
   }
