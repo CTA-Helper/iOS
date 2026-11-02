@@ -34,9 +34,10 @@ struct ContentView: View {
 
  Both layouts push off the router's selections, so choosing an airport clears the approach chosen
  under the previous one — and records the airport as recently viewed — no matter which of them is
- on screen. A route the router is holding is applied here, and only here: this view is drawn once
- the store holds data, which is the condition a route has to wait for, and the same condition the
- Spotlight donation waits on.
+ on screen. What the pilot has set on the fix list is held here too, since whichever layout is
+ showing is torn down and rebuilt each time the width crosses between them. A route the router is
+ holding is applied here, and only here: this view is drawn once the store holds data, which is
+ the condition a route has to wait for, and the same condition the Spotlight donation waits on.
  */
 private struct AirportSplitView: View {
   @Environment(\.horizontalSizeClass)
@@ -45,6 +46,12 @@ private struct AirportSplitView: View {
   private var modelContext
   @Environment(AirportRouter.self)
   private var router
+
+  /**
+   What the pilot has set on the fix list, for as long as an approach is open. Leaving it — back
+   to the approach list, or to another airport — starts the next one afresh.
+   */
+  @State private var fixList = FixListViewModel()
 
   @AppStorage(SettingsKey.favoriteAirports)
   private var favorites = AirportIDList()
@@ -65,10 +72,13 @@ private struct AirportSplitView: View {
   var body: some View {
     Group {
       if horizontalSizeClass == .compact {
-        CompactAirportNavigation(router: router)
+        CompactAirportNavigation(router: router, fixList: fixList)
       } else {
-        AirportPanes(router: router)
+        AirportPanes(router: router, fixList: fixList)
       }
+    }
+    .onChange(of: router.approach == nil) { _, isClosed in
+      if isClosed { fixList = FixListViewModel() }
     }
     .task(id: router.pendingRoute) { applyPendingRoute() }
     .task(id: indexedAirports) {
@@ -99,13 +109,19 @@ private struct AirportSplitView: View {
  */
 private struct CompactAirportNavigation: View {
   @Bindable var router: AirportRouter
+  let fixList: FixListViewModel
 
   var body: some View {
     NavigationStack {
-      AirportPane(selection: $router.airport) { airport in
+      AirportPane(router: router) { airport in
         ApproachListView(airport: airport, selection: $router.approach)
           .navigationDestination(item: $router.approach) { approach in
-            FixListView(airport: airport, approach: approach)
+            FixListView(
+              airport: airport,
+              approach: approach,
+              model: fixList,
+              destination: $router.fixListDestination
+            )
           }
       }
     }
@@ -122,17 +138,23 @@ private struct CompactAirportNavigation: View {
  */
 private struct AirportPanes: View {
   @Bindable var router: AirportRouter
+  let fixList: FixListViewModel
 
   var body: some View {
     NavigationSplitView {
       NavigationStack {
-        AirportPane(selection: $router.airport) {
+        AirportPane(router: router) {
           ApproachListView(airport: $0, selection: $router.approach)
         }
       }
     } detail: {
       NavigationStack {
-        SelectedApproachDetail(airport: router.airport, approach: router.approach)
+        SelectedApproachDetail(
+          airport: router.airport,
+          approach: router.approach,
+          fixList: fixList,
+          destination: $router.fixListDestination
+        )
       }
     }
   }
@@ -140,8 +162,11 @@ private struct AirportPanes: View {
 
 /// The leading pane: the airport picker, pushing the chosen airport's approaches.
 private struct AirportPane<Approaches: View>: View {
-  /// The chosen airport, which is both what the picker marks and what the pane has pushed.
-  @Binding var selection: Airport?
+  /**
+   Holds the chosen airport — both what the picker marks and what the pane has pushed — and the
+   picker's tab and search.
+   */
+  @Bindable var router: AirportRouter
   /**
    The approach list to push, given the chosen airport — the one place the two layouts differ,
    since only the drill-down stack pushes the fixes from it too.
@@ -149,8 +174,12 @@ private struct AirportPane<Approaches: View>: View {
   @ViewBuilder let approaches: (Airport) -> Approaches
 
   var body: some View {
-    AirportSidebar(selection: $selection)
-      .navigationDestination(item: $selection, destination: approaches)
+    AirportSidebar(
+      selection: $router.airport,
+      tab: $router.airportTab,
+      searchQuery: $router.airportSearchQuery
+    )
+    .navigationDestination(item: $router.airport, destination: approaches)
   }
 }
 
@@ -161,10 +190,17 @@ private struct AirportPane<Approaches: View>: View {
 private struct SelectedApproachDetail: View {
   let airport: Airport?
   let approach: Approach?
+  let fixList: FixListViewModel
+  @Binding var destination: FixListDestination?
 
   var body: some View {
     if let airport, let approach {
-      FixListView(airport: airport, approach: approach)
+      FixListView(
+        airport: airport,
+        approach: approach,
+        model: fixList,
+        destination: $destination
+      )
     } else {
       ContentUnavailableView("Select an Approach", systemImage: "square.dashed")
     }
@@ -180,27 +216,37 @@ private struct SelectedApproachDetail: View {
 
   #Preview("Drill-down stack") {
     @Previewable @State var router = AirportRouter()
-    CompactAirportNavigation(router: router)
+    CompactAirportNavigation(router: router, fixList: FixListViewModel())
       .modelContainer(.preview)
   }
 
   #Preview("Side-by-side panes") {
     @Previewable @State var router = AirportRouter()
-    AirportPanes(router: router)
+    AirportPanes(router: router, fixList: FixListViewModel())
       .modelContainer(.preview)
   }
 
   #Preview("Approach selected") {
     NavigationStack {
       let airport = PreviewData.missoula()
-      SelectedApproachDetail(airport: airport, approach: airport.approaches[0])
+      SelectedApproachDetail(
+        airport: airport,
+        approach: airport.approaches[0],
+        fixList: FixListViewModel(),
+        destination: .constant(nil)
+      )
     }
     .modelContainer(.preview)
   }
 
   #Preview("No approach selected") {
     NavigationStack {
-      SelectedApproachDetail(airport: nil, approach: nil)
+      SelectedApproachDetail(
+        airport: nil,
+        approach: nil,
+        fixList: FixListViewModel(),
+        destination: .constant(nil)
+      )
     }
     .modelContainer(.preview)
   }

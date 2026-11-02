@@ -11,6 +11,13 @@ Write entries to survive both renderings. Here they are Markdown; on the store
 they are shown verbatim as plain text, so anything that depends on its
 formatting to make sense will read badly in one of the two places.
 
+## 2.0.1
+
+Opening or closing iPhone Duo, rotating a Pro Max, or resizing the window on
+iPad keeps everything you had going: the temperature, minimums and transitions
+you entered, the weather or plate you opened, and the airport tab and search you
+were on.
+
 ## 2.0
 
 CTA Helper now requires iOS 27, and takes on its new appearance throughout.

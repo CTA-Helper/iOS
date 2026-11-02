@@ -50,6 +50,18 @@ struct `Airport routing` {
   }
 
   @Test
+  func `choosing another approach drops the screen pushed over the last one's fixes`() {
+    let router = makeRouter()
+    router.airport = missoula
+    router.approach = missoula.approaches[0]
+    router.fixListDestination = .chart
+
+    router.approach = missoula.approaches[1]
+
+    #expect(router.fixListDestination == nil)
+  }
+
+  @Test
   func `choosing an airport records it as recently opened`() {
     let router = makeRouter()
     router.airport = missoula

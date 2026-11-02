@@ -11,6 +11,13 @@
   via `.navigationDestination(item:)`, keeping `AirportList` and
   `ApproachListView` plain `List(selection:)`. Guarded by
   `testWeatherPushesOverTheFixListWithoutUnsettlingTheStack`.
+- Keep what the pilot has set or opened above that branch. Everything beneath
+  it is rebuilt whenever the size class flips — every time iPhone Duo opens or
+  closes — so `@State` there is lost mid-flow. The selections, the airport tab
+  and search, and the screen pushed over the fix list (`fixListDestination`,
+  pushed with `.navigationDestination(item:)` rather than a `NavigationLink`)
+  live on `AirportRouter`; the fix list's entries live in the
+  `FixListViewModel` that `AirportSplitView` holds.
 
 ## Accessibility identifiers
 

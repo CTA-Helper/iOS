@@ -46,9 +46,22 @@ extension AirportRoute {
   }
 }
 
+/// A screen pushed over the fix list.
+enum FixListDestination: Hashable {
+  /// The METAR the reported temperature was filled from.
+  case weather
+  /// The approach plate, with the corrected altitudes laid over it.
+  case chart
+}
+
 /**
  The airport → approach selection both layouts push off, and the one address a screen has from
  outside the view hierarchy.
+
+ Everything that says where the pilot is lives here, above the choice between the drill-down stack
+ and the side-by-side panes, because that choice is made afresh whenever the width crosses between
+ them — opening or closing iPhone Duo among other things — and rebuilds whichever layout it lands
+ on from what this holds.
 
  Choosing an airport clears the approach chosen under the previous one and records the airport as
  recently viewed. That belongs to the property rather than to an `onChange` in the view, because
@@ -68,7 +81,20 @@ final class AirportRouter {
   }
 
   /// The chosen approach at ``airport``, whose fixes the trailing pane corrects.
-  var approach: Approach?
+  var approach: Approach? {
+    didSet {
+      guard approach != oldValue else { return }
+      fixListDestination = nil
+    }
+  }
+
+  /// The screen pushed over ``approach``'s fixes, or `nil` while the fixes themselves are showing.
+  var fixListDestination: FixListDestination?
+
+  /// The airport picker's tab.
+  var airportTab = AirportTab.favorites
+  /// What the pilot has typed into the airport picker's Search tab.
+  var airportSearchQuery = ""
 
   /// A route waiting for a populated store to resolve it against, or `nil` when there is none.
   private(set) var pendingRoute: AirportRoute?

@@ -1,4 +1,6 @@
+import Foundation
 import NavDataSchema
+import SwiftData
 import Testing
 
 @testable import CTA_Helper
@@ -115,5 +117,120 @@ struct `Leg instructions` {
   @Test
   func `instructs nothing for a leg type the app does not recognize`() {
     #expect(LegInstruction.instruction(for: nil) == nil)
+  }
+}
+
+/**
+ What the fix list keeps of the pilot's entries as it is built again — returning from the plate,
+ a change of layout — and what another approach or another airport starts over.
+ */
+@MainActor
+@Suite
+struct `Fix list entries` {
+  private let container: ModelContainer
+  private let missoula: Airport
+  private let eureka: Airport
+  private let metarLoader: METARLoader
+  private let networkMonitor = NetworkMonitor(reporting: true)
+
+  init() throws {
+    container = .makeInMemory()
+    missoula = PreviewData.missoula()
+    eureka = PreviewData.eureka()
+    eureka.approaches = [
+      Approach(
+        identifier: "R18",
+        name: "RNAV (GPS) RWY 18",
+        runway: "18",
+        chartURL: nil,
+        referenceAltitudes: ReferenceAltitudes(
+          initial: .unavailable,
+          intermediate: .unavailable,
+          final: .pilotEntered,
+          missed: .unavailable,
+          allSegments: .unavailable
+        )
+      )
+    ]
+    container.mainContext.insert(missoula)
+    container.mainContext.insert(eureka)
+    try container.mainContext.save()
+
+    metarLoader = METARLoader(serving: [
+      "KMSO": .preview,
+      "K05U": METARObservation(
+        stationID: "K05U",
+        temperature: .celsius(-25),
+        date: .now,
+        rawText: "K05U 241953Z AUTO 30012KT 10SM CLR M25/M30 A3002"
+      )
+    ])
+  }
+
+  private func prepare(
+    _ model: FixListViewModel,
+    _ approach: Approach,
+    at airport: Airport
+  ) async {
+    await model.prepare(
+      approach,
+      at: airport,
+      metarLoader: metarLoader,
+      networkMonitor: networkMonitor
+    )
+  }
+
+  private func enterEverything(on model: FixListViewModel) {
+    model.reportedTemperature = .celsius(-30)
+    model.minimums = .feet(3_600)
+    model.selectedTransitions = [.initial: "DENIM"]
+  }
+
+  @Test
+  func `fills the reported temperature from the airport's METAR`() async {
+    let model = FixListViewModel()
+
+    await prepare(model, missoula.approaches[0], at: missoula)
+
+    #expect(model.observation == .preview)
+    #expect(model.reportedTemperature == .celsius(-20))
+  }
+
+  @Test
+  func `keeps everything the pilot set when the same approach is prepared again`() async {
+    let model = FixListViewModel()
+    await prepare(model, missoula.approaches[0], at: missoula)
+    enterEverything(on: model)
+
+    await prepare(model, missoula.approaches[0], at: missoula)
+
+    #expect(model.reportedTemperature == .celsius(-30))
+    #expect(model.minimums == .feet(3_600))
+    #expect(model.selectedTransitions == [.initial: "DENIM"])
+  }
+
+  @Test
+  func `starts the entries over for another approach, keeping the airport's temperature`() async {
+    let model = FixListViewModel()
+    await prepare(model, missoula.approaches[0], at: missoula)
+    enterEverything(on: model)
+
+    await prepare(model, missoula.approaches[1], at: missoula)
+
+    #expect(model.reportedTemperature == .celsius(-30))
+    #expect(model.minimums == nil)
+    #expect(model.selectedTransitions.isEmpty)
+  }
+
+  @Test
+  func `fills the temperature again for an approach at another airport`() async {
+    let model = FixListViewModel()
+    await prepare(model, missoula.approaches[0], at: missoula)
+    enterEverything(on: model)
+
+    await prepare(model, eureka.approaches[0], at: eureka)
+
+    #expect(model.observation?.stationID == "K05U")
+    #expect(model.reportedTemperature == .celsius(-25))
   }
 }
