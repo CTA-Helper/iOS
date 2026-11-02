@@ -29,8 +29,15 @@ struct FixListScreen {
 
   let app: XCUIApplication
 
-  /// The corrected DA or MDA as it reads on screen, or the placeholder standing in for none.
-  var correctedMinimumsLabel: String { correctedMinimums.label }
+  /**
+   The corrected DA or MDA as it reads on screen, or the placeholder standing in for none,
+   scrolled into view first: on a screen as short as iPhone Duo's outer display, the list can be
+   anywhere along the approach when it is read.
+   */
+  var correctedMinimumsLabel: String {
+    scroll(to: correctedMinimums, .up, describedAs: "Corrected minimums")
+    return correctedMinimums.label
+  }
 
   /// The slider that reports the temperature, across −50…+10 °C.
   var temperatureSlider: XCUIElement { app.sliders["reportedTemperatureSlider"] }
@@ -308,6 +315,11 @@ struct FixListScreen {
 
    The probe comes first on purpose: a row the list has not drawn yet is not a row below the
    fold, and a scroll aimed at one goes straight past it.
+
+   `direction` is where the element usually is, not where it must be. On a screen as short as
+   iPhone Duo's outer display, typing the minimums carries the list past the first segment's
+   rows, which leaves them above the fold for the next reading; a scroll that runs out without
+   finding the element turns round and looks the other way.
    */
   private func scroll(
     to element: XCUIElement,
@@ -316,6 +328,13 @@ struct FixListScreen {
   ) {
     _ = element.wait(scaledSeconds: Self.renderProbeSeconds)
     app.scrollToElement(element, direction: direction, maxSwipes: Self.maximumScrolls)
+    if !(element.exists && element.isHittable) {
+      app.scrollToElement(
+        element,
+        direction: direction.reversed,
+        maxSwipes: Self.maximumScrolls * 2
+      )
+    }
     element.assertExists("\(description) not found after scrolling the approach")
   }
 
@@ -327,5 +346,15 @@ struct FixListScreen {
   /// One of the four segments ENR 1.8 5.f divides an approach into, by the name it is coded under.
   enum Segment: String {
     case initial, intermediate, final, missed
+  }
+}
+
+extension XCUIApplication.ScrollDirection {
+  /// The other way.
+  fileprivate var reversed: Self {
+    switch self {
+      case .up: .down
+      case .down: .up
+    }
   }
 }

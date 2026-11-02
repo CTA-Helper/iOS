@@ -15,7 +15,7 @@ struct SettingsScreen {
   var landing: XCUIElement { app.descendant(id: "settingsScreen") }
 
   /// The bar belonging to the sheet, not to the split view pane still visible behind it on iPad.
-  private var sheetNavigationBar: XCUIElement { app.navigationBar(above: landing) }
+  private var sheetNavigationBar: XCUIElement { app.navigationBar(of: landing) }
 
   /// Whether the sheet has gone, giving the dismissal it may still be animating time to finish.
   private var hasLeft: Bool {
@@ -121,11 +121,25 @@ struct SettingsScreen {
     return AirportListScreen(app: app)
   }
 
-  /// Drag the sheet's own navigation bar downwards, which is how the pilot puts it away.
+  /**
+   Drag the sheet's own navigation bar down to the foot of the window, which is how the pilot
+   puts it away.
+
+   A swipe measured against the bar is as long as the bar is tall, which a sheet whose bar holds
+   only its title — iPhone Duo's outer display, where the bar's items stand down the trailing
+   edge instead — slides back from rather than dismissing. A drag to the bottom edge clears the
+   threshold whatever the bar's height.
+   */
   private func pullDown() {
     sheetNavigationBar
       .assertExists("Settings has no navigation bar to drag")
-      .swipeDown(velocity: .fast)
+      .coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+      .press(
+        forDuration: 0.05,
+        thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 1)),
+        withVelocity: .fast,
+        thenHoldForDuration: 0
+      )
   }
 
   /**
