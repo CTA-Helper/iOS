@@ -29,13 +29,18 @@ final class AirportChartDownloader {
   /// The run in progress, or `nil` when nothing is downloading.
   private(set) var progress: Progress?
 
-  /// How the last run ended, or `nil` until one has.
-  private(set) var summary: Summary?
-
   /// The failure to show the pilot, when a whole run failed.
   var error: (any Error)?
 
   private var run: Task<Void, Never>?
+
+  /// Told how each run ended, cancelled ones included.
+  private let onFinish: (Summary) -> Void
+
+  /// - Parameter onFinish: told how each run ended, whether or not a view showing it is on screen.
+  init(onFinish: @escaping (Summary) -> Void = { _ in }) {
+    self.onFinish = onFinish
+  }
 
   /// Roughly what fetching this many plates costs, for the prompt shown before it starts.
   static func estimatedBytes(forPlates count: Int) -> UInt64 {
@@ -76,7 +81,6 @@ final class AirportChartDownloader {
     guard run == nil else { return }
 
     error = nil
-    summary = nil
     progress = Progress(completed: 0, total: ids.count, bytesDownloaded: 0)
 
     run = Task {
@@ -135,7 +139,7 @@ final class AirportChartDownloader {
   private func finish(with tally: Tally) {
     run = nil
     progress = nil
-    summary = tally.summary
+    onFinish(tally.summary)
 
     guard !tally.wasCancelled, tally.downloaded == 0, tally.alreadyCached == 0, tally.failed > 0
     else { return }

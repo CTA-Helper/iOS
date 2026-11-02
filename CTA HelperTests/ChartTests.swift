@@ -222,3 +222,62 @@ struct `Chart errors` {
     #expect(ChartError.writeFailed(underlying: POSIXError(.EACCES)).isReportable)
   }
 }
+
+/**
+ What a bulk download finishing means, settled away from the views: the run outlives the approach
+ list that started it, so the airport has to be recorded and the summary raised without it.
+ */
+@MainActor
+@Suite(.serialized)
+struct `Chart download completion` {
+  private static let suiteName = "ChartDownloadCompletionTests"
+  private static let missoula = "12453.A"
+
+  private let defaults: UserDefaults
+  private let downloads: ChartDownloads
+
+  private var chartAirports: [String] {
+    defaults.airportIDList(forKey: SettingsKey.chartAirports).ids
+  }
+
+  init() throws {
+    defaults = try #require(UserDefaults(suiteName: Self.suiteName))
+    defaults.removePersistentDomain(forName: Self.suiteName)
+    downloads = ChartDownloads(defaults: defaults)
+  }
+
+  private func summary(downloaded: Int, wasCancelled: Bool = false)
+    -> AirportChartDownloader.Summary
+  {
+    .init(
+      downloaded: downloaded,
+      alreadyCached: 0,
+      failed: 0,
+      bytesDownloaded: UInt64(downloaded) * 1_000,
+      wasCancelled: wasCancelled
+    )
+  }
+
+  @Test
+  func `records the airport and reports a run that fetched plates`() {
+    let fetched = summary(downloaded: 3)
+
+    downloads.finish(fetched, at: Self.missoula)
+
+    #expect(chartAirports == [Self.missoula])
+    #expect(downloads.finishedSummary == fetched)
+  }
+
+  @Test(arguments: [(downloaded: 2, wasCancelled: true), (downloaded: 0, wasCancelled: false)])
+  func `records and reports nothing for a run stopped or empty`(
+    _ run: (downloaded: Int, wasCancelled: Bool)
+  ) {
+    downloads.finish(
+      summary(downloaded: run.downloaded, wasCancelled: run.wasCancelled),
+      at: Self.missoula
+    )
+
+    #expect(chartAirports.isEmpty)
+    #expect(downloads.finishedSummary == nil)
+  }
+}

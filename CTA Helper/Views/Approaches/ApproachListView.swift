@@ -7,19 +7,11 @@ import SwiftUI
  serve and selectable to drill down to the fixes.
  */
 struct ApproachListView: View {
-  /**
-   What a finished chart download came to, held here rather than in the control that starts it.
-
-   The summary is raised as the run ends, which is the update that clears the progress view and
-   swaps the toolbar item back to the button. An alert presented into a view being rebuilt is
-   destroyed with it rather than queued behind it, and SwiftUI writes the `nil` back through the
-   binding — so a summary belonging to the toolbar item flashed and never returned. The list
-   outlives the swap.
-   */
-  @State private var completed: AirportChartDownloader.Summary?
   let airport: Airport
 
   @Binding var selection: Approach?
+  /// The chart downloads, of which this airport's has its progress and controls in the toolbar.
+  let downloads: ChartDownloads
 
   var body: some View {
     List(selection: $selection) {
@@ -33,18 +25,22 @@ struct ApproachListView: View {
         }
       }
     }
-    .alert("Charts Downloaded", item: $completed) { _ in
-      Button("OK") {}
-    } message: { summary in
-      Text(AirportChartsButton.message(for: summary))
-    }
     .navigationTitle(airport.displayIdentifier)
     .navigationSubtitle(airport.name)
     .toolbar {
+      if let progress = downloader.progress {
+        ToolbarItem(placement: .topBarTrailing) {
+          ChartDownloadProgress(progress: progress)
+        }
+      }
       ToolbarItem(placement: .topBarTrailing) {
-        AirportChartsButton(airport: airport, completed: $completed)
+        AirportChartsButton(airport: airport, downloader: downloader)
       }
     }
+  }
+
+  private var downloader: AirportChartDownloader {
+    downloads.downloader(for: airport)
   }
 }
 
@@ -98,7 +94,11 @@ private struct RunwayGroup: Identifiable {
   #Preview("Grouped by runway") {
     @Previewable @State var selection: Approach?
     NavigationStack {
-      ApproachListView(airport: PreviewData.missoula(), selection: $selection)
+      ApproachListView(
+        airport: PreviewData.missoula(),
+        selection: $selection,
+        downloads: ChartDownloads()
+      )
     }
     .modelContainer(.preview)
   }
@@ -106,7 +106,11 @@ private struct RunwayGroup: Identifiable {
   #Preview("No approaches") {
     @Previewable @State var selection: Approach?
     NavigationStack {
-      ApproachListView(airport: PreviewData.sanFrancisco(), selection: $selection)
+      ApproachListView(
+        airport: PreviewData.sanFrancisco(),
+        selection: $selection,
+        downloads: ChartDownloads()
+      )
     }
     .modelContainer(.preview)
   }

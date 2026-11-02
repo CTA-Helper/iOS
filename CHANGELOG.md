@@ -20,6 +20,9 @@ were on.
 
 With an approach open, the screen stays awake as you open or close iPhone Duo.
 
+Chart downloads carry on when you open or close iPhone Duo, and you can stop one
+from its outer display.
+
 ## 2.0
 
 CTA Helper now requires iOS 27, and takes on its new appearance throughout.
