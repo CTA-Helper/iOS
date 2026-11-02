@@ -85,15 +85,22 @@ things that all exist at once.
   them adds another, and the ones behind stay in the hierarchy. Neither
   `navigationBars.firstMatch` nor `.last` is reliably the one wanted — the first
   is the sidebar's, which is how `popNavigationStack()` came to tap the airport
-  list's button from inside the settings sheet. Use
-  `app.navigationBar(above:)`, which picks the bar geometrically.
+  list's button from inside the settings sheet. Use `app.navigationBar(of:)`,
+  which picks the bar geometrically: within the screen's width, with its top
+  nearest the screen's. Don't require the bar to sit above the screen — on
+  iPhone Duo's outer display a sheet's form starts above its own title.
 - **Say which pane a pop belongs to.** Both panes can hold a pushed screen at
   once, so both carry a back button, and the sidebar's comes first in the
-  hierarchy. `popNavigationStack(in:)` takes `.leading` or `.trailing` and tells
-  them apart by width — the trailing bar spans the window, the leading one is the
-  sidebar. On iPhone a single stack fills the screen and either answer names the
-  only bar. Popping without naming the pane unwound the leading pane instead and
-  left the detail pane on its "Select an Approach" placeholder.
+  hierarchy. `popNavigationStack(in:)` takes `.leading` or `.trailing` and only
+  takes a back button on that side of the edge between the panes (the trailing
+  edge of the sidebar's bar), so a pane with nothing to pop fails rather than
+  popping the other. On iPhone a single stack fills the screen and either answer
+  names the only button. Popping without naming the pane unwound the leading
+  pane instead and left the detail pane on its "Select an Approach" placeholder.
+- **A bar can be vertical.** On iPhone Duo's outer display the back button and
+  the toolbar items stand in a `Toolbar` down the trailing edge, and the
+  `NavigationBar` holds only the title. Look for a back button by identifier
+  across the app, never inside `navigationBars`.
 - **Don't pop what is already beside you.** On iPad the fix list is the trailing
   pane and the approaches are in the leading one, so `FixListScreen.goBack()`
   must do nothing: popping unwinds the *leading* pane and takes the approach
