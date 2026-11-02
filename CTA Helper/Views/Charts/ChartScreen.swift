@@ -67,9 +67,9 @@ struct ChartScreen: View {
         }
       }
     }
-    // No `keepsScreenAwake()` of its own. The fix list this is pushed from has not gone
-    // anywhere and is still holding the display on; adding a second hold here would restore
-    // the auto-lock on the way back, leaving the screen the pilot returned to asleep.
+    // No `keepsScreenAwake(_:)` of its own. The split view holds the display on for as long as
+    // the approach this is pushed from is open; a second hold here would restore the auto-lock
+    // on the way back, leaving the screen the pilot returned to asleep.
     .safeAreaInset(edge: .bottom) { ChartDisclaimer() }
     .task(id: approach.identifier) { await load() }
   }

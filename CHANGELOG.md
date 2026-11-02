@@ -25,6 +25,8 @@ iPad keeps everything you had going: the temperature, minimums and transitions
 you entered, the weather or plate you opened, and the airport tab and search you
 were on.
 
+With an approach open, the screen stays awake as you open or close iPhone Duo.
+
 ## 1.1
 
 Approach plates. Open an approach's FAA plate and read every named fix beside it

@@ -34,10 +34,11 @@ struct ContentView: View {
 
  Both layouts push off the router's selections, so choosing an airport clears the approach chosen
  under the previous one — and records the airport as recently viewed — no matter which of them is
- on screen. What the pilot has set on the fix list is held here too, since whichever layout is
- showing is torn down and rebuilt each time the width crosses between them. A route the router is
- holding is applied here, and only here: this view is drawn once the store holds data, which is
- the condition a route has to wait for, and the same condition the Spotlight donation waits on.
+ on screen. What the pilot has set on the fix list is held here too, and so is the display's wake
+ lock, since whichever layout is showing is torn down and rebuilt each time the width crosses
+ between them. A route the router is holding is applied here, and only here: this view is drawn
+ once the store holds data, which is the condition a route has to wait for, and the same
+ condition the Spotlight donation waits on.
  */
 private struct AirportSplitView: View {
   @Environment(\.horizontalSizeClass)
@@ -77,6 +78,7 @@ private struct AirportSplitView: View {
         AirportPanes(router: router, fixList: fixList)
       }
     }
+    .keepsScreenAwake(router.approach != nil)
     .onChange(of: router.approach == nil) { _, isClosed in
       if isClosed { fixList = FixListViewModel() }
     }
