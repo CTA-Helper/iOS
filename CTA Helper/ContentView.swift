@@ -53,6 +53,7 @@ private struct AirportSplitView: View {
    to the approach list, or to another airport — starts the next one afresh.
    */
   @State private var fixList = FixListViewModel()
+  @State private var chartDownloads = ChartDownloads()
 
   @AppStorage(SettingsKey.favoriteAirports)
   private var favorites = AirportIDList()
@@ -73,12 +74,17 @@ private struct AirportSplitView: View {
   var body: some View {
     Group {
       if horizontalSizeClass == .compact {
-        CompactAirportNavigation(router: router, fixList: fixList)
+        CompactAirportNavigation(router: router, fixList: fixList, chartDownloads: chartDownloads)
       } else {
-        AirportPanes(router: router, fixList: fixList)
+        AirportPanes(router: router, fixList: fixList, chartDownloads: chartDownloads)
       }
     }
     .keepsScreenAwake(router.approach != nil)
+    .alert("Charts Downloaded", item: $chartDownloads.finishedSummary) { _ in
+      Button("OK") {}
+    } message: { summary in
+      Text(AirportChartsButton.message(for: summary))
+    }
     .onChange(of: router.approach == nil) { _, isClosed in
       if isClosed { fixList = FixListViewModel() }
     }
@@ -112,11 +118,12 @@ private struct AirportSplitView: View {
 private struct CompactAirportNavigation: View {
   @Bindable var router: AirportRouter
   let fixList: FixListViewModel
+  let chartDownloads: ChartDownloads
 
   var body: some View {
     NavigationStack {
       AirportPane(router: router) { airport in
-        ApproachListView(airport: airport, selection: $router.approach)
+        ApproachListView(airport: airport, selection: $router.approach, downloads: chartDownloads)
           .navigationDestination(item: $router.approach) { approach in
             FixListView(
               airport: airport,
@@ -141,12 +148,13 @@ private struct CompactAirportNavigation: View {
 private struct AirportPanes: View {
   @Bindable var router: AirportRouter
   let fixList: FixListViewModel
+  let chartDownloads: ChartDownloads
 
   var body: some View {
     NavigationSplitView {
       NavigationStack {
         AirportPane(router: router) {
-          ApproachListView(airport: $0, selection: $router.approach)
+          ApproachListView(airport: $0, selection: $router.approach, downloads: chartDownloads)
         }
       }
     } detail: {
@@ -218,13 +226,17 @@ private struct SelectedApproachDetail: View {
 
   #Preview("Drill-down stack") {
     @Previewable @State var router = AirportRouter()
-    CompactAirportNavigation(router: router, fixList: FixListViewModel())
-      .modelContainer(.preview)
+    CompactAirportNavigation(
+      router: router,
+      fixList: FixListViewModel(),
+      chartDownloads: ChartDownloads()
+    )
+    .modelContainer(.preview)
   }
 
   #Preview("Side-by-side panes") {
     @Previewable @State var router = AirportRouter()
-    AirportPanes(router: router, fixList: FixListViewModel())
+    AirportPanes(router: router, fixList: FixListViewModel(), chartDownloads: ChartDownloads())
       .modelContainer(.preview)
   }
 

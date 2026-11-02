@@ -9,25 +9,20 @@ import SwiftUI
  guessing what to warm — favorites, recents, whatever was opened last — is guessing about a trip
  the app knows nothing about. So the pilot says. They are told how many plates and roughly how
  many bytes before anything is fetched, and nothing is fetched without them asking.
+
+ While a run is in flight the button stops it instead. How far along the run is goes in a toolbar
+ item of its own, ``ChartDownloadProgress``. SwiftUI lays a custom view out only along a
+ horizontal bar, so where the bar is vertical — iPhone Duo's outer display — a Stop button sharing
+ the progress ring's item would be held out of the bar with it, rather than standing in the bar
+ with the back button.
  */
 struct AirportChartsButton: View {
   /// The airport whose approaches' plates are fetched.
   let airport: Airport
 
-  @State private var downloader = AirportChartDownloader()
+  /// The run this button starts and stops.
+  @Bindable var downloader: AirportChartDownloader
   @State private var isConfirming = false
-  @Binding var completed: AirportChartDownloader.Summary?
-
-  /**
-   The airports whose charts the pilot has downloaded.
-
-   Kept so that the cycle purge, which discards every plate of a superseded cycle, can be
-   offered back rather than silently undoing the download every 28 days. Site numbers for the
-   reason ``AirportIDList`` gives: a list saved against `KPBI` would have gone dangling the day
-   Palm Beach became `KDJT`.
-   */
-  @AppStorage(SettingsKey.chartAirports)
-  private var chartAirports = AirportIDList()
 
   @Environment(\.chartStore)
   private var chartStore
@@ -38,8 +33,9 @@ struct AirportChartsButton: View {
 
   var body: some View {
     Group {
-      if let progress = downloader.progress {
-        DownloadProgress(progress: progress) { downloader.cancel() }
+      if downloader.progress != nil {
+        Button("Stop Downloading Charts", systemImage: "stop.circle") { downloader.cancel() }
+          .accessibilityIdentifier("cancelDownloadCharts")
       } else if !ids.isEmpty {
         Button {
           isConfirming = true
@@ -64,11 +60,6 @@ struct AirportChartsButton: View {
       )
     }
     .errorSheet($downloader.error)
-    .onChange(of: downloader.summary) { _, summary in
-      guard let summary, !summary.wasCancelled, summary.downloaded > 0 else { return }
-      chartAirports = chartAirports.adding(airport.siteNumber)
-      completed = summary
-    }
   }
 
   /// The plates to fetch: one per approach the navigation data publishes a chart for.
@@ -79,8 +70,8 @@ struct AirportChartsButton: View {
   /**
    The plates this airport publishes that are not on the device yet.
 
-   Read off the store rather than off ``chartAirports``, which records the airports the pilot
-   asked for and outlives the plates themselves: the cycle purge discards a superseded plate
+   Read off the store rather than off the list ``ChartDownloads`` keeps of the airports the pilot
+   asked for, which outlives the plates themselves: the cycle purge discards a superseded plate
    without touching the list, so a list that still names the airport says nothing about whether
    there is anything left to fetch.
    */
@@ -128,23 +119,17 @@ struct AirportChartsButton: View {
   }
 }
 
-/// A run in flight: how far along it is, and the way to stop it.
-private struct DownloadProgress: View {
+/// How far along a run in flight is.
+struct ChartDownloadProgress: View {
   let progress: AirportChartDownloader.Progress
-  let cancel: () -> Void
 
   var body: some View {
-    HStack {
-      ProgressView(value: progress.fraction)
-        .progressViewStyle(.circular)
-        .accessibilityLabel("Downloading charts")
-        .accessibilityValue(
-          "\(progress.completed, format: .number) of \(progress.total, format: .number)"
-        )
-      Button("Stop", systemImage: "stop.circle", action: cancel)
-        .labelStyle(.iconOnly)
-        .accessibilityIdentifier("cancelDownloadCharts")
-    }
-    .accessibilityIdentifier("chartDownloadProgress")
+    ProgressView(value: progress.fraction)
+      .progressViewStyle(.circular)
+      .accessibilityLabel("Downloading charts")
+      .accessibilityValue(
+        "\(progress.completed, format: .number) of \(progress.total, format: .number)"
+      )
+      .accessibilityIdentifier("chartDownloadProgress")
   }
 }
