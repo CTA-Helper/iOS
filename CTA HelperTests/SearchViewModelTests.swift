@@ -21,7 +21,7 @@ struct `Airport search` {
 
     let viewModel = SearchViewModel(container: container)
     viewModel.query = query
-    try? await Task.sleep(for: .milliseconds(600))
+    await viewModel.searchTask?.value
     return viewModel.results.map(\.displayIdentifier)
   }
 
