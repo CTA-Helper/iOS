@@ -11,8 +11,14 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  route:
+    uses: RISCfuture/ci-workflows/.github/workflows/minerva-route.yml@1.1.0
+    permissions:
+      contents: read
+
   ci:
-    uses: RISCfuture/XCUITestKit/.github/workflows/ios-ci.yml@1.2.1
+    needs: route
+    uses: RISCfuture/XCUITestKit/.github/workflows/ios-ci.yml@1.3.0
     with:
       scheme: "CTA Helper"
       unit-test-plan: "Unit Tests"
@@ -21,7 +27,7 @@ jobs:
         {"include":[
           {
             "ios-label": "latest",
-            "runner": "xcode-27",
+            "runner": ${{ needs.route.outputs.xcode-27 }},
             "device": "iPhone 18 Pro",
             "device-type": "com.apple.CoreSimulator.SimDeviceType.iPhone-18-Pro",
             "os-version": "",
@@ -32,7 +38,7 @@ jobs:
         {"include":[
           {
             "ios-label": "latest",
-            "runner": "xcode-27",
+            "runner": ${{ needs.route.outputs.xcode-27 }},
             "device": "iPhone 18 Pro",
             "device-type": "com.apple.CoreSimulator.SimDeviceType.iPhone-18-Pro",
             "os-version": "",
@@ -40,7 +46,7 @@ jobs:
           },
           {
             "ios-label": "latest",
-            "runner": "xcode-27",
+            "runner": ${{ needs.route.outputs.xcode-27 }},
             "device": "iPad Pro 13-inch (M5)",
             "device-type": "com.apple.CoreSimulator.SimDeviceType.iPad-Pro-13-inch-M5-12GB",
             "os-version": "",
@@ -50,12 +56,13 @@ jobs:
 
   docs:
     name: Build Documentation
-    runs-on: xcode-27
+    needs: route
+    runs-on: ${{ fromJSON(needs.route.outputs.xcode-27) }}
     steps:
       - uses: actions/checkout@v7.0.1
       - name: Set up iOS simulator
         id: sim
-        uses: RISCfuture/XCUITestKit/ci-templates/setup-ios-simulator@1.2.1
+        uses: RISCfuture/XCUITestKit/ci-templates/setup-ios-simulator@1.3.0
         with:
           device: "iPhone 18 Pro"
           device-type: com.apple.CoreSimulator.SimDeviceType.iPhone-18-Pro
