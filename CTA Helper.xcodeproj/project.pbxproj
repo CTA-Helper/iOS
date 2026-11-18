@@ -712,7 +712,7 @@
 			repositoryURL = "https://github.com/RISCfuture/XCUITestKit";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 1.2.1;
+				minimumVersion = 1.4.0;
 			};
 		};
 		433C45F5269F45B6BC09085B /* XCRemoteSwiftPackageReference "sentry-cocoa" */ = {
