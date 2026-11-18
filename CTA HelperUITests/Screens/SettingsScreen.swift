@@ -19,7 +19,7 @@ struct SettingsScreen {
 
   /// Whether the sheet has gone, giving the dismissal it may still be animating time to finish.
   private var hasLeft: Bool {
-    landing.waitForNonExistence(timeout: ScaledTimeouts.short)
+    !landing.exists || landing.waitForNonExistence(timeout: ScaledTimeouts.short)
   }
 
   @discardableResult
