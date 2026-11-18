@@ -20,7 +20,8 @@ final class SearchViewModel {
   private(set) var results: [Airport] = []
 
   private let container: ModelContainer
-  private var searchTask: Task<Void, Never>?
+  /// The pending search for the latest query, if one is scheduled or running.
+  private(set) var searchTask: Task<Void, Never>?
 
   init(container: ModelContainer) {
     self.container = container
