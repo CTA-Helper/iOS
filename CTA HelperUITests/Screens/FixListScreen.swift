@@ -258,7 +258,7 @@ struct FixListScreen {
     let done = app.buttons[Self.dismissKeyboardID]
     if done.exists, done.isHittable { done.tap() }
     XCTAssertTrue(
-      keyboard.waitForNonExistence(timeout: ScaledTimeouts.element),
+      !keyboard.exists || keyboard.waitForNonExistence(timeout: ScaledTimeouts.element),
       "The number pad stayed up after the key that closes it was pressed"
     )
   }

@@ -136,7 +136,7 @@ extension XCUIApplication {
    */
   private func backButton(in pane: Pane) -> XCUIElement {
     let backButtons = buttons.matching(NSPredicate(format: "identifier IN %@", Self.backButtonIDs))
-    _ = backButtons.firstMatch.waitForExistence(timeout: ScaledTimeouts.element)
+    _ = backButtons.firstMatch.wait(timeout: ScaledTimeouts.element)
     let onScreen = backButtons.allElementsBoundByIndex.filter { $0.exists && $0.isHittable }
 
     guard let edge = paneEdge else { return onScreen.first ?? backButtons.firstMatch }
